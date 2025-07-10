@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Label Viewer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #info {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    #main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #canvas-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+    canvas {
+      border: 1px solid #ccc;
+    }
+    #controls {
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 0 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">click and check</div>
+
+  <div id="main">
+    <div id="canvas-container">
+      <canvas id="bboxCanvas" width="400" height="400"></canvas>
+      <canvas id="fullCanvas" width="400" height="400"></canvas>
+    </div>
+    <div id="controls">
+      <button onclick="prev()">上一个</button>
+      <button onclick="next()">下一个</button>
+    </div>
+  </div>
+
+  <script>
+    let data = null;          // 后端返回的标注数据
+    let currentIndex = 0;     // 当前展示的bbox索引
+    let image = new Image();  // 图片对象
+
+    async function loadData() {
+      const res = await fetch('/data');
+      data = await res.json();
+
+      if (!data) {
+        alert("没有找到标注数据");
+        return;
+      }
+      if (!data.annotations || data.annotations.length === 0) {
+        alert("没有找到任何标注");
+        return;
+      }
+      
+      // 处理Label Studio格式的数据，提取矩形标注
+      const rectangleAnnotations = [];
+      data.annotations.forEach(annotation => {
+        if (annotation.result) {
+          annotation.result.forEach(item => {
+            if (item.type === 'textarea' && item.value) {
+              rectangleAnnotations.push({
+                bbox: item.value,
+                original_width: item.original_width,
+                original_height: item.original_height,
+                label: item.value.rectanglelabels ? item.value.rectanglelabels[0] : 'unknown',
+                text: item.value.text || '??'
+              });
+            }
+          });
+        }
+      });
+      
+      if (rectangleAnnotations.length === 0) {
+        alert("没有找到矩形标注");
+        return;
+      }
+      
+      // 替换原始的annotations数据
+      data.annotations = rectangleAnnotations;
+
+      // 取图像文件名，优先用data里的，否则默认路径
+      const imgPath = data.file_upload
+      image.src = "data/images/" + imgPath;
+
+      image.onload = () => {
+        console.log("图片加载成功，开始绘制标注");
+        draw();
+      };
+      
+      image.onerror = () => {
+        alert("图片加载失败: " + image.src);
+      };
+    }
+
+    function draw() {
+      if (!data || !data.annotations || data.annotations.length === 0) return;
+      
+      const annotation = data.annotations[currentIndex];
+      const bbox = annotation.bbox;
+      if (!bbox) return;
+
+      console.log("Drawing annotation:", annotation);
+      console.log("Image size:", image.width, "x", image.height);
+      
+      // Label Studio格式：x, y, width, height 都是百分比
+      // 转换为绝对像素坐标
+      const x = (bbox.x / 100) * image.width;
+      const y = (bbox.y / 100) * image.height;
+      const w = (bbox.width / 100) * image.width;
+      const h = (bbox.height / 100) * image.height;
+
+      console.log("Converted bbox:", {x, y, w, h});
+
+      // 裁剪区域canvas绘制
+      const bboxCanvas = document.getElementById("bboxCanvas");
+      const bboxCtx = bboxCanvas.getContext("2d");
+      bboxCtx.clearRect(0, 0, bboxCanvas.width, bboxCanvas.height);
+
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      const tempCtx = tempCanvas.getContext("2d");
+      tempCtx.drawImage(image, x, y, w, h, 0, 0, w, h);
+
+      // 缩放至显示canvas大小
+      const scale = Math.min(bboxCanvas.width / w, bboxCanvas.height / h);
+      const sw = w * scale;
+      const sh = h * scale;
+      bboxCtx.drawImage(tempCanvas, 0, 0, w, h, (bboxCanvas.width - sw) / 2, (bboxCanvas.height - sh) / 2, sw, sh);
+
+      // 点击显示详情
+      bboxCanvas.onclick = () => {
+        document.getElementById("info").innerText = 
+          `${annotation.text}`;
+      };
+
+      // 绘制完整图和框
+      const fullCanvas = document.getElementById("fullCanvas");
+      const fullCtx = fullCanvas.getContext("2d");
+      fullCtx.clearRect(0, 0, fullCanvas.width, fullCanvas.height);
+
+      const iw = image.width;
+      const ih = image.height;
+      const scaleF = Math.min(fullCanvas.width / iw, fullCanvas.height / ih);
+      const scaledW = iw * scaleF;
+      const scaledH = ih * scaleF;
+
+      fullCtx.drawImage(image, 0, 0, iw, ih, 0, 0, scaledW, scaledH);
+
+      // 画红框
+      fullCtx.strokeStyle = "red";
+      fullCtx.lineWidth = 2;
+      fullCtx.strokeRect(x * scaleF, y * scaleF, w * scaleF, h * scaleF);
+      
+      // 更新信息显示
+      document.getElementById("info").innerText = `id: ${currentIndex + 1}/${data.annotations.length}: ${annotation.label} (点击左侧区域查看详情)`;
+    }
+
+    function prev() {
+      if (!data) return;
+      currentIndex = (currentIndex - 1 + data.annotations.length) % data.annotations.length;
+      draw();
+    }
+
+    function next() {
+      if (!data) return;
+      currentIndex = (currentIndex + 1) % data.annotations.length;
+      draw();
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

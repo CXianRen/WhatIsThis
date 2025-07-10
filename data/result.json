@@ -1,0 +1,410 @@
+[
+    {
+        "id": 1,
+        "annotations": [
+            {
+                "id": 1,
+                "completed_by": 1,
+                "result": [
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 0.8620689655172413,
+                            "y": 52.18390804597701,
+                            "width": 6.551724137931035,
+                            "height": 35.51724137931034,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "Ecy0_szKBB",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 0.8620689655172413,
+                            "y": 52.18390804597701,
+                            "width": 6.551724137931035,
+                            "height": 35.51724137931034,
+                            "rotation": 0,
+                            "text": [
+                                "pillar, information pillar, information point, help point"
+                            ]
+                        },
+                        "id": "Ecy0_szKBB",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 7.758620689655175,
+                            "y": 57.01149425287356,
+                            "width": 7.06896551724138,
+                            "height": 18.6206896551724,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "HpS56oiY9d",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 7.758620689655175,
+                            "y": 57.01149425287356,
+                            "width": 7.06896551724138,
+                            "height": 18.6206896551724,
+                            "rotation": 0,
+                            "text": [
+                                "train route map board"
+                            ]
+                        },
+                        "id": "HpS56oiY9d",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 14.913793103448276,
+                            "y": 54.48275862068965,
+                            "width": 12.758620689655176,
+                            "height": 10,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "bQgsP0ppkx",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 14.913793103448276,
+                            "y": 54.48275862068965,
+                            "width": 12.758620689655176,
+                            "height": 10,
+                            "rotation": 0,
+                            "text": [
+                                "sign, exit sign, "
+                            ]
+                        },
+                        "id": "bQgsP0ppkx",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 28.362068965517235,
+                            "y": 42.87356321839081,
+                            "width": 6.982758620689661,
+                            "height": 7.586206896551727,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "bZqxyOybIs",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 28.362068965517235,
+                            "y": 42.87356321839081,
+                            "width": 6.982758620689661,
+                            "height": 7.586206896551727,
+                            "rotation": 0,
+                            "text": [
+                                "bench"
+                            ]
+                        },
+                        "id": "bZqxyOybIs",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 28.70689655172413,
+                            "y": 29.080459770114953,
+                            "width": 10.689655172413808,
+                            "height": 3.908045977011485,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "qIRh4KOGoi",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 28.70689655172413,
+                            "y": 29.080459770114953,
+                            "width": 10.689655172413808,
+                            "height": 3.908045977011485,
+                            "rotation": 0,
+                            "text": [
+                                "information screen, display"
+                            ]
+                        },
+                        "id": "qIRh4KOGoi",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 32.99252798072938,
+                            "y": 33.13066415931239,
+                            "width": 6.6179702144236,
+                            "height": 7.915611432938022,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "CjcoKV6HWy",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 32.99252798072938,
+                            "y": 33.13066415931239,
+                            "width": 6.6179702144236,
+                            "height": 7.915611432938022,
+                            "rotation": 0,
+                            "text": [
+                                "stair, staircase, stairway"
+                            ]
+                        },
+                        "id": "CjcoKV6HWy",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 35.863559176692554,
+                            "y": 18.66196457287649,
+                            "width": 5.644739300537779,
+                            "height": 9.60254501700678,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "O4u83KLLzM",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 35.863559176692554,
+                            "y": 18.66196457287649,
+                            "width": 5.644739300537779,
+                            "height": 9.60254501700678,
+                            "rotation": 0,
+                            "text": [
+                                "lift, evaluator"
+                            ]
+                        },
+                        "id": "O4u83KLLzM",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 43.35743721361331,
+                            "y": 23.59300120323132,
+                            "width": 27.493773317274545,
+                            "height": 6.488206092572075,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "hF-9poyl8Z",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 43.35743721361331,
+                            "y": 23.59300120323132,
+                            "width": 27.493773317274545,
+                            "height": 6.488206092572075,
+                            "rotation": 0,
+                            "text": [
+                                "overhead walkway, overpass, pedestrian walkway "
+                            ]
+                        },
+                        "id": "hF-9poyl8Z",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 42.15517241379311,
+                            "y": 69.08045977011501,
+                            "width": 11.206896551724116,
+                            "height": 27.471264367816033,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "9xFou_--Hs",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2816,
+                        "original_height": 2112,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 42.15517241379311,
+                            "y": 69.08045977011501,
+                            "width": 11.206896551724116,
+                            "height": 27.471264367816033,
+                            "rotation": 0,
+                            "text": [
+                                "railway"
+                            ]
+                        },
+                        "id": "9xFou_--Hs",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    }
+                ],
+                "was_cancelled": false,
+                "ground_truth": false,
+                "created_at": "2025-07-10T10:01:07.233081Z",
+                "updated_at": "2025-07-10T10:01:40.413322Z",
+                "draft_created_at": "2025-07-10T09:54:21.927303Z",
+                "lead_time": 440.255,
+                "prediction": {},
+                "result_count": 9,
+                "unique_id": "e8ea1e4a-4f5b-485f-8898-7628e63bc003",
+                "import_id": null,
+                "last_action": null,
+                "bulk_created": false,
+                "task": 1,
+                "project": 1,
+                "updated_by": 1,
+                "parent_prediction": null,
+                "parent_annotation": null,
+                "last_created_by": null
+            }
+        ],
+        "file_upload": "55521ca0-London_Train_Station.jpg",
+        "drafts": [],
+        "predictions": [],
+        "data": {
+            "image": "\/data\/upload\/1\/55521ca0-London_Train_Station.jpg"
+        },
+        "meta": {},
+        "created_at": "2025-07-10T09:43:11.675745Z",
+        "updated_at": "2025-07-10T10:01:40.463418Z",
+        "inner_id": 1,
+        "total_annotations": 1,
+        "cancelled_annotations": 0,
+        "total_predictions": 0,
+        "comment_count": 0,
+        "unresolved_comment_count": 0,
+        "last_comment_updated_at": null,
+        "project": 1,
+        "updated_by": 1,
+        "comment_authors": []
+    }
+]
