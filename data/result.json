@@ -406,5 +406,781 @@
         "project": 1,
         "updated_by": 1,
         "comment_authors": []
+    },
+    {
+        "id": 2,
+        "annotations": [
+            {
+                "id": 2,
+                "completed_by": 2,
+                "result": [
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 32.853997523049394,
+                            "y": 63.708086785009854,
+                            "width": 8.804871336177243,
+                            "height": 14.39842209072978,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "sFPY-URJHC",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 32.853997523049394,
+                            "y": 63.708086785009854,
+                            "width": 8.804871336177243,
+                            "height": 14.39842209072978,
+                            "rotation": 0,
+                            "text": [
+                                "grab handle"
+                            ]
+                        },
+                        "id": "sFPY-URJHC",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 53.617723957616626,
+                            "y": 31.558185404339252,
+                            "width": 3.1539837622127394,
+                            "height": 34.319526627218934,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "daMblfAEeS",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 53.617723957616626,
+                            "y": 31.558185404339252,
+                            "width": 3.1539837622127394,
+                            "height": 34.319526627218934,
+                            "rotation": 0,
+                            "text": [
+                                "subway pole"
+                            ]
+                        },
+                        "id": "daMblfAEeS",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 5.256639603687904,
+                            "y": 6.903353057199212,
+                            "width": 37.97922113664511,
+                            "height": 30.769230769230766,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "GUZ7C8hN-B",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 5.256639603687904,
+                            "y": 6.903353057199212,
+                            "width": 37.97922113664511,
+                            "height": 30.769230769230766,
+                            "rotation": 0,
+                            "text": [
+                                "luggage rack"
+                            ]
+                        },
+                        "id": "GUZ7C8hN-B",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 16.0327507912481,
+                            "y": 43.19526627218933,
+                            "width": 4.599559653226916,
+                            "height": 5.3254437869822535,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "vQATPJUTWu",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 16.0327507912481,
+                            "y": 43.19526627218933,
+                            "width": 4.599559653226916,
+                            "height": 5.3254437869822535,
+                            "rotation": 0,
+                            "text": [
+                                "hook, coat hook, clothes hook"
+                            ]
+                        },
+                        "id": "vQATPJUTWu",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 0,
+                            "y": 39.25049309664694,
+                            "width": 13.404430989404156,
+                            "height": 9.664694280078898,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "WJb9oIiQiT",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 0,
+                            "y": 39.25049309664694,
+                            "width": 13.404430989404156,
+                            "height": 9.664694280078898,
+                            "rotation": 0,
+                            "text": [
+                                "blinds, roller blinds"
+                            ]
+                        },
+                        "id": "WJb9oIiQiT",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 44.944268611531626,
+                            "y": 19.329388560157803,
+                            "width": 3.416815742397105,
+                            "height": 7.692307692307692,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "mUXqHZtvhw",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 44.944268611531626,
+                            "y": 19.329388560157803,
+                            "width": 3.416815742397105,
+                            "height": 7.692307692307692,
+                            "rotation": 0,
+                            "text": [
+                                "Security camera"
+                            ]
+                        },
+                        "id": "mUXqHZtvhw",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 76.2212742534746,
+                            "y": 78.30374753451676,
+                            "width": 10.119031237099222,
+                            "height": 12.426035502958584,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "ek_Y9h-Hrn",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 860,
+                        "original_height": 573,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 76.2212742534746,
+                            "y": 78.30374753451676,
+                            "width": 10.119031237099222,
+                            "height": 12.426035502958584,
+                            "rotation": 0,
+                            "text": [
+                                "pocket, seat-back pocket"
+                            ]
+                        },
+                        "id": "ek_Y9h-Hrn",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    }
+                ],
+                "was_cancelled": false,
+                "ground_truth": false,
+                "created_at": "2025-07-22T09:23:55.176702Z",
+                "updated_at": "2025-07-22T09:23:55.176726Z",
+                "draft_created_at": "2025-07-22T09:12:18.648612Z",
+                "lead_time": 707.868,
+                "prediction": {},
+                "result_count": 7,
+                "unique_id": "fb72f9fd-7b8c-4ef7-8e13-fe82c75eedf1",
+                "import_id": null,
+                "last_action": null,
+                "bulk_created": false,
+                "task": 2,
+                "project": 1,
+                "updated_by": 2,
+                "parent_prediction": null,
+                "parent_annotation": null,
+                "last_created_by": null
+            }
+        ],
+        "file_upload": "5d03b708-train_seat.jpg",
+        "drafts": [],
+        "predictions": [],
+        "data": {
+            "image": "\/data\/upload\/1\/5d03b708-train_seat.jpg"
+        },
+        "meta": {},
+        "created_at": "2025-07-22T09:12:04.432557Z",
+        "updated_at": "2025-07-22T09:23:55.223006Z",
+        "inner_id": 2,
+        "total_annotations": 1,
+        "cancelled_annotations": 0,
+        "total_predictions": 0,
+        "comment_count": 0,
+        "unresolved_comment_count": 0,
+        "last_comment_updated_at": null,
+        "project": 1,
+        "updated_by": 2,
+        "comment_authors": []
+    },
+    {
+        "id": 3,
+        "annotations": [
+            {
+                "id": 3,
+                "completed_by": 2,
+                "result": [
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 0.3945112492564641,
+                            "y": 5.421686746987946,
+                            "width": 9.336766232402988,
+                            "height": 58.43373493975905,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "iJUA-_4Dfk",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 0.3945112492564641,
+                            "y": 5.421686746987946,
+                            "width": 9.336766232402988,
+                            "height": 58.43373493975905,
+                            "rotation": 0,
+                            "text": [
+                                "blackboard, chalkboard,  chalk"
+                            ]
+                        },
+                        "id": "iJUA-_4Dfk",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 44.185259916724014,
+                            "y": 5.421686746987952,
+                            "width": 31.69240369026931,
+                            "height": 45.48192771084337,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "GvXI5Q-d8R",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 44.185259916724014,
+                            "y": 5.421686746987952,
+                            "width": 31.69240369026931,
+                            "height": 45.48192771084337,
+                            "rotation": 0,
+                            "text": [
+                                "whiteboard, marker"
+                            ]
+                        },
+                        "id": "GvXI5Q-d8R",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 43.26473366845893,
+                            "y": 53.6144578313253,
+                            "width": 9.994284981163759,
+                            "height": 16.867469879518072,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "au0-yhbXXf",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 43.26473366845893,
+                            "y": 53.6144578313253,
+                            "width": 9.994284981163759,
+                            "height": 16.867469879518072,
+                            "rotation": 0,
+                            "text": [
+                                "projector"
+                            ]
+                        },
+                        "id": "au0-yhbXXf",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 59.30819113822178,
+                            "y": 57.53012048192778,
+                            "width": 21.9611262086099,
+                            "height": 42.46987951807221,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "T7g_NqaEUs",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 59.30819113822178,
+                            "y": 57.53012048192778,
+                            "width": 21.9611262086099,
+                            "height": 42.46987951807221,
+                            "rotation": 0,
+                            "text": [
+                                "desk, chair"
+                            ]
+                        },
+                        "id": "T7g_NqaEUs",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 1.7095487467780124,
+                            "y": 72.89156626506023,
+                            "width": 3.6821049930603342,
+                            "height": 13.855421686746993,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "Q2Hu9TtVTS",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 1.7095487467780124,
+                            "y": 72.89156626506023,
+                            "width": 3.6821049930603342,
+                            "height": 13.855421686746993,
+                            "rotation": 0,
+                            "text": [
+                                "plug, socket, outlet"
+                            ]
+                        },
+                        "id": "Q2Hu9TtVTS",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 87.3184898354308,
+                            "y": 52.40963855421686,
+                            "width": 8.81075123339437,
+                            "height": 18.97590361445784,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "nDHVGBvdcq",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 87.3184898354308,
+                            "y": 52.40963855421686,
+                            "width": 8.81075123339437,
+                            "height": 18.97590361445784,
+                            "rotation": 0,
+                            "text": [
+                                "headphone"
+                            ]
+                        },
+                        "id": "nDHVGBvdcq",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 34.19097493556025,
+                            "y": 33.433734939759034,
+                            "width": 4.865638740829731,
+                            "height": 13.855421686746986,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "bCMYhxYDUz",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 34.19097493556025,
+                            "y": 33.433734939759034,
+                            "width": 4.865638740829731,
+                            "height": 13.855421686746986,
+                            "rotation": 0,
+                            "text": [
+                                "door handle"
+                            ]
+                        },
+                        "id": "bCMYhxYDUz",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 8.416239984137908,
+                            "y": 0.30120481927710846,
+                            "width": 11.703833727941776,
+                            "height": 65.3614457831325,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "YNTSx-7YLI",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 8.416239984137908,
+                            "y": 0.30120481927710846,
+                            "width": 11.703833727941776,
+                            "height": 65.3614457831325,
+                            "rotation": 0,
+                            "text": [
+                                "projection screen"
+                            ]
+                        },
+                        "id": "YNTSx-7YLI",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 30.11435869324345,
+                            "y": 8.433734939759036,
+                            "width": 4.997142490581883,
+                            "height": 8.13253012048193,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "LQwzCi8iBT",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 30.11435869324345,
+                            "y": 8.433734939759036,
+                            "width": 4.997142490581883,
+                            "height": 8.13253012048193,
+                            "rotation": 0,
+                            "text": [
+                                "room sign"
+                            ]
+                        },
+                        "id": "LQwzCi8iBT",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 86.1349560876614,
+                            "y": 70.78313253012048,
+                            "width": 7.101202486616373,
+                            "height": 24.698795180722897,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "obj"
+                            ]
+                        },
+                        "id": "WflD4I-j8l",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 1033,
+                        "original_height": 451,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 86.1349560876614,
+                            "y": 70.78313253012048,
+                            "width": 7.101202486616373,
+                            "height": 24.698795180722897,
+                            "rotation": 0,
+                            "text": [
+                                "headphone cable"
+                            ]
+                        },
+                        "id": "WflD4I-j8l",
+                        "from_name": "comment",
+                        "to_name": "image",
+                        "type": "textarea",
+                        "origin": "manual"
+                    }
+                ],
+                "was_cancelled": false,
+                "ground_truth": false,
+                "created_at": "2025-07-24T07:55:03.479808Z",
+                "updated_at": "2025-07-24T07:55:03.479830Z",
+                "draft_created_at": "2025-07-24T07:44:10.254708Z",
+                "lead_time": 666.601,
+                "prediction": {},
+                "result_count": 10,
+                "unique_id": "15c5e08a-4525-40f2-ab1e-d07ab888a115",
+                "import_id": null,
+                "last_action": null,
+                "bulk_created": false,
+                "task": 3,
+                "project": 1,
+                "updated_by": 2,
+                "parent_prediction": null,
+                "parent_annotation": null,
+                "last_created_by": null
+            }
+        ],
+        "file_upload": "fbca4437-classroom.jpg",
+        "drafts": [],
+        "predictions": [],
+        "data": {
+            "image": "\/data\/upload\/1\/fbca4437-classroom.jpg"
+        },
+        "meta": {},
+        "created_at": "2025-07-24T07:43:53.185847Z",
+        "updated_at": "2025-07-24T07:55:03.521559Z",
+        "inner_id": 3,
+        "total_annotations": 1,
+        "cancelled_annotations": 0,
+        "total_predictions": 0,
+        "comment_count": 0,
+        "unresolved_comment_count": 0,
+        "last_comment_updated_at": null,
+        "project": 1,
+        "updated_by": 2,
+        "comment_authors": []
     }
 ]
