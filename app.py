@@ -1,7 +1,7 @@
 import os
 import json
 import sqlite3
-from flask import Flask, render_template, jsonify, send_from_directory
+from flask import Flask, render_template, jsonify, send_from_directory, request
 from duckduckgo_search import DDGS  # 你需要确保已安装 duckduckgo_search
 
 app = Flask(__name__)
@@ -98,6 +98,16 @@ def get_data(image_name):
 @app.route('/data/images/<filename>')
 def get_image(filename):
     return send_from_directory(IMAGE_DIR, filename)
+
+
+@app.route('/data/search_as')
+def search_as():
+    query = request.args.get('query')
+    keyword = request.args.get('keyword')
+    urls = search_images(keyword, 5)
+    img_cache_map[query] = urls
+    save_cache(query, urls)
+    return jsonify(urls)
 
 
 @app.route('/search/<query>')
