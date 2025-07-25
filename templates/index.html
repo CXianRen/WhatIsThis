@@ -4,128 +4,113 @@
 <head>
   <meta charset="UTF-8" />
   <title>Label Viewer</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    #info {
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
-
-    #main {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    #canvas-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-    }
-
-    canvas {
-      border: 1px solid #ccc;
-    }
-
-    #controls {
-      margin-top: 20px;
-    }
-
-    button {
-      padding: 10px 15px;
-      margin: 0 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 
-<body style="height: 100vh; display: flex; align-items: center; justify-content: center;">
-  <div style="display: flex;">
-    <div style="width: 180px; margin-right: 20px;">
+<body>
+  <div class="container">
+    <div class="sidebar">
       <h3>场景列表</h3>
-      <ul id="imgList" style="list-style:none; padding:0;"></ul>
+      <ul id="imgList"></ul>
     </div>
-    <div style="flex:1;">
-      <div id="info" style="height: 100;"></div>
-      <div id="main">
-        <div id="canvas-container">
-          <canvas id="bboxCanvas" width="400" height="400"></canvas>
-          <canvas id="fullCanvas" width="400" height="400"></canvas>
+    <div class="main">
+      <div id="info"></div>
+      <div id="canvas-container">
+        <canvas id="bboxCanvas" width="400" height="400"></canvas>
+        <canvas id="fullCanvas" width="400" height="400"></canvas>
+      </div>
+      <div id="controls">
+        <button onclick="prev()">上一个</button>
+        <button onclick="next()">下一个</button>
+      </div>
+      <div id="more-imgs">
+        <h4>相关图片</h4>
+        <div>
+          <input type="text" id="searchKeyword" placeholder="输入关键词" />
+          <button onclick="refreshRelatedImages()">刷新</button>
         </div>
-        <div id="controls">
-          <button onclick="prev()">上一个</button>
-          <button onclick="next()">下一个</button>
-        </div>
-        <div id="more-imgs" style="margin-top: 20px;">
-          <h4>相关图片</h4>
-          <!-- 刷新按钮 和 文本输入 -->
-          <div>
-            <input type="text" id="searchKeyword" placeholder="输入关键词" />
-            <button onclick="refreshRelatedImages()">刷新</button>
-          </div>
-          <div id="relatedImages"></div>
-        </div>
+        <div id="relatedImages"></div>
       </div>
     </div>
+  </div>
 
-    <script>
-      let data = null;          // 后端返回的标注数据
-      let currentIndex = 0;     // 当前展示的bbox索引
-      let image = new Image();  // 图片对象
-      let imgList = [];         // 场景图片列表
-      let currentImg = null;    // 当前图片文件名
-      // 加载图片列表
-      async function loadImgList() {
+  <script>
+    let data = null;          // 后端返回的标注数据
+    let currentIndex = 0;     // 当前展示的bbox索引
+    let image = new Image();  // 图片对象
+    let imgList = [];         // 场景图片列表
+    let currentImg = null;    // 当前图片文件名
+
+    // 缓存 DOM 元素，避免重复查找
+    const ulImgList = document.getElementById('imgList');
+    const relatedImagesDiv = document.getElementById("relatedImages");
+    const searchKeywordInput = document.getElementById("searchKeyword");
+    const infoDiv = document.getElementById("info");
+    const bboxCanvas = document.getElementById("bboxCanvas");
+    const bboxCtx = bboxCanvas.getContext("2d");
+    const fullCanvas = document.getElementById("fullCanvas");
+    const fullCtx = fullCanvas.getContext("2d");
+
+    // 加载图片列表
+    async function loadImgList() {
+      try {
         const res = await fetch('/list');
+        if (!res.ok) throw new Error(`Failed to fetch image list: ${res.status}`);
         imgList = await res.json();
-        const ul = document.getElementById('imgList');
-        ul.innerHTML = '';
+        ulImgList.innerHTML = '';
+
         imgList.forEach((img, idx) => {
           const li = document.createElement('li');
-          li.textContent = img;
+          let displayName = img.split('-').pop()
+            .replace('.jpg', '')
+            .replace(/_/g, ' ')
+            .toLowerCase();
+
+          li.textContent = displayName;
           li.style.cursor = 'pointer';
           li.style.padding = '6px 0';
+
           li.onclick = () => {
             currentImg = img;
             loadData(img);
             // 高亮选中
-            Array.from(ul.children).forEach(e => e.style.background = '');
+            Array.from(ulImgList.children).forEach(e => e.style.background = '');
             li.style.background = '#e0e0e0';
           };
-          ul.appendChild(li);
+          ulImgList.appendChild(li);
         });
-        // 默认选中第一个
-        if (imgList.length > 0) {
-          ul.children[0].click();
-        }
-      }
 
-      async function loadData(imgName) {
-        // 获取所有数据，找到对应图片的场景
-        const res = await fetch('/data/' + imgName);
+        if (imgList.length > 0) {
+          ulImgList.children[0].click();
+        }
+      } catch (error) {
+        alert(`加载图片列表失败: ${error.message}`);
+        console.error(error);
+      }
+    }
+
+    // 加载某张图片对应的数据
+    async function loadData(imgName) {
+      try {
+        const res = await fetch(`/data/${imgName}`);
+        if (!res.ok) throw new Error(`Failed to fetch data for ${imgName}: ${res.status}`);
         let scene = await res.json();
-        // 如果是多场景，需遍历查找
+
         if (Array.isArray(scene)) {
           scene = scene.find(item => item.file_upload === imgName) || scene[0];
         }
+
+        if (!scene) throw new Error('没有找到对应场景数据');
+
         data = scene;
         currentIndex = 0;
-        if (!data) {
-          alert("没有找到标注数据");
-          return;
-        }
+
         if (!data.annotations || data.annotations.length === 0) {
           alert("没有找到任何标注");
           return;
         }
-        // 处理Label Studio格式的数据，提取矩形标注
+
+        // 处理 Label Studio 格式的矩形标注
         const rectangleAnnotations = [];
         data.annotations.forEach(annotation => {
           if (annotation.result) {
@@ -142,174 +127,169 @@
             });
           }
         });
+
         if (rectangleAnnotations.length === 0) {
           alert("没有找到矩形标注");
           return;
         }
+
         data.annotations = rectangleAnnotations;
-        image.src = "data/images/" + imgName;
-        image.onload = () => {
-          draw();
-        };
-        image.onerror = () => {
-          alert("图片加载失败: " + image.src);
-        };
-      }
+        image.src = `data/images/${imgName}`;
 
-      async function showmore(text) {
-        const res = await fetch('/search/' + text);
-        const results = await res.json();
-        // print result
-        console.log("Search results:", results);
-        // 显示结果
-        const relatedImagesDiv = document.getElementById("relatedImages");
-        relatedImagesDiv.innerHTML = ''; // 清空之前的内容
-        if (results && results.length > 0) {
-          results.forEach(img => {
-            const imgElem = document.createElement("img");
-            imgElem.src = img;
-            imgElem.style.width = "200px";
-            imgElem.style.height = "200px";
-            imgElem.style.margin = "5px";
-            relatedImagesDiv.appendChild(imgElem);
-          });
-        } else {
-          relatedImagesDiv.innerHTML = '<p>没有找到相关图片</p>';
-        }
-      }
+        image.onload = () => draw();
+        image.onerror = () => alert(`图片加载失败: ${image.src}`);
 
-      // 当showmore 的结果不满意时 用户主动触发 查找
-      // 这里的query是 annotation.text keyword是用户输入的关键词
-      async function searchAs(query, keyword) {
-        const res = await fetch(`/data/search_as?query=${query}&keyword=${keyword}`);
+      } catch (error) {
+        alert(`加载数据失败: ${error.message}`);
+        console.error(error);
+      }
+    }
+
+    // 显示相关图片
+    function displayRelatedImages(results) {
+      relatedImagesDiv.innerHTML = '';
+      if (results && results.length > 0) {
+        results.forEach(img => {
+          const imgElem = document.createElement("img");
+          imgElem.src = img;
+          imgElem.style.width = "200px";
+          imgElem.style.height = "200px";
+          imgElem.style.margin = "5px";
+          relatedImagesDiv.appendChild(imgElem);
+        });
+      } else {
+        relatedImagesDiv.innerHTML = '<p>没有找到相关图片</p>';
+      }
+    }
+
+    // 通过关键字查找相关图片
+    async function searchAs(query, keyword) {
+      try {
+        const res = await fetch(`/data/search_as?query=${encodeURIComponent(query)}&keyword=${encodeURIComponent(keyword)}`);
+        if (!res.ok) throw new Error(`搜索失败: ${res.status}`);
         const results = await res.json();
         console.log("Search results:", results);
-        // 显示结果
-        const relatedImagesDiv = document.getElementById("relatedImages");
-        relatedImagesDiv.innerHTML = ''; // 清空之前的内容
-        if (results && results.length > 0) {
-          results.forEach(img => {
-            const imgElem = document.createElement("img");
-            imgElem.src = img;
-            imgElem.style.width = "200px";
-            imgElem.style.height = "200px";
-            imgElem.style.margin = "5px";
-            relatedImagesDiv.appendChild(imgElem);
-          });
-        } else {
-          relatedImagesDiv.innerHTML = '<p>没有找到相关图片</p>';
-        }
+        displayRelatedImages(results);
+      } catch (error) {
+        alert(`搜索相关图片失败: ${error.message}`);
+        console.error(error);
       }
+    }
 
-      // 刷新相关图片
-      function refreshRelatedImages() {
-        const keyword = document.getElementById("searchKeyword").value.trim();
-        if (!keyword) {
-          alert("请输入关键词");
-          return;
-        }
-        if (!data || !data.annotations || data.annotations.length === 0) {
-          alert("没有可用的标注数据");
-          return;
-        }
-        const annotation = data.annotations[currentIndex];
-        if (!annotation || !annotation.text) {
-          alert("当前标注没有文本信息");
-          return;
-        }
-        // 调用searchAs函数
-        searchAs(annotation.text, keyword);
+    // 刷新相关图片（用户点击按钮触发）
+    function refreshRelatedImages() {
+      const keyword = searchKeywordInput.value.trim();
+      if (!keyword) {
+        alert("请输入关键词");
+        return;
       }
-
-      function draw() {
-        if (!data || !data.annotations || data.annotations.length === 0) return;
-
-        const annotation = data.annotations[currentIndex];
-        const bbox = annotation.bbox;
-        if (!bbox) return;
-
-        console.log("Drawing annotation:", annotation);
-        console.log("Image size:", image.width, "x", image.height);
-
-        showmore(annotation.text);
-
-        // Label Studio格式：x, y, width, height 都是百分比
-        // 转换为绝对像素坐标
-        const x = (bbox.x / 100) * image.width;
-        const y = (bbox.y / 100) * image.height;
-        const w = (bbox.width / 100) * image.width;
-        const h = (bbox.height / 100) * image.height;
-
-        console.log("Converted bbox:", { x, y, w, h });
-
-        // 裁剪区域canvas绘制
-        const bboxCanvas = document.getElementById("bboxCanvas");
-        const bboxCtx = bboxCanvas.getContext("2d");
-        bboxCtx.clearRect(0, 0, bboxCanvas.width, bboxCanvas.height);
-
-        const tempCanvas = document.createElement("canvas");
-        tempCanvas.width = w;
-        tempCanvas.height = h;
-        const tempCtx = tempCanvas.getContext("2d");
-        tempCtx.drawImage(image, x, y, w, h, 0, 0, w, h);
-
-        // 缩放至显示canvas大小
-        const scale = Math.min(bboxCanvas.width / w, bboxCanvas.height / h);
-        const sw = w * scale;
-        const sh = h * scale;
-        bboxCtx.drawImage(tempCanvas, 0, 0, w, h, (bboxCanvas.width - sw) / 2, (bboxCanvas.height - sh) / 2, sw, sh);
-
-        // 点击显示详情
-        bboxCanvas.onclick = () => {
-          document.getElementById("info").innerText =
-            `${annotation.text}`;
-        };
-
-
-        // 绘制完整图和框
-        const fullCanvas = document.getElementById("fullCanvas");
-        const fullCtx = fullCanvas.getContext("2d");
-        fullCtx.clearRect(0, 0, fullCanvas.width, fullCanvas.height);
-
-        const iw = image.width;
-        const ih = image.height;
-        const scaleF = Math.min(fullCanvas.width / iw, fullCanvas.height / ih);
-        const scaledW = iw * scaleF;
-        const scaledH = ih * scaleF;
-
-        // 居中显示完整图像
-        const offsetX = (fullCanvas.width - scaledW) / 2;
-        const offsetY = (fullCanvas.height - scaledH) / 2;
-        fullCtx.drawImage(image, 0, 0, iw, ih, offsetX, offsetY, scaledW, scaledH);
-
-        // 画红框（加上居中偏移）
-        fullCtx.strokeStyle = "red";
-        fullCtx.lineWidth = 2;
-        fullCtx.strokeRect(
-          offsetX + x * scaleF,
-          offsetY + y * scaleF,
-          w * scaleF,
-          h * scaleF
-        );
-
-        // 更新信息显示
-        document.getElementById("info").innerText = `click to see details`;
+      if (!data || !data.annotations || data.annotations.length === 0) {
+        alert("没有可用的标注数据");
+        return;
       }
-
-      function prev() {
-        if (!data) return;
-        currentIndex = (currentIndex - 1 + data.annotations.length) % data.annotations.length;
-        draw();
+      const annotation = data.annotations[currentIndex];
+      if (!annotation || !annotation.text) {
+        alert("当前标注没有文本信息");
+        return;
       }
+      searchAs(annotation.text, keyword);
+    }
 
-      function next() {
-        if (!data) return;
-        currentIndex = (currentIndex + 1) % data.annotations.length;
-        draw();
+    // 绘制当前标注和图片
+    function draw() {
+      if (!data || !data.annotations || data.annotations.length === 0) return;
+
+      const annotation = data.annotations[currentIndex];
+      const bbox = annotation.bbox;
+      if (!bbox) return;
+
+      console.log("Drawing annotation:", annotation);
+      console.log("Image size:", image.width, "x", image.height);
+
+      showmore(annotation.text);
+
+      // 转换 Label Studio 百分比为像素
+      const x = (bbox.x / 100) * image.width;
+      const y = (bbox.y / 100) * image.height;
+      const w = (bbox.width / 100) * image.width;
+      const h = (bbox.height / 100) * image.height;
+
+      console.log("Converted bbox:", { x, y, w, h });
+
+      // 清空裁剪区域 canvas
+      bboxCtx.clearRect(0, 0, bboxCanvas.width, bboxCanvas.height);
+
+      // 临时 canvas 用于裁剪图像
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      const tempCtx = tempCanvas.getContext("2d");
+      tempCtx.drawImage(image, x, y, w, h, 0, 0, w, h);
+
+      // 缩放绘制到 bboxCanvas 中心
+      const scale = Math.min(bboxCanvas.width / w, bboxCanvas.height / h);
+      const sw = w * scale;
+      const sh = h * scale;
+      bboxCtx.drawImage(tempCanvas, 0, 0, w, h, (bboxCanvas.width - sw) / 2, (bboxCanvas.height - sh) / 2, sw, sh);
+
+      bboxCanvas.onclick = () => {
+        infoDiv.innerText = annotation.text;
+      };
+
+      // 绘制完整图像和框
+      fullCtx.clearRect(0, 0, fullCanvas.width, fullCanvas.height);
+      const iw = image.width;
+      const ih = image.height;
+      const scaleF = Math.min(fullCanvas.width / iw, fullCanvas.height / ih);
+      const scaledW = iw * scaleF;
+      const scaledH = ih * scaleF;
+      const offsetX = (fullCanvas.width - scaledW) / 2;
+      const offsetY = (fullCanvas.height - scaledH) / 2;
+
+      fullCtx.drawImage(image, 0, 0, iw, ih, offsetX, offsetY, scaledW, scaledH);
+
+      fullCtx.strokeStyle = "red";
+      fullCtx.lineWidth = 2;
+      fullCtx.strokeRect(
+        offsetX + x * scaleF,
+        offsetY + y * scaleF,
+        w * scaleF,
+        h * scaleF
+      );
+
+      infoDiv.innerText = "click to see details";
+    }
+
+    // 显示更多相关图片（调用 showmore）
+    async function showmore(text) {
+      try {
+        const res = await fetch(`/search/${encodeURIComponent(text)}`);
+        if (!res.ok) throw new Error(`加载更多相关图片失败: ${res.status}`);
+        const results = await res.json();
+        console.log("Showmore results:", results);
+        displayRelatedImages(results);
+      } catch (error) {
+        alert(`加载更多相关图片失败: ${error.message}`);
+        console.error(error);
       }
+    }
 
-      loadImgList();
-    </script>
+    function prev() {
+      if (!data) return;
+      currentIndex = (currentIndex - 1 + data.annotations.length) % data.annotations.length;
+      draw();
+    }
+
+    function next() {
+      if (!data) return;
+      currentIndex = (currentIndex + 1) % data.annotations.length;
+      draw();
+    }
+
+    // 初始化
+    loadImgList();
+  </script>
+
 </body>
 
 </html>
