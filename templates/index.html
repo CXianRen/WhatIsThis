@@ -231,9 +231,22 @@
       const sw = w * scale;
       const sh = h * scale;
       bboxCtx.drawImage(tempCanvas, 0, 0, w, h, (bboxCanvas.width - sw) / 2, (bboxCanvas.height - sh) / 2, sw, sh);
-
+      
       bboxCanvas.onclick = () => {
-        infoDiv.innerText = annotation.text;
+        let textArray = annotation.text
+          .split(",")
+          .map(t => t.trim())
+          .filter(t => t.length > 0);
+
+        const buttons = textArray.map(text => {
+          const button = document.createElement("button");
+          button.innerText = text;
+          button.onclick = () => showmore(text);
+          return button;
+        });
+
+        infoDiv.innerHTML = '';
+        buttons.forEach(button => infoDiv.appendChild(button));
       };
 
       // 绘制完整图像和框
