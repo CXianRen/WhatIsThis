@@ -3,6 +3,7 @@ import json
 import sqlite3
 from flask import Flask, render_template, jsonify, send_from_directory, request
 from duckduckgo_search import DDGS  # 你需要确保已安装 duckduckgo_search
+import requests
 
 app = Flask(__name__)
 
@@ -13,8 +14,12 @@ IMAGE_DIR = os.path.join(DATA_DIR, 'images')
 RESULT_JSON = os.path.join(DATA_DIR, 'result.json')
 CACHE_DB = os.path.join(DATA_DIR, 'img_cache.db')
 
+EN_PHONETIC_DB = os.path.join(DATA_DIR, 'en_phonetic.db')
+
+
 # ==== 内存缓存 ====
 img_cache_map = {}
+en_phonetic_map = {}
 
 # ==== 初始化数据库 ====
 def init_cache_db():
@@ -28,6 +33,17 @@ def init_cache_db():
             )
         ''')
         conn.commit()
+    
+    with sqlite3.connect(EN_PHONETIC_DB) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS en_phonetic (
+                word TEXT PRIMARY KEY,
+                phonetic TEXT
+            )
+        ''')
+        conn.commit()
+
 
 # ==== 加载数据库中的缓存 ====
 def load_cache():
@@ -41,6 +57,26 @@ def load_cache():
                 img_cache_map[query] = json.loads(urls_json)
             except json.JSONDecodeError:
                 continue
+
+# ==== 加载英语发音缓存 ====
+def load_en_phonetic_cache():
+    global en_phonetic_map
+    with sqlite3.connect(EN_PHONETIC_DB) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT word, phonetic FROM en_phonetic')
+        for row in cursor.fetchall():
+            word, phonetic = row
+            en_phonetic_map[word] = {'phonetic': phonetic}
+
+# ==== 保存英语发音缓存 ====
+def save_en_phonetic_cache(word, phonetic, audio):
+    with sqlite3.connect(EN_PHONETIC_DB) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            'REPLACE INTO en_phonetic (word, phonetic) VALUES (?, ?)',
+            (word, phonetic)
+        )
+        conn.commit()
 
 # ==== 保存新的缓存项 ====
 def save_cache(query, urls):
@@ -66,6 +102,7 @@ def search_images(query, max_results=5):
 # ==== 初始化数据库和缓存 ====
 init_cache_db()
 load_cache()
+load_en_phonetic_cache()
 
 # ==== 加载原始数据 ====
 with open(RESULT_JSON, 'r', encoding='utf-8') as f:
@@ -119,6 +156,82 @@ def search(query):
         img_cache_map[query] = urls
         save_cache(query, urls)
     return jsonify(urls)
+
+
+
+def get_phonetic(word):
+    # 检查缓存
+    if word in en_phonetic_map:
+        return en_phonetic_map[word]['phonetic']
+    
+    api_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
+    try:
+        response = requests.get(api_url)
+        if response.status_code == 200:
+            data = response.json()
+            # print(data)
+            phonetics = data[0].get('phonetics', None)
+            # print(data)
+            phonetic = None
+            for p in phonetics:
+                if "text" in p.keys() and p["text"] !="":
+                    phonetic= p["text"]
+            if phonetic:
+                # 保存到数据库
+                with sqlite3.connect(EN_PHONETIC_DB) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        'REPLACE INTO en_phonetic (word, phonetic) VALUES (?, ?)',
+                        (word, phonetic)
+                    )
+                    conn.commit()
+                en_phonetic_map[word] = {'phonetic': phonetic}
+            return phonetic
+        else:
+            return 'unknown'
+    except Exception as e:
+        return str(e)
+
+def get_pronouce(word):
+    api_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
+    try:
+        response = requests.get(api_url)
+        if response.status_code == 200:
+            data = response.json()
+            # print(data)
+            ress = data[0].get('phonetics', None)
+            # print(data)
+            res = None
+            for p in ress:
+                if "audio" in p.keys() and p["audio"] !="":
+                    res= p["audio"]
+            return res
+        else:
+            return None
+    except Exception as e:
+        return str(e)
+
+
+@app.route('/phonetic/<text>', methods=['GET'])
+def get_phonetic_of_a_sentence(text):
+    words = text.split()
+    phonetics = []
+    for word in words:
+        phonetic = get_phonetic(word)
+        phonetics.append(phonetic)
+        # print(f"Word: {word}, Phonetic: {phonetic}")
+    
+    # print(jsonify({'phonetics': phonetics}))
+    return jsonify({'phonetics': phonetics})
+
+@app.route('/pronounce/<text>', methods=['GET'])
+def get_pronunciation(text):
+    words = text.split()
+    audios = []
+    for word in words:
+        audio = get_pronouce(word)
+        audios.append(audio)
+    return jsonify({'audios': audios})
 
 
 # ==== 入口 ====
