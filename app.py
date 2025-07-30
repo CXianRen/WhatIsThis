@@ -104,9 +104,21 @@ name_id_map = {item['file_upload']: item['id'] - 1 for item in raw_data}
 print(f"Total images loaded: {len(name_id_map)}")
 
 # ================= 路由 =================
+
+# 首页导航
 @app.route('/')
-def index():
-    return render_template('index.html')
+def nav():
+    return render_template('nav.html')
+
+# app1: 看图识词
+@app.route('/app1')
+def app1():
+    return render_template('LWI.html')
+
+# app2: 分组学习
+@app.route('/app2')
+def app2():
+    return render_template('LWG.html')
 
 @app.route('/list')
 def list_images():
@@ -130,22 +142,6 @@ def search(query):
         save_img_cache(query, urls)
     return jsonify(urls)
 
-# this is for searching by user, if the user wants to search images by a keyword
-# this is useful when the user wants to search images related to a specific topic
-@app.route('/search_as')
-def search_as():
-    query = request.args.get('query')
-    keyword = request.args.get('keyword')
-    if not query or not keyword:
-        return jsonify({'error': 'Missing query or keyword parameter'}), 400
-
-    # force update the cache
-    urls = search_images(keyword, 5)
-    img_cache_map[query] = urls
-    save_img_cache(query, urls)
-    return jsonify(urls)
-
-
 @app.route('/phonetic/<text>', methods=['GET'])
 def get_phonetic_of_sentence(text):
     words = text.split()
@@ -157,6 +153,55 @@ def get_pronunciation(text):
     words = text.split()
     audios = [get_pronounce(word) for word in words]
     return jsonify({'audios': audios})
+
+# ================= LWG相关API =================
+@app.route('/group')
+def get_word_group():
+    """获取单词列表"""
+    # 使用你提供的例子中的单词
+    sample_words = [
+        "must", "moist", "moisture", "damp", "wet", 
+        "humid", "humidity", "musty", "mustiness", 
+        "mold", "moldy"
+    ]
+    return jsonify(sample_words)
+
+@app.route('/dag/<word>')
+def get_word_dag(word):
+    """获取指定单词的DAG数据"""
+    # 直接返回你提供的例子结构
+    nodes = [
+        {"id": "must", "label": "must"},
+        {"id": "moist", "label": "moist"},
+        {"id": "moisture", "label": "moisture"},
+        {"id": "damp", "label": "damp"},
+        {"id": "wet", "label": "wet"},
+        {"id": "humid", "label": "humid"},
+        {"id": "humidity", "label": "humidity"},
+        {"id": "musty", "label": "musty"},
+        {"id": "mustiness", "label": "mustiness"},
+        {"id": "mold", "label": "mold"},
+        {"id": "moldy", "label": "moldy"}
+    ]
+    
+    edges = [
+        {"from": "must", "to": "moist"},
+        {"from": "moist", "to": "moisture"},
+        {"from": "moisture", "to": "damp"},
+        {"from": "moisture", "to": "wet"},
+        {"from": "moisture", "to": "humid"},
+        {"from": "humid", "to": "humidity"},
+        {"from": "must", "to": "musty"},
+        {"from": "musty", "to": "mustiness"},
+        {"from": "mustiness", "to": "mold"},
+        {"from": "mold", "to": "moldy"}
+    ]
+    
+    dag_data = {
+        "nodes": nodes,
+        "edges": edges
+    }
+    return jsonify(dag_data)
 
 # ================= 入口 =================
 if __name__ == '__main__':

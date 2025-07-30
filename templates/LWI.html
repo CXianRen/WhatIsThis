@@ -168,7 +168,7 @@
     // 通过关键字查找相关图片
     async function searchAs(query, keyword) {
       try {
-        const res = await fetch(`/search_as?query=${encodeURIComponent(query)}&keyword=${encodeURIComponent(keyword)}`);
+        const res = await fetch(`/data/search_as?query=${encodeURIComponent(query)}&keyword=${encodeURIComponent(keyword)}`);
         if (!res.ok) throw new Error(`搜索失败: ${res.status}`);
         const results = await res.json();
         console.log("Search results:", results);
