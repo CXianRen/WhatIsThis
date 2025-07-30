@@ -76,7 +76,7 @@ def get_phonetic(word):
                 save_phonetic_cache(word, phonetic)
                 en_phonetic_map[word] = {'phonetic': phonetic}
             return phonetic or 'unknown'
-        return 'unknown'
+        return None
     except Exception as e:
         return str(e)
 
@@ -132,27 +132,59 @@ def get_data(image_name):
 def get_image(filename):
     return send_from_directory(IMAGE_DIR, filename)
 
-@app.route('/search/<query>')
-def search(query):
+def search_images_api(query, max_results=5):
+    """搜索图片API"""
     if query in img_cache_map:
         urls = img_cache_map[query]
     else:
-        urls = search_images(query, 5)
+        urls = search_images(query, max_results)
         img_cache_map[query] = urls
         save_img_cache(query, urls)
-    return jsonify(urls)
+    return urls
 
-@app.route('/phonetic/<text>', methods=['GET'])
-def get_phonetic_of_sentence(text):
-    words = text.split()
-    phonetics = [get_phonetic(word) for word in words]
-    return jsonify({'phonetics': phonetics})
+def search_images_as_api(query, key, max_results=5):
+    """
+        force search images with a specific key
+        and update the cache with the new results
+    """
+    urls = search_images(key, max_results)
+    img_cache_map[query] = urls
+    save_img_cache(query, urls)
+    return urls
 
-@app.route('/pronounce/<text>', methods=['GET'])
-def get_pronunciation(text):
-    words = text.split()
-    audios = [get_pronounce(word) for word in words]
-    return jsonify({'audios': audios})
+
+# new api, loadWordDetails(word)
+# return details of the word
+# json format:
+# {
+#   "word": "example",
+#   "phonetic": "ɪɡˈzæmpəl",
+#   "audio": "https://example.com/audio.mp3",
+#   "notes": [],
+#   "images": []
+# }
+
+@app.route('/loadWordDetails/<word>', methods=['GET'])
+def load_word_details(word):
+    """加载单词详情，包括音标、发音、笔记和图片"""
+    res = {}
+    res['word'] = word
+    res['phonetic'] = get_phonetic(word)
+    res['audio'] = get_pronounce(word)
+    res['notes'] = []  # 假设没有笔记
+    res['images'] = search_images_api(word, 5)  # 搜索相关图片
+    return jsonify(res)
+
+@app.route('/searchImagesAs/<word>/<key>', methods=['GET'])
+def search_images_as_endpoint(word, key):
+    """使用自定义关键词强制搜索图片并更新缓存"""
+    max_results = request.args.get('max_results', 5, type=int)
+    try:
+        urls = search_images_as_api(word, key, max_results)
+        return jsonify({'success': True, 'images': urls, 'word': word, 'key': key})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 # ================= LWG相关API =================
 @app.route('/group')
@@ -202,6 +234,11 @@ def get_word_dag(word):
         "edges": edges
     }
     return jsonify(dag_data)
+
+@app.route('/components/word_detail_panel')
+def get_word_detail_panel():
+    """返回词详情栏组件的HTML"""
+    return render_template('word_detail_panel.html')
 
 # ================= 入口 =================
 if __name__ == '__main__':

@@ -1,0 +1,161 @@
+/* 右侧详情栏样式 */
+.right-panel {
+  width: 300px;
+  background: #f8f9fa;
+  border-left: 1px solid #e0e0e0;
+  padding: 20px;
+  overflow-y: auto;
+  max-height: 800px;
+}
+
+.right-panel h3 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 2px solid #2196f3;
+  padding-bottom: 8px;
+}
+
+.detail-section {
+  margin-bottom: 25px;
+}
+
+.detail-section h4 {
+  margin: 0 0 10px 0;
+  color: #555;
+  font-size: 16px;
+}
+
+.pronunciation {
+  font-family: 'Times New Roman', serif;
+  font-size: 18px;
+  color: #2196f3;
+  margin: 5px 0;
+}
+
+.definition {
+  color: #333;
+  line-height: 1.5;
+  margin: 5px 0;
+}
+
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.word-image {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.notes-area {
+  width: 100%;
+  height: 100px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+  resize: vertical;
+}
+
+.audio-button {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 0;
+  height: fit-content;
+}
+
+.audio-button:hover {
+  background: #1976d2;
+}
+
+/* 自定义搜索样式 */
+.custom-search-section {
+  margin-top: 15px;
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+}
+
+.custom-search-section label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.custom-search-section .search-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.custom-search-section input[type="text"] {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.custom-search-section input[type="text"]:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 2px rgba(255, 87, 34, 0.25);
+}
+
+.custom-search-section button {
+  padding: 8px 10px;
+  background: #fafafa;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.custom-search-section button:hover:not(:disabled) {
+  background: #f17955;
+}
+
+.custom-search-section button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* 遮罩状态样式 */
+.masked {
+  color: transparent !important;
+  background-color: #ddd !important;
+  border-radius: 4px;
+}
+
+.hidden-component {
+  display: none !important;
+}
+
+#maskRevealDiv {
+  transition: all 0.3s ease;
+}
+
+#maskRevealDiv:hover {
+  background: rgba(200,200,200,0.9) !important;
+}

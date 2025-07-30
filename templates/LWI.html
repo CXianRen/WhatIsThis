@@ -23,20 +23,12 @@
         <button onclick="prev()">上一个</button>
         <button onclick="next()">下一个</button>
       </div>
-      <div id="pronounce">
-
-      </div>
-      <div id="more-imgs">
-        <h4>相关图片</h4>
-        <div>
-          <input type="text" id="searchKeyword" placeholder="输入关键词" />
-          <button onclick="refreshRelatedImages()">刷新</button>
-        </div>
-        <div id="relatedImages"></div>
-      </div>
     </div>
+    <!-- 添加右侧详情栏 -->
+    <div id="wordDetailPanel"></div>
   </div>
-
+ 
+  <script src="/static/word_detail_panel.js"></script>
   <script>
     let data = null;          // 后端返回的标注数据
     let currentIndex = 0;     // 当前展示的bbox索引
@@ -46,13 +38,33 @@
 
     // 缓存 DOM 元素，避免重复查找
     const ulImgList = document.getElementById('imgList');
-    const relatedImagesDiv = document.getElementById("relatedImages");
-    const searchKeywordInput = document.getElementById("searchKeyword");
     const infoDiv = document.getElementById("info");
     const bboxCanvas = document.getElementById("bboxCanvas");
     const bboxCtx = bboxCanvas.getContext("2d");
     const fullCanvas = document.getElementById("fullCanvas");
     const fullCtx = fullCanvas.getContext("2d");
+    const wordDetailPanel = document.getElementById('wordDetailPanel');
+
+    // 加载右侧详情栏组件
+    async function loadWordDetailPanel(partent) {
+      try {
+        const response = await fetch('/components/word_detail_panel');
+        if (response.ok) {
+          const html = await response.text();
+          partent.innerHTML = html;
+
+          // 初始化详情栏组件
+          if (typeof initWordDetailPanel === 'function') {
+            initWordDetailPanel();
+          } else {
+            console.warn('initWordDetailPanel function is not defined');
+          }
+        }
+      } catch (error) {
+        console.error('加载右侧详情栏失败:', error);
+        wordDetailPanel.innerHTML = '<div class="right-panel"><h3>详情栏加载失败</h3></div>';
+      }
+    }
 
     // 加载图片列表
     async function loadImgList() {
@@ -148,56 +160,6 @@
       }
     }
 
-    // 显示相关图片
-    function displayRelatedImages(results) {
-      relatedImagesDiv.innerHTML = '';
-      if (results && results.length > 0) {
-        results.forEach(img => {
-          const imgElem = document.createElement("img");
-          imgElem.src = img;
-          imgElem.style.width = "200px";
-          imgElem.style.height = "200px";
-          imgElem.style.margin = "5px";
-          relatedImagesDiv.appendChild(imgElem);
-        });
-      } else {
-        relatedImagesDiv.innerHTML = '<p>没有找到相关图片</p>';
-      }
-    }
-
-    // 通过关键字查找相关图片
-    async function searchAs(query, keyword) {
-      try {
-        const res = await fetch(`/data/search_as?query=${encodeURIComponent(query)}&keyword=${encodeURIComponent(keyword)}`);
-        if (!res.ok) throw new Error(`搜索失败: ${res.status}`);
-        const results = await res.json();
-        console.log("Search results:", results);
-        displayRelatedImages(results);
-      } catch (error) {
-        alert(`搜索相关图片失败: ${error.message}`);
-        console.error(error);
-      }
-    }
-
-    // 刷新相关图片（用户点击按钮触发）
-    function refreshRelatedImages() {
-      const keyword = searchKeywordInput.value.trim();
-      if (!keyword) {
-        alert("请输入关键词");
-        return;
-      }
-      if (!data || !data.annotations || data.annotations.length === 0) {
-        alert("没有可用的标注数据");
-        return;
-      }
-      const annotation = data.annotations[currentIndex];
-      if (!annotation || !annotation.text) {
-        alert("当前标注没有文本信息");
-        return;
-      }
-      searchAs(annotation.text, keyword);
-    }
-
     // 绘制当前标注和图片
     function draw() {
       if (!data || !data.annotations || data.annotations.length === 0) return;
@@ -205,11 +167,13 @@
       const annotation = data.annotations[currentIndex];
       const bbox = annotation.bbox;
       if (!bbox) return;
+      // 
+      
+      loadWordDetails(annotation.text, false, skip_title= true, 
+                                skip_pronunciation = true); // 加载单词详细信息
 
       console.log("Drawing annotation:", annotation);
       console.log("Image size:", image.width, "x", image.height);
-
-      showmore(annotation.text);
 
       // 转换 Label Studio 百分比为像素
       const x = (bbox.x / 100) * image.width;
@@ -245,21 +209,10 @@
           const button = document.createElement("button");
           button.innerText = text;
           button.onclick = () => {
-            // get phonetic
-            fetchSentencePhonetic(text).then(data => {
-              if (data.error) {
-                // alert(`获取音标失败: ${data.error}`);
-                return;
-              } else {
-                // 在 button 上显示音标 换行
-                phonetics = data.phonetics;
-                // 把 phonetics 拼接到一起
-                console.log(phonetics)
-                p_text = Object.values(phonetics).join(", ");
-                button.innerHTML = `${text}<br><span class="phonetic">${p_text}</span>`;
-              }
-            });
-            showmore(text);
+            // 加载单词详细信息到右侧面板，启用遮罩
+            if (typeof loadWordDetails === 'function') {
+              loadWordDetails(text, false); // mask=true
+            }
           };
           
           return button;
@@ -293,20 +246,6 @@
       infoDiv.innerText = "click to see details";
     }
 
-    // 显示更多相关图片（调用 showmore）
-    async function showmore(text) {
-      try {
-        const res = await fetch(`/search/${encodeURIComponent(text)}`);
-        if (!res.ok) throw new Error(`加载更多相关图片失败: ${res.status}`);
-        const results = await res.json();
-        console.log("Showmore results:", results);
-        displayRelatedImages(results);
-      } catch (error) {
-        alert(`加载更多相关图片失败: ${error.message}`);
-        console.error(error);
-      }
-    }
-
     function prev() {
       if (!data) return;
       currentIndex = (currentIndex - 1 + data.annotations.length) % data.annotations.length;
@@ -319,33 +258,11 @@
       draw();
     }
 
-
-    async function fetchSentencePhonetic(text) {
-      try {
-        const response = await fetch(`phonetic/${text}`);
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error("Error fetching sentence phonetic:", error);
-        return { error: "请求失败" };
-      }
-    }
-
-
-    async function fetchSentencePronunciation(text) {
-      console.log("Fetching pronunciation for:", text);
-      try {
-        const response = await fetch(`pronounce/${text}`);
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error("Error fetching pronunciation:", error);
-        return { error: "请求失败" };
-      }
-    }
-
     // 初始化
-    loadImgList();
+    document.addEventListener('DOMContentLoaded', async function() {
+      await loadWordDetailPanel(wordDetailPanel);
+      loadImgList(); // 然后加载图片列表
+    });
   </script>
 
 </body>

@@ -58,74 +58,6 @@
       padding: 20px;
       min-width: 0;
     }
-    .right-panel {
-      width: 300px;
-      background: #f8f9fa;
-      border-left: 1px solid #e0e0e0;
-      padding: 20px;
-      overflow-y: auto;
-      max-height: 800px;
-    }
-    .right-panel h3 {
-      margin-top: 0;
-      color: #333;
-      border-bottom: 2px solid #2196f3;
-      padding-bottom: 8px;
-    }
-    .detail-section {
-      margin-bottom: 25px;
-    }
-    .detail-section h4 {
-      margin: 0 0 10px 0;
-      color: #555;
-      font-size: 16px;
-    }
-    .pronunciation {
-      font-family: 'Times New Roman', serif;
-      font-size: 18px;
-      color: #2196f3;
-      margin: 5px 0;
-    }
-    .definition {
-      color: #333;
-      line-height: 1.5;
-      margin: 5px 0;
-    }
-    .images-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .word-image {
-      width: 100%;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-    }
-    .notes-area {
-      width: 100%;
-      height: 100px;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-family: Arial, sans-serif;
-      resize: vertical;
-    }
-    .audio-button {
-      background: #2196f3;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      margin-left: 8px;
-    }
-    .audio-button:hover {
-      background: #1976d2;
-    }
     .dag-container {
       width: 100%;
       height: 600px;
@@ -176,57 +108,23 @@
         <div id="dagNetwork" style="display: none;"></div>
       </div>
     </div>
-    <div class="right-panel">
-      <h3 id="rightPanelTitle">单词详情</h3>
-      
-      <div class="detail-section">
-        <h4>发音</h4>
-        <div id="pronunciationSection">
-          <div class="pronunciation" id="phoneticText">请选择一个单词</div>
-          <button class="audio-button" id="audioButton" style="display: none;" onclick="playAudio()">🔊 播放</button>
-        </div>
-      </div>
-      
-      <div class="detail-section">
-        <h4>释义</h4>
-        <div class="definition" id="definitionText">请选择一个单词查看释义</div>
-      </div>
-      
-      <div class="detail-section">
-        <h4>相关图片</h4>
-        <div id="imagesGrid" class="images-grid">
-          <div style="grid-column: 1/-1; text-align: center; color: #666; padding: 20px;">
-            暂无图片
-          </div>
-        </div>
-      </div>
-      
-      <div class="detail-section">
-        <h4>笔记</h4>
-        <textarea class="notes-area" id="notesArea" placeholder="在这里记录你的笔记..."></textarea>
-        <button style="margin-top: 8px; padding: 6px 12px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="saveNotes()">保存笔记</button>
-      </div>
+    <div id="wordDetailPanel">
+      <!-- 右侧详情栏将通过JavaScript动态加载 -->
     </div>
   </div>
 
+  <script src="/static/word_detail_panel.js"></script>
   <script>
     let wordList = [];
     let currentSelectedWord = null;
     let network = null;
-    let currentAudioUrl = null;
-    let wordNotes = {}; // 存储每个单词的笔记
 
     // DOM元素缓存
     const wordListElement = document.getElementById('wordList');
     const currentWordElement = document.getElementById('currentWord');
     const dagContainerElement = document.getElementById('dagContainer');
     const dagNetworkElement = document.getElementById('dagNetwork');
-    const rightPanelTitle = document.getElementById('rightPanelTitle');
-    const phoneticText = document.getElementById('phoneticText');
-    const audioButton = document.getElementById('audioButton');
-    const definitionText = document.getElementById('definitionText');
-    const imagesGrid = document.getElementById('imagesGrid');
-    const notesArea = document.getElementById('notesArea');
+    const wordDetailPanel = document.getElementById('wordDetailPanel');
 
     // 加载单词列表
     async function loadWordList() {
@@ -262,6 +160,29 @@
       });
     }
 
+    // 加载右侧详情栏组件
+    async function loadWordDetailPanel() {
+      try {
+        const response = await fetch('/components/word_detail_panel');
+        if (response.ok) {
+          const html = await response.text();
+          wordDetailPanel.innerHTML = html;
+          
+          // 执行内嵌的脚本
+          const scripts = wordDetailPanel.querySelectorAll('script');
+          scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            newScript.textContent = script.textContent;
+            document.head.appendChild(newScript);
+          });
+          initWordDetailPanel(); // 初始化右侧详情栏
+        }
+      } catch (error) {
+        console.error('加载右侧详情栏失败:', error);
+        wordDetailPanel.innerHTML = '<div class="right-panel"><h3>详情栏加载失败</h3></div>';
+      }
+    }
+
     // 选择单词
     async function selectWord(word, element) {
       // 更新选中状态
@@ -270,17 +191,24 @@
       
       currentSelectedWord = word;
       currentWordElement.textContent = word;
-      rightPanelTitle.textContent = `${word} - 详情`;
       
       try {
         // 加载DAG
         await loadWordDAG(word);
         
-        // 加载单词详细信息
-        await loadWordDetails(word);
-        
-        // 加载笔记
-        loadNotes(word);
+        // 确保右侧详情栏已加载，然后加载单词详细信息
+        if (typeof loadWordDetails === 'function') {
+          const rightPanelTitle = document.getElementById('rightPanelTitle');
+          if (rightPanelTitle) {
+            rightPanelTitle.textContent = `${word} - 详情`;
+          }
+          await loadWordDetails(word);
+          
+          // 加载笔记
+          if (typeof loadNotes === 'function') {
+            loadNotes(word);
+          }
+        }
         
       } catch (error) {
         console.error('加载数据失败:', error);
@@ -375,118 +303,10 @@
       }
     }
 
-    // 加载单词详细信息
-    async function loadWordDetails(word) {
-      try {
-        // 加载发音信息
-        const phoneticResponse = await fetch(`/phonetic/${encodeURIComponent(word)}`);
-        if (phoneticResponse.ok) {
-          const phoneticData = await phoneticResponse.json();
-          const phonetic = phoneticData.phonetics && phoneticData.phonetics[0] ? phoneticData.phonetics[0] : 'N/A';
-          phoneticText.textContent = `/${phonetic}/`;
-        } else {
-          phoneticText.textContent = '发音信息获取失败';
-        }
-
-        // 加载音频信息
-        const audioResponse = await fetch(`/pronounce/${encodeURIComponent(word)}`);
-        if (audioResponse.ok) {
-          const audioData = await audioResponse.json();
-          currentAudioUrl = audioData.audios && audioData.audios[0] ? audioData.audios[0] : null;
-          audioButton.style.display = currentAudioUrl ? 'inline-block' : 'none';
-        }
-
-        // 设置基本释义（可以扩展为调用词典API）
-        definitionText.textContent = `${word}的基本释义和用法说明...`;
-
-        // 加载相关图片
-        await loadWordImages(word);
-
-      } catch (error) {
-        console.error('加载单词详细信息失败:', error);
-        phoneticText.textContent = '加载失败';
-        definitionText.textContent = '加载失败';
-      }
-    }
-
-    // 加载单词相关图片
-    async function loadWordImages(word) {
-      try {
-        const response = await fetch(`/search/${encodeURIComponent(word)}`);
-        if (response.ok) {
-          const imageUrls = await response.json();
-          displayImages(imageUrls.slice(0, 6)); // 最多显示6张图片
-        } else {
-          imagesGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #666;">图片加载失败</div>';
-        }
-      } catch (error) {
-        console.error('加载图片失败:', error);
-        imagesGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #666;">图片加载失败</div>';
-      }
-    }
-
-    // 显示图片
-    function displayImages(imageUrls) {
-      if (!imageUrls || imageUrls.length === 0) {
-        imagesGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #666;">暂无图片</div>';
-        return;
-      }
-
-      imagesGrid.innerHTML = '';
-      imageUrls.forEach((url, index) => {
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'word-image';
-        img.alt = `${currentSelectedWord} 图片 ${index + 1}`;
-        img.onerror = () => {
-          img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+5Zu+54mH5Yqg6L295aSx6LSlPC90ZXh0Pjwvc3ZnPg==';
-        };
-        imagesGrid.appendChild(img);
-      });
-    }
-
-    // 播放音频
-    function playAudio() {
-      if (currentAudioUrl) {
-        const audio = new Audio(currentAudioUrl);
-        audio.play().catch(error => {
-          console.error('播放音频失败:', error);
-          alert('音频播放失败');
-        });
-      }
-    }
-
-    // 加载笔记
-    function loadNotes(word) {
-      notesArea.value = wordNotes[word] || '';
-    }
-
-    // 保存笔记
-    function saveNotes() {
-      if (currentSelectedWord) {
-        wordNotes[currentSelectedWord] = notesArea.value;
-        // 这里可以添加保存到服务器的逻辑
-        localStorage.setItem('wordNotes', JSON.stringify(wordNotes));
-        alert('笔记已保存');
-      }
-    }
-
-    // 从本地存储加载笔记
-    function loadStoredNotes() {
-      try {
-        const stored = localStorage.getItem('wordNotes');
-        if (stored) {
-          wordNotes = JSON.parse(stored);
-        }
-      } catch (error) {
-        console.error('加载存储的笔记失败:', error);
-      }
-    }
-
     // 页面加载完成后初始化
-    document.addEventListener('DOMContentLoaded', function() {
-      loadStoredNotes();
-      loadWordList();
+    document.addEventListener('DOMContentLoaded', async function() {
+      await loadWordDetailPanel(); // 首先加载右侧详情栏
+      loadWordList(); // 然后加载单词列表
     });
   </script>
 </body>
