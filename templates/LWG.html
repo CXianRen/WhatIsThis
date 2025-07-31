@@ -90,19 +90,94 @@
       margin: 0;
       color: #333;
     }
+    
+    /* DAG组和单词列表样式 */
+    .dag-group {
+      margin-bottom: 8px;
+    }
+    
+    .dag-title {
+      padding: 12px 16px;
+      margin: 4px 0;
+      background: #e3f2fd;
+      border: 1px solid #2196f3;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: bold;
+      color: #1976d2;
+      position: relative;
+    }
+    
+    .dag-title:hover {
+      background: #bbdefb;
+    }
+    
+    .dag-title.expanded {
+      background: #2196f3;
+      color: white;
+    }
+    
+    .dag-title::after {
+      content: '▶';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: transform 0.2s;
+    }
+    
+    .dag-title.expanded::after {
+      transform: translateY(-50%) rotate(90deg);
+    }
+    
+    .words-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 0 16px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    
+    .words-list.expanded {
+      max-height: 500px;
+    }
+    
+    .word-item {
+      padding: 8px 12px;
+      margin: 2px 0;
+      background: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+    
+    .word-item:hover {
+      background: #e8f5e8;
+      border-color: #4caf50;
+    }
+    
+    .word-item.active {
+      background: #4caf50;
+      color: white;
+      border-color: #4caf50;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
-      <h3>单词列表</h3>
+      <h3>DAG列表</h3>
       <ul id="wordList" class="word-list">
         <li class="loading">加载中...</li>
       </ul>
     </div>
     <div class="main-content">
       <div class="word-header">
-        <h2 id="currentWord">选择一个单词查看DAG</h2>
+        <h2 id="currentWord">选择一个DAG查看结构</h2>
       </div>
       <div id="dagContainer" class="dag-container">
         <div id="dagNetwork" style="display: none;"></div>
@@ -115,7 +190,8 @@
 
   <script src="/static/word_detail_panel.js"></script>
   <script>
-    let wordList = [];
+    let dagList = [];
+    let currentSelectedDag = null;
     let currentSelectedWord = null;
     let network = null;
 
@@ -126,8 +202,8 @@
     const dagNetworkElement = document.getElementById('dagNetwork');
     const wordDetailPanel = document.getElementById('wordDetailPanel');
 
-    // 加载单词列表
-    async function loadWordList() {
+    // 加载DAG列表
+    async function loadDagList() {
       try {
         const response = await fetch('/group');
         if (!response.ok) {
@@ -135,29 +211,121 @@
         }
         
         const data = await response.json();
-        wordList = Array.isArray(data) ? data : data.words || [];
+        dagList = Array.isArray(data) ? data : [];
         
-        renderWordList();
+        renderDagList();
       } catch (error) {
-        console.error('加载单词列表失败:', error);
+        console.error('加载DAG列表失败:', error);
         wordListElement.innerHTML = `<li class="error">加载失败: ${error.message}</li>`;
       }
     }
 
-    // 渲染单词列表
-    function renderWordList() {
-      if (wordList.length === 0) {
-        wordListElement.innerHTML = '<li class="loading">没有找到单词</li>';
+    // 渲染DAG列表
+    function renderDagList() {
+      if (dagList.length === 0) {
+        wordListElement.innerHTML = '<li class="loading">没有找到DAG</li>';
         return;
       }
 
       wordListElement.innerHTML = '';
-      wordList.forEach((word, index) => {
-        const li = document.createElement('li');
-        li.textContent = word;
-        li.onclick = () => selectWord(word, li);
-        wordListElement.appendChild(li);
+      dagList.forEach((dag, index) => {
+        // 创建DAG组
+        const dagGroup = document.createElement('div');
+        dagGroup.className = 'dag-group';
+        
+        // DAG标题
+        const dagTitle = document.createElement('li');
+        dagTitle.className = 'dag-title';
+        dagTitle.textContent = dag.name;
+        dagTitle.onclick = () => toggleDag(dag, dagGroup);
+        
+        // 单词列表容器
+        const wordsList = document.createElement('ul');
+        wordsList.className = 'words-list collapsed';
+        
+        // 添加单词项
+        dag.nodes.forEach(node => {
+          const wordItem = document.createElement('li');
+          wordItem.className = 'word-item';
+          wordItem.textContent = node.label;
+          wordItem.onclick = (e) => {
+            e.stopPropagation();
+            selectWord(node.label, dag);
+          };
+          wordsList.appendChild(wordItem);
+        });
+        
+        dagGroup.appendChild(dagTitle);
+        dagGroup.appendChild(wordsList);
+        wordListElement.appendChild(dagGroup);
       });
+    }
+
+    // 切换DAG的展开/收起状态
+    function toggleDag(dag, dagGroup) {
+      const wordsList = dagGroup.querySelector('.words-list');
+      const dagTitle = dagGroup.querySelector('.dag-title');
+      
+      if (wordsList.classList.contains('collapsed')) {
+        // 展开
+        wordsList.classList.remove('collapsed');
+        wordsList.classList.add('expanded');
+        dagTitle.classList.add('expanded');
+        
+        // 渲染DAG
+        renderDAG(dag);
+        currentSelectedDag = dag;
+        currentWordElement.textContent = `${dag.name} - DAG`;
+      } else {
+        // 收起（可选：是否允许收起）
+        wordsList.classList.remove('expanded');
+        wordsList.classList.add('collapsed');
+        dagTitle.classList.remove('expanded');
+      }
+    }
+
+    // 选择单词
+    async function selectWord(word, dag) {
+      // 更新选中状态
+      document.querySelectorAll('.word-item').forEach(item => item.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      currentSelectedWord = word;
+      currentWordElement.textContent = `${dag.name} - ${word}`;
+      
+      // 在DAG中高亮对应的节点
+      if (network && currentSelectedDag === dag) {
+        const nodeId = word; // 假设节点ID就是单词本身
+        network.selectNodes([nodeId]);
+      }
+      
+      try {
+        // 确保右侧详情栏已加载，然后加载单词详细信息
+        if (typeof loadWordDetails === 'function') {
+          await loadWordDetails(word);
+        }
+        
+      } catch (error) {
+        console.error('加载单词详情失败:', error);
+      }
+    }
+
+    // 同步单词选中状态（当从DAG节点点击时调用）
+    function syncWordSelection(word, dag) {
+      // 清除所有选中状态
+      document.querySelectorAll('.word-item').forEach(item => item.classList.remove('active'));
+      
+      // 找到对应的单词项并设置为选中
+      const wordItems = document.querySelectorAll('.word-item');
+      wordItems.forEach(item => {
+        if (item.textContent === word) {
+          item.classList.add('active');
+        }
+      });
+      
+      // 更新当前选中的单词和标题
+      currentSelectedWord = word;
+      currentWordElement.textContent = `${dag.name} - ${word}`;
     }
 
     // 加载右侧详情栏组件
@@ -181,51 +349,6 @@
         console.error('加载右侧详情栏失败:', error);
         wordDetailPanel.innerHTML = '<div class="right-panel"><h3>详情栏加载失败</h3></div>';
       }
-    }
-
-    // 选择单词
-    async function selectWord(word, element) {
-      // 更新选中状态
-      document.querySelectorAll('.word-list li').forEach(li => li.classList.remove('active'));
-      element.classList.add('active');
-      
-      currentSelectedWord = word;
-      currentWordElement.textContent = word;
-      
-      try {
-        // 加载DAG
-        await loadWordDAG(word);
-        
-        // 确保右侧详情栏已加载，然后加载单词详细信息
-        if (typeof loadWordDetails === 'function') {
-          const rightPanelTitle = document.getElementById('rightPanelTitle');
-          if (rightPanelTitle) {
-            rightPanelTitle.textContent = `${word} - 详情`;
-          }
-          await loadWordDetails(word);
-          
-          // 加载笔记
-          if (typeof loadNotes === 'function') {
-            loadNotes(word);
-          }
-        }
-        
-      } catch (error) {
-        console.error('加载数据失败:', error);
-        dagContainerElement.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
-      }
-    }
-
-    // 加载单词的DAG数据
-    async function loadWordDAG(word) {
-      const response = await fetch(`/dag/${encodeURIComponent(word)}`);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const dagData = await response.json();
-      console.log('DAG数据:', dagData);
-      renderDAG(dagData);
     }
 
     // 渲染DAG数据
@@ -291,6 +414,10 @@
             const node = data.nodes.find(n => n.id === nodeId);
             if (node) {
               console.log('Clicked node:', node.label);
+              
+              // 同步更新左侧列表的选中状态
+              syncWordSelection(node.label, data);
+              
               // 点击节点时也加载该单词的详细信息
               loadWordDetails(node.label);
             }
@@ -306,7 +433,7 @@
     // 页面加载完成后初始化
     document.addEventListener('DOMContentLoaded', async function() {
       await loadWordDetailPanel(); // 首先加载右侧详情栏
-      loadWordList(); // 然后加载单词列表
+      loadDagList(); // 然后加载DAG列表
     });
   </script>
 </body>

@@ -188,52 +188,81 @@ def search_images_as_endpoint(word, key):
 
 # ================= LWG相关API =================
 @app.route('/group')
-def get_word_group():
-    """获取单词列表"""
-    # 使用你提供的例子中的单词
-    sample_words = [
-        "must", "moist", "moisture", "damp", "wet", 
-        "humid", "humidity", "musty", "mustiness", 
-        "mold", "moldy"
+def get_dag_list():
+    dag_list = [
+        {
+            "id": 1,
+            "name": "Moisture Words",
+            "nodes": [
+                {"id": "must", "label": "must"},
+                {"id": "moist", "label": "moist"},
+                {"id": "moisture", "label": "moisture"},
+                {"id": "damp", "label": "damp"},
+                {"id": "wet", "label": "wet"},
+                {"id": "humid", "label": "humid"},
+                {"id": "humidity", "label": "humidity"},
+                {"id": "musty", "label": "musty"},
+                {"id": "mustiness", "label": "mustiness"},
+                {"id": "mold", "label": "mold"},
+                {"id": "moldy", "label": "moldy"}
+            ],
+            "edges": [
+                {"from": "must", "to": "moist"},
+                {"from": "moist", "to": "moisture"},
+                {"from": "moisture", "to": "damp"},
+                {"from": "moisture", "to": "wet"},
+                {"from": "moisture", "to": "humid"},
+                {"from": "humid", "to": "humidity"},
+                {"from": "must", "to": "musty"},
+                {"from": "musty", "to": "mustiness"},
+                {"from": "mustiness", "to": "mold"},
+                {"from": "mold", "to": "moldy"}
+            ],
+            "root": "must"
+        },
+        {
+            "id": 2,
+            "name": "Run Family",
+            "nodes": [
+                {"id": "run", "label": "run"},
+                {"id": "ran", "label": "ran"},
+                {"id": "running", "label": "running"},
+                {"id": "runner", "label": "runner"},
+                {"id": "sprint", "label": "sprint"},
+                {"id": "race", "label": "race"}
+            ],
+            "edges": [
+                {"from": "run", "to": "ran"},
+                {"from": "run", "to": "running"},
+                {"from": "running", "to": "runner"},
+                {"from": "run", "to": "sprint"},
+                {"from": "sprint", "to": "race"}
+            ],
+            "root": "run"
+        },
+        {
+            "id": 3,
+            "name": "Light Words",
+            "nodes": [
+                {"id": "light", "label": "light"},
+                {"id": "bright", "label": "bright"},
+                {"id": "shine", "label": "shine"},
+                {"id": "glow", "label": "glow"},
+                {"id": "sparkle", "label": "sparkle"},
+                {"id": "flash", "label": "flash"}
+            ],
+            "edges": [
+                {"from": "light", "to": "bright"},
+                {"from": "light", "to": "shine"},
+                {"from": "shine", "to": "glow"},
+                {"from": "glow", "to": "sparkle"},
+                {"from": "shine", "to": "flash"}
+            ],
+            "root": "light"
+        }
     ]
-    return jsonify(sample_words)
+    return jsonify(dag_list)
 
-@app.route('/dag/<word>')
-def get_word_dag(word):
-    """获取指定单词的DAG数据"""
-    # 直接返回你提供的例子结构
-    nodes = [
-        {"id": "must", "label": "must"},
-        {"id": "moist", "label": "moist"},
-        {"id": "moisture", "label": "moisture"},
-        {"id": "damp", "label": "damp"},
-        {"id": "wet", "label": "wet"},
-        {"id": "humid", "label": "humid"},
-        {"id": "humidity", "label": "humidity"},
-        {"id": "musty", "label": "musty"},
-        {"id": "mustiness", "label": "mustiness"},
-        {"id": "mold", "label": "mold"},
-        {"id": "moldy", "label": "moldy"}
-    ]
-    
-    edges = [
-        {"from": "must", "to": "moist"},
-        {"from": "moist", "to": "moisture"},
-        {"from": "moisture", "to": "damp"},
-        {"from": "moisture", "to": "wet"},
-        {"from": "moisture", "to": "humid"},
-        {"from": "humid", "to": "humidity"},
-        {"from": "must", "to": "musty"},
-        {"from": "musty", "to": "mustiness"},
-        {"from": "mustiness", "to": "mold"},
-        {"from": "mold", "to": "moldy"}
-    ]
-    
-    dag_data = {
-        "nodes": nodes,
-        "edges": edges
-    }
-    return jsonify(dag_data)
 
 @app.route('/components/word_detail_panel')
 def get_word_detail_panel():
