@@ -1,0 +1,29 @@
+{
+  "name": "Moisture Words",
+  "nodes": [
+    {"id": "must", "label": "must"},
+    {"id": "moist", "label": "moist"},
+    {"id": "moisture", "label": "moisture"},
+    {"id": "damp", "label": "damp"},
+    {"id": "wet", "label": "wet"},
+    {"id": "humid", "label": "humid"},
+    {"id": "humidity", "label": "humidity"},
+    {"id": "musty", "label": "musty"},
+    {"id": "mustiness", "label": "mustiness"},
+    {"id": "mold", "label": "mold"},
+    {"id": "moldy", "label": "moldy"}
+  ],
+  "edges": [
+    {"from": "must", "to": "moist"},
+    {"from": "moist", "to": "moisture"},
+    {"from": "moisture", "to": "damp"},
+    {"from": "moisture", "to": "wet"},
+    {"from": "moisture", "to": "humid"},
+    {"from": "humid", "to": "humidity"},
+    {"from": "must", "to": "musty"},
+    {"from": "musty", "to": "mustiness"},
+    {"from": "mustiness", "to": "mold"},
+    {"from": "mold", "to": "moldy"}
+  ],
+  "root": "must"
+}

@@ -14,11 +14,17 @@ RESULT_JSON = os.path.join(DATA_DIR, 'result.json')
 IMG_CACHE_DB = os.path.join(DATA_DIR, 'img_cache.db')
 EN_PHONETIC_DB = os.path.join(DATA_DIR, 'en_phonetic.db')
 
+
+GROUP_DIR = os.path.join(DATA_DIR, 'group')
+os.makedirs(GROUP_DIR, exist_ok=True)
+
 app = Flask(__name__)
+
 
 # ================= 内存缓存 =================
 img_cache_map = {}
 en_phonetic_map = {}
+dag_map = {}  # {dag_name: dag_dict}
 
 # ================= 数据库相关 =================
 def init_db():
@@ -93,10 +99,42 @@ def get_pronounce(word):
     except Exception as e:
         return str(e)
 
+
+# ================= DAG加载与保存 =================
+def load_all_dags():
+    dag_map.clear()
+    if not os.path.exists(GROUP_DIR):
+        os.makedirs(GROUP_DIR, exist_ok=True)
+    for fname in os.listdir(GROUP_DIR):
+        if fname.endswith('.json'):
+            fpath = os.path.join(GROUP_DIR, fname)
+            try:
+                with open(fpath, 'r', encoding='utf-8') as f:
+                    dag = json.load(f)
+                    dag_map[dag.get('name', fname[:-5])] = dag
+            except Exception as e:
+                print(f"Failed to load DAG {fname}: {e}")
+
+def save_dag(dag):
+    name = dag.get('name')
+    if not name:
+        raise ValueError('DAG必须有name字段')
+    fpath = os.path.join(GROUP_DIR, f'{name}.json')
+    with open(fpath, 'w', encoding='utf-8') as f:
+        json.dump(dag, f, ensure_ascii=False, indent=2)
+    dag_map[name] = dag
+
+def delete_dag(name):
+    fpath = os.path.join(GROUP_DIR, f'{name}.json')
+    if os.path.exists(fpath):
+        os.remove(fpath)
+    dag_map.pop(name, None)
+
 # ================= 初始化 =================
 init_db()
 load_img_cache()
 load_phonetic_cache()
+load_all_dags()
 
 with open(RESULT_JSON, 'r', encoding='utf-8') as f:
     raw_data = json.load(f)
@@ -186,82 +224,53 @@ def search_images_as_endpoint(word, key):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+
 # ================= LWG相关API =================
-@app.route('/group')
+@app.route('/group', methods=['GET'])
 def get_dag_list():
-    dag_list = [
-        {
-            "id": 1,
-            "name": "Moisture Words",
-            "nodes": [
-                {"id": "must", "label": "must"},
-                {"id": "moist", "label": "moist"},
-                {"id": "moisture", "label": "moisture"},
-                {"id": "damp", "label": "damp"},
-                {"id": "wet", "label": "wet"},
-                {"id": "humid", "label": "humid"},
-                {"id": "humidity", "label": "humidity"},
-                {"id": "musty", "label": "musty"},
-                {"id": "mustiness", "label": "mustiness"},
-                {"id": "mold", "label": "mold"},
-                {"id": "moldy", "label": "moldy"}
-            ],
-            "edges": [
-                {"from": "must", "to": "moist"},
-                {"from": "moist", "to": "moisture"},
-                {"from": "moisture", "to": "damp"},
-                {"from": "moisture", "to": "wet"},
-                {"from": "moisture", "to": "humid"},
-                {"from": "humid", "to": "humidity"},
-                {"from": "must", "to": "musty"},
-                {"from": "musty", "to": "mustiness"},
-                {"from": "mustiness", "to": "mold"},
-                {"from": "mold", "to": "moldy"}
-            ],
-            "root": "must"
-        },
-        {
-            "id": 2,
-            "name": "Run Family",
-            "nodes": [
-                {"id": "run", "label": "run"},
-                {"id": "ran", "label": "ran"},
-                {"id": "running", "label": "running"},
-                {"id": "runner", "label": "runner"},
-                {"id": "sprint", "label": "sprint"},
-                {"id": "race", "label": "race"}
-            ],
-            "edges": [
-                {"from": "run", "to": "ran"},
-                {"from": "run", "to": "running"},
-                {"from": "running", "to": "runner"},
-                {"from": "run", "to": "sprint"},
-                {"from": "sprint", "to": "race"}
-            ],
-            "root": "run"
-        },
-        {
-            "id": 3,
-            "name": "Light Words",
-            "nodes": [
-                {"id": "light", "label": "light"},
-                {"id": "bright", "label": "bright"},
-                {"id": "shine", "label": "shine"},
-                {"id": "glow", "label": "glow"},
-                {"id": "sparkle", "label": "sparkle"},
-                {"id": "flash", "label": "flash"}
-            ],
-            "edges": [
-                {"from": "light", "to": "bright"},
-                {"from": "light", "to": "shine"},
-                {"from": "shine", "to": "glow"},
-                {"from": "glow", "to": "sparkle"},
-                {"from": "shine", "to": "flash"}
-            ],
-            "root": "light"
-        }
-    ]
-    return jsonify(dag_list)
+    """获取所有DAG列表"""
+    return jsonify(list(dag_map.values()))
+
+# 新增DAG
+@app.route('/group/add', methods=['POST'])
+def add_dag():
+    dag = request.get_json()
+    name = dag.get('name')
+    if not name:
+        return jsonify({'success': False, 'error': 'DAG必须有name字段'}), 400
+    if name in dag_map:
+        return jsonify({'success': False, 'error': 'DAG已存在'}), 400
+    try:
+        save_dag(dag)
+        return jsonify({'success': True, 'dag': dag})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# 更新DAG
+@app.route('/group/update/<dag_name>', methods=['POST'])
+def update_dag(dag_name):
+    dag = request.get_json()
+    if not dag.get('name'):
+        return jsonify({'success': False, 'error': 'DAG必须有name字段'}), 400
+    if dag_name != dag['name']:
+        # 支持重命名，先删旧的
+        delete_dag(dag_name)
+    try:
+        save_dag(dag)
+        return jsonify({'success': True, 'dag': dag})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# 删除DAG
+@app.route('/group/delete/<dag_name>', methods=['POST'])
+def delete_dag_api(dag_name):
+    if dag_name not in dag_map:
+        return jsonify({'success': False, 'error': 'DAG不存在'}), 404
+    try:
+        delete_dag(dag_name)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/components/word_detail_panel')

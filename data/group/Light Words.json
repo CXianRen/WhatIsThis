@@ -1,0 +1,19 @@
+{
+  "name": "Light Words",
+  "nodes": [
+    {"id": "light", "label": "light"},
+    {"id": "bright", "label": "bright"},
+    {"id": "shine", "label": "shine"},
+    {"id": "glow", "label": "glow"},
+    {"id": "sparkle", "label": "sparkle"},
+    {"id": "flash", "label": "flash"}
+  ],
+  "edges": [
+    {"from": "light", "to": "bright"},
+    {"from": "light", "to": "shine"},
+    {"from": "shine", "to": "glow"},
+    {"from": "glow", "to": "sparkle"},
+    {"from": "shine", "to": "flash"}
+  ],
+  "root": "light"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Run Family",
+  "nodes": [
+    {"id": "run", "label": "run"},
+    {"id": "ran", "label": "ran"},
+    {"id": "running", "label": "running"},
+    {"id": "runner", "label": "runner"},
+    {"id": "sprint", "label": "sprint"},
+    {"id": "race", "label": "race"}
+  ],
+  "edges": [
+    {"from": "run", "to": "ran"},
+    {"from": "run", "to": "running"},
+    {"from": "running", "to": "runner"},
+    {"from": "run", "to": "sprint"},
+    {"from": "sprint", "to": "race"}
+  ],
+  "root": "run"
+}

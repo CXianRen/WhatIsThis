@@ -165,6 +165,196 @@
       color: white;
       border-color: #4caf50;
     }
+    
+    /* Add Button 样式 */
+    .add-button {
+      padding: 12px 16px;
+      margin: 8px 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: 1px solid #5a6fd8;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #000000;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .add-button:hover {
+      background: linear-gradient(135deg, #5a6fd8 0%, #6a4c93 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      color: #2886dd;
+    }
+    
+    .add-button:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* 编辑模式样式 */
+    .edit-mode {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+    }
+    
+    .edit-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: none;
+      z-index: 1000;
+    }
+    
+    .edit-controls.show {
+      display: block;
+    }
+    
+    .edit-controls button {
+      margin: 0 5px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .save-btn {
+      background: #4caf50;
+      color: white;
+    }
+    
+    .save-btn:hover {
+      background: #45a049;
+    }
+    
+    .cancel-btn {
+      background: #f44336;
+      color: white;
+    }
+    
+    .cancel-btn:hover {
+      background: #da190b;
+    }
+    
+    .edit-name-btn {
+      background: #2196f3;
+      color: white;
+    }
+    
+    .edit-name-btn:hover {
+      background: #1976d2;
+    }
+    
+    .edit-current-btn {
+      background: #9c27b0;
+      color: white;
+    }
+    
+    .edit-current-btn:hover {
+      background: #7b1fa2;
+    }
+    
+    .delete-dag-btn {
+      background: #f44336;
+      color: white;
+    }
+    
+    .delete-dag-btn:hover {
+      background: #da190b;
+    }
+    
+    /* 锁定状态样式 */
+    .locked {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    
+    .locked .dag-title,
+    .locked .word-item,
+    .locked .add-button {
+      cursor: not-allowed;
+      background: #e0e0e0 !important;
+      color: #999 !important;
+      border-color: #ccc !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    
+    /* 操作菜单样式 */
+    .context-menu {
+      position: fixed;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      padding: 8px 0;
+      z-index: 9999;
+      display: none;
+      min-width: 120px;
+    }
+    
+    .context-menu-item {
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .context-menu-item:hover {
+      background: #f5f5f5;
+    }
+    
+    /* 编辑对话框样式 */
+    .edit-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      padding: 20px;
+      z-index: 1002;
+      display: none;
+    }
+    
+    /* DAG名称对话框特殊样式 */
+    #dagNameDialog {
+      position: absolute;
+      transform: none;
+      top: 0;
+      left: 0;
+    }
+    
+    .edit-dialog input {
+      width: 200px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    .edit-dialog button {
+      margin: 5px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .dialog-ok {
+      background: #4caf50;
+      color: white;
+    }
+    
+    .dialog-cancel {
+      background: #f44336;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -179,12 +369,69 @@
       <div class="word-header">
         <h2 id="currentWord">选择一个DAG查看结构</h2>
       </div>
-      <div id="dagContainer" class="dag-container">
+      <div class="dag-container">
+        <div class="edit-controls" id="editControls">
+          <button class="save-btn" onclick="saveDag()">保存</button>
+          <button class="cancel-btn" onclick="cancelEdit()">取消</button>
+          <button class="edit-name-btn" onclick="editDagName()">改名</button>
+          <button class="delete-dag-btn" onclick="deleteDag()" style="background: #f44336; color: white;">删除DAG</button>
+        </div>
+        <div class="edit-controls" id="viewControls" style="display: block;">
+          <button class="edit-current-btn" onclick="editCurrentDag()">编辑当前DAG</button>
+        </div>
         <div id="dagNetwork" style="display: none;"></div>
       </div>
     </div>
     <div id="wordDetailPanel">
       <!-- 右侧详情栏将通过JavaScript动态加载 -->
+    </div>
+  </div>
+
+  <!-- 操作菜单 -->
+  <div id="contextMenu" class="context-menu">
+    <div class="context-menu-item" onclick="editNode()">编辑节点</div>
+    <div class="context-menu-item" onclick="deleteNode()">删除节点</div>
+  </div>
+
+  <!-- 编辑对话框 -->
+  <div id="editDialog" class="edit-dialog">
+    <h3 style="margin-top: 0; margin-bottom: 20px; color: #333;">节点设置</h3>
+    <!-- 节点文本修改 -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: bold;">节点文本:</label>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <input type="text" id="nodeTextInput" 
+                           placeholder="输入节点文本" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; height: 18px;">
+        <button onclick="confirmEdit()" 
+          style="padding: 8px 12px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; height: 36px; white-space: nowrap;">保存文本</button>
+      </div>
+    </div>
+    
+    <!-- 添加子节点 -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: bold;">添加子节点:</label>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <input type="text" id="childNodeTextInput" placeholder="输入子节点文本" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; height: 18px;">
+        <button onclick="addChildNodeFromDialog()" style="padding: 8px 12px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; height: 36px; white-space: nowrap;">添加</button>
+        <span id="addNodeSuccess" style="color: #4caf50; font-size: 14px; display: none;">✓ 添加成功</span>
+      </div>
+    </div>
+    
+    <!-- 按钮区域 -->
+    <div style="text-align: right; border-top: 1px solid #eee; padding-top: 15px; margin-top: 20px;">
+      <button class="dialog-cancel" onclick="cancelEditDialog()">关闭</button>
+    </div>
+  </div>
+
+  <!-- DAG名称编辑对话框 -->
+  <div id="dagNameDialog" class="edit-dialog">
+    <div>
+      <label>DAG名称:</label>
+      <input type="text" id="dagNameInput" placeholder="输入DAG名称">
+    </div>
+    <div>
+      <button class="dialog-ok" onclick="confirmDagNameEdit()">确定</button>
+      <button class="dialog-cancel" onclick="cancelDagNameDialog()">取消</button>
     </div>
   </div>
 
@@ -194,13 +441,28 @@
     let currentSelectedDag = null;
     let currentSelectedWord = null;
     let network = null;
+    
+    // 编辑模式相关变量
+    let isEditMode = false;
+    let currentEditingDag = null;
+    let editingNodeId = null;
+    let nodeCounter = 1;
 
     // DOM元素缓存
     const wordListElement = document.getElementById('wordList');
     const currentWordElement = document.getElementById('currentWord');
-    const dagContainerElement = document.getElementById('dagContainer');
+    const dagContainerElement = document.querySelector('.dag-container');
     const dagNetworkElement = document.getElementById('dagNetwork');
     const wordDetailPanel = document.getElementById('wordDetailPanel');
+    const editControls = document.getElementById('editControls');
+    const viewControls = document.getElementById('viewControls');
+    const contextMenu = document.getElementById('contextMenu');
+    const editDialog = document.getElementById('editDialog');
+    const nodeTextInput = document.getElementById('nodeTextInput');
+    const childNodeTextInput = document.getElementById('childNodeTextInput');
+    const addNodeSuccess = document.getElementById('addNodeSuccess');
+    const dagNameDialog = document.getElementById('dagNameDialog');
+    const dagNameInput = document.getElementById('dagNameInput');
 
     // 加载DAG列表
     async function loadDagList() {
@@ -259,10 +521,20 @@
         dagGroup.appendChild(wordsList);
         wordListElement.appendChild(dagGroup);
       });
+      
+      // 添加新建DAG的按钮
+      const addButton = document.createElement('li');
+      addButton.className = 'add-button';
+      addButton.textContent = 'Add New Group';
+      addButton.onclick = () => startNewDag();
+      wordListElement.appendChild(addButton);
     }
 
     // 切换DAG的展开/收起状态
     function toggleDag(dag, dagGroup) {
+      // 如果在编辑模式，不允许切换
+      if (isEditMode) return;
+      
       const wordsList = dagGroup.querySelector('.words-list');
       const dagTitle = dagGroup.querySelector('.dag-title');
       
@@ -276,16 +548,28 @@
         renderDAG(dag);
         currentSelectedDag = dag;
         currentWordElement.textContent = `${dag.name} - DAG`;
+        
+        // 显示编辑按钮
+        viewControls.style.display = 'block';
       } else {
         // 收起（可选：是否允许收起）
         wordsList.classList.remove('expanded');
         wordsList.classList.add('collapsed');
         dagTitle.classList.remove('expanded');
+        
+        // 隐藏编辑按钮
+        viewControls.style.display = 'none';
+        currentSelectedDag = null;
+        currentWordElement.textContent = '选择一个DAG查看结构';
+        dagNetworkElement.style.display = 'none';
       }
     }
 
     // 选择单词
     async function selectWord(word, dag) {
+      // 如果在编辑模式，不允许选择单词
+      if (isEditMode) return;
+      
       // 更新选中状态
       document.querySelectorAll('.word-item').forEach(item => item.classList.remove('active'));
       event.target.classList.add('active');
@@ -430,10 +714,514 @@
       }
     }
 
+    // 编辑模式相关函数
+    
+    // 编辑当前DAG
+    function editCurrentDag() {
+      if (!currentSelectedDag) {
+        alert('请先选择一个DAG！');
+        return;
+      }
+      
+      // 找到当前DAG在列表中的索引
+      const dagIndex = dagList.findIndex(dag => dag === currentSelectedDag);
+      if (dagIndex === -1) return;
+      
+      console.log('编辑当前DAG:', currentSelectedDag.name);
+      isEditMode = true;
+      nodeCounter = currentSelectedDag.nodes.length || 1;
+      
+      // 深拷贝现有DAG数据用于编辑
+      currentEditingDag = JSON.parse(JSON.stringify(currentSelectedDag));
+      currentEditingDag.originalIndex = dagIndex; // 记录原始索引
+      
+      // 锁定列表和切换控制按钮
+      wordListElement.classList.add('locked');
+      dagContainerElement.classList.add('edit-mode');
+      editControls.classList.add('show');
+      viewControls.style.display = 'none';
+      currentWordElement.textContent = `编辑模式 - ${currentSelectedDag.name}`;
+      
+      // 渲染编辑DAG
+      renderEditDAG(currentEditingDag);
+    }
+     
+    // 删除节点
+    function deleteNode() {
+      if (!editingNodeId || !currentEditingDag) {
+        hideContextMenu();
+        return;
+      }
+      
+      // 不允许删除根节点
+      if (editingNodeId === 'root') {
+        alert('不能删除根节点！');
+        hideContextMenu();
+        return;
+      }
+      
+      hideContextMenu();
+      
+      if (confirm('确定要删除这个节点吗？删除后所有子节点也会被删除。')) {
+        // 找到要删除的节点和相关边
+        const nodesToDelete = [editingNodeId];
+        const edgesToDelete = [];
+        
+        // 递归找到所有子节点
+        function findChildNodes(parentId) {
+          currentEditingDag.edges.forEach(edge => {
+            if (edge.from === parentId && !nodesToDelete.includes(edge.to)) {
+              nodesToDelete.push(edge.to);
+              findChildNodes(edge.to);
+            }
+          });
+        }
+        
+        findChildNodes(editingNodeId);
+        
+        // 删除所有相关的边
+        currentEditingDag.edges = currentEditingDag.edges.filter(edge => 
+          !nodesToDelete.includes(edge.from) && !nodesToDelete.includes(edge.to)
+        );
+        
+        // 删除所有相关的节点
+        currentEditingDag.nodes = currentEditingDag.nodes.filter(node => 
+          !nodesToDelete.includes(node.id)
+        );
+        
+        // 重新渲染DAG
+        renderEditDAG(currentEditingDag);
+        editingNodeId = null;
+      }
+    }
+    function startNewDag() {
+      console.log('开始新建DAG');
+      isEditMode = true;
+      nodeCounter = 1;
+      
+      // 创建新的空DAG数据
+      currentEditingDag = {
+        name: "新建DAG",
+        nodes: [
+          { id: "root", label: "根节点", x: 0, y: 0 }
+        ],
+        edges: []
+      };
+      
+      // 锁定列表和切换到编辑模式
+      wordListElement.classList.add('locked');
+      dagContainerElement.classList.add('edit-mode');
+      editControls.classList.add('show');
+      viewControls.style.display = 'none';
+      currentWordElement.textContent = '编辑模式 - 新建DAG';
+      
+      // 渲染空DAG
+      renderEditDAG(currentEditingDag);
+    }
+    
+    // 渲染编辑模式的DAG
+    function renderEditDAG(data) {
+      console.log('渲染编辑模式DAG');
+      try {
+        dagNetworkElement.style.display = 'block';
+        
+        const options = {
+          layout: {
+            hierarchical: {
+              direction: 'UD',
+              sortMethod: 'directed',
+              levelSeparation: 100,
+              nodeSpacing: 150
+            }
+          },
+          edges: {
+            arrows: 'to',
+            smooth: {
+              type: 'cubicBezier',
+              forceDirection: 'vertical',
+              roundness: 0.4
+            }
+          },
+          nodes: {
+            shape: 'box',
+            margin: 10,
+            font: { size: 14, face: 'Arial' },
+            borderWidth: 2,
+            shadow: true,
+            chosen: {
+              node: function(values, id, selected, hovering) {
+                values.borderWidth = selected ? 4 : 2;
+                values.borderColor = selected ? '#ff6b6b' : '#2196f3';
+              }
+            }
+          },
+          physics: false,
+          interaction: {
+            hover: true,
+            tooltipDelay: 200,
+            dragNodes: true,
+            dragView: true,
+            zoomView: true
+          }
+        };
+
+        if (network) {
+          network.destroy();
+        }
+       
+        network = new vis.Network(dagNetworkElement, data, options);
+
+        // 添加右键事件
+        network.on('oncontext', function (params) {
+          if (params.nodes.length > 0) {
+            console.log('右键节点:', params.nodes[0]);
+            editingNodeId = params.nodes[0];
+            
+            // 获取节点在canvas中的位置
+            const nodePosition = network.getPositions([editingNodeId])[editingNodeId];
+            const canvasPosition = network.canvasToDOM(nodePosition);
+            
+            // 获取DAG容器的位置偏移
+            const dagRect = dagNetworkElement.getBoundingClientRect();
+            
+            // 计算菜单显示位置（相对于页面）
+            const menuX = dagRect.left + canvasPosition.x;
+            const menuY = dagRect.top + canvasPosition.y;
+            
+            showContextMenu(menuX, menuY);
+          }
+          params.event.preventDefault();
+        });
+        
+        // 隐藏操作菜单当点击其他地方
+        dagNetworkElement.addEventListener('click', hideContextMenu);
+
+      } catch (error) {
+        console.error('渲染编辑DAG失败:', error);
+      }
+    }
+    
+    // 显示操作菜单
+    function showContextMenu(x, y) {
+      contextMenu.style.position = 'fixed';
+      contextMenu.style.left = x + 'px';
+      contextMenu.style.top = y + 'px';
+      contextMenu.style.display = 'block';
+      contextMenu.style.zIndex = '9999';
+    }
+    
+    // 隐藏操作菜单
+    function hideContextMenu() {
+      contextMenu.style.display = 'none';
+    }
+    
+    // 编辑节点（合并了原来的添加子节点和修改节点文本功能）
+    function editNode() {
+      if (!editingNodeId || !currentEditingDag) return;
+      
+      hideContextMenu();
+      
+      const node = currentEditingDag.nodes.find(n => n.id === editingNodeId);
+      if (node) {
+        // 设置当前节点文本
+        nodeTextInput.value = node.label;
+        // 清空子节点输入框
+        childNodeTextInput.value = '';
+        // 隐藏成功提示
+        addNodeSuccess.style.display = 'none';
+        
+        // 获取DAG容器的位置和尺寸
+        const dagRect = dagContainerElement.getBoundingClientRect();
+        
+        // 先显示对话框以获取其尺寸
+        editDialog.style.display = 'block';
+        editDialog.style.position = 'fixed';
+        editDialog.style.left = '0px';
+        editDialog.style.top = '0px';
+        
+        const dialogRect = editDialog.getBoundingClientRect();
+        
+        // 计算DAG容器中心位置
+        const centerX = dagRect.left + (dagRect.width / 2) - (dialogRect.width / 2);
+        const centerY = dagRect.top + (dagRect.height / 2) - (dialogRect.height / 2);
+        
+        // 设置对话框位置
+        editDialog.style.left = centerX + 'px';
+        editDialog.style.top = centerY + 'px';
+      }
+    }
+    
+    // 从对话框中添加子节点
+    function addChildNodeFromDialog() {
+      if (!editingNodeId || !currentEditingDag) return;
+      
+      const childText = childNodeTextInput.value.trim();
+      if (!childText) {
+        alert('请输入子节点文本！');
+        return;
+      }
+      
+      nodeCounter++;
+      const newNodeId = 'node_' + nodeCounter;
+      const newNode = {
+        id: newNodeId,
+        label: childText,
+        x: 0,
+        y: 100
+      };
+      
+      const newEdge = {
+        from: editingNodeId,
+        to: newNodeId
+      };
+      
+      currentEditingDag.nodes.push(newNode);
+      currentEditingDag.edges.push(newEdge);
+      
+      // 清空输入框
+      childNodeTextInput.value = '';
+      
+      // 显示成功提示
+      addNodeSuccess.style.display = 'inline';
+      
+      // 2秒后自动隐藏成功提示
+      setTimeout(() => {
+        addNodeSuccess.style.display = 'none';
+      }, 2000);
+      
+      // 重新渲染DAG
+      renderEditDAG(currentEditingDag);
+    }
+    
+    // 确认编辑
+    function confirmEdit() {
+      if (!editingNodeId || !currentEditingDag) return;
+      
+      const node = currentEditingDag.nodes.find(n => n.id === editingNodeId);
+      if (node && nodeTextInput.value.trim()) {
+        node.label = nodeTextInput.value.trim();
+        renderEditDAG(currentEditingDag);
+        
+        // 临时改变按钮文本提供反馈
+        const saveBtn = event.target;
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = '已保存';
+        saveBtn.style.background = '#4caf50';
+        
+        setTimeout(() => {
+          saveBtn.textContent = originalText;
+          saveBtn.style.background = '#2196f3';
+        }, 1500);
+      } else {
+        alert('请输入节点文本！');
+      }
+    }
+    
+    // 取消编辑对话框
+    function cancelEditDialog() {
+      editDialog.style.display = 'none';
+      editDialog.style.position = 'fixed';
+      editDialog.style.left = '50%';
+      editDialog.style.top = '50%';
+      editDialog.style.transform = 'translate(-50%, -50%)';
+      nodeTextInput.value = '';
+      childNodeTextInput.value = '';
+      addNodeSuccess.style.display = 'none';
+      editingNodeId = null;
+    }
+    
+    // 编辑DAG名称
+    function editDagName() {
+      if (!currentEditingDag) return;
+      
+      dagNameInput.value = currentEditingDag.name;
+      
+      // 获取DAG容器的位置和尺寸
+      const dagRect = dagContainerElement.getBoundingClientRect();
+      
+      // 显示对话框以获取其尺寸
+      dagNameDialog.style.display = 'block';
+      dagNameDialog.style.position = 'absolute';
+      dagNameDialog.style.left = '0px';
+      dagNameDialog.style.top = '0px';
+      
+      const dialogRect = dagNameDialog.getBoundingClientRect();
+      
+      // 计算DAG容器中心位置
+      const centerX = dagRect.left + (dagRect.width / 2) - (dialogRect.width / 2);
+      const centerY = dagRect.top + (dagRect.height / 2) - (dialogRect.height / 2);
+      
+      // 设置对话框位置
+      dagNameDialog.style.left = centerX + 'px';
+      dagNameDialog.style.top = centerY + 'px';
+    }
+    
+    // 确认DAG名称编辑
+    function confirmDagNameEdit() {
+      if (!currentEditingDag) return;
+      
+      if (dagNameInput.value.trim()) {
+        currentEditingDag.name = dagNameInput.value.trim();
+        currentWordElement.textContent = `编辑模式 - ${currentEditingDag.name}`;
+      }
+      
+      cancelDagNameDialog();
+    }
+    
+    // 取消DAG名称编辑对话框
+    function cancelDagNameDialog() {
+      dagNameDialog.style.display = 'none';
+      dagNameDialog.style.position = 'absolute';
+      dagNameInput.value = '';
+    }
+    
+    // 保存DAG
+    async function saveDag() {
+      if (!currentEditingDag) return;
+      
+      try {
+        let response;
+        let isUpdate = typeof currentEditingDag.originalIndex !== 'undefined';
+        
+        if (isUpdate) {
+          // 更新现有DAG
+          const originalIndex = currentEditingDag.originalIndex;
+          const originalDag = dagList[originalIndex];
+          const originalName = originalDag.name;
+          delete currentEditingDag.originalIndex; // 移除临时属性
+          
+          response = await fetch(`/group/update/${encodeURIComponent(originalName)}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(currentEditingDag)
+          });
+        } else {
+          // 新建DAG
+          if (currentEditingDag.name === "新建DAG") {
+            currentEditingDag.name = `DAG_${Date.now()}`;
+          }
+          
+          response = await fetch('/group/add', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(currentEditingDag)
+          });
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert(isUpdate ? 'DAG更新成功！' : 'DAG保存成功！');
+          
+          // 退出编辑模式
+          cancelEdit();
+          
+          // 重新加载DAG列表
+          await loadDagList();
+        } else {
+          alert(`保存失败: ${result.error}`);
+        }
+        
+      } catch (error) {
+        console.error('保存DAG失败:', error);
+        alert(`保存失败: ${error.message}`);
+      }
+    }
+    
+    // 删除DAG
+    async function deleteDag() {
+      if (!currentEditingDag) return;
+      
+      const dagName = currentEditingDag.name;
+      
+      if (!confirm(`确定要删除DAG "${dagName}" 吗？此操作不可撤销！`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/group/delete/${encodeURIComponent(dagName)}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('DAG删除成功！');
+          
+          // 退出编辑模式
+          cancelEdit();
+          
+          // 重新加载DAG列表
+          await loadDagList();
+        } else {
+          alert(`删除失败: ${result.error}`);
+        }
+        
+      } catch (error) {
+        console.error('删除DAG失败:', error);
+        alert(`删除失败: ${error.message}`);
+      }
+    }
+
+    // 取消编辑
+    function cancelEdit() {
+      isEditMode = false;
+      currentEditingDag = null;
+      editingNodeId = null;
+      
+      // 解锁列表
+      wordListElement.classList.remove('locked');
+      dagContainerElement.classList.remove('edit-mode');
+      editControls.classList.remove('show');
+      
+      // 如果有当前选中的DAG，显示查看控制按钮
+      if (currentSelectedDag) {
+        viewControls.style.display = 'block';
+        currentWordElement.textContent = `${currentSelectedDag.name} - DAG`;
+        // 重新渲染当前DAG（非编辑模式）
+        renderDAG(currentSelectedDag);
+      } else {
+        viewControls.style.display = 'none';
+        dagNetworkElement.style.display = 'none';
+        currentWordElement.textContent = '选择一个DAG查看结构';
+      }
+      
+      hideContextMenu();
+      cancelEditDialog();
+      cancelDagNameDialog();
+      
+      if (network && !currentSelectedDag) {
+        network.destroy();
+        network = null;
+      }
+    }
+
     // 页面加载完成后初始化
     document.addEventListener('DOMContentLoaded', async function() {
       await loadWordDetailPanel(); // 首先加载右侧详情栏
       loadDagList(); // 然后加载DAG列表
+      
+      // 点击页面其他地方隐藏操作菜单
+      document.addEventListener('click', function(e) {
+        if (!contextMenu.contains(e.target)) {
+          hideContextMenu();
+        }
+      });
     });
   </script>
 </body>
