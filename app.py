@@ -158,6 +158,11 @@ def app1():
 def app2():
     return render_template('LWG.html')
 
+# app3: 小说阅读
+@app.route('/app3')
+def app3():
+    return render_template('NovelReader.html')
+
 @app.route('/list')
 def list_images():
     return jsonify(list(name_id_map.keys()))
@@ -277,6 +282,60 @@ def delete_dag_api(dag_name):
 def get_word_detail_panel():
     """返回词详情栏组件的HTML"""
     return render_template('word_detail_panel.html')
+
+# ================= 小说阅读相关API =================
+NOVEL_DIR = os.path.join(DATA_DIR, 'novel')
+
+@app.route('/novel/list')
+def get_novel_list():
+    """获取所有小说和章节列表"""
+    novels = []
+    
+    if not os.path.exists(NOVEL_DIR):
+        return jsonify(novels)
+    
+    for novel_name in os.listdir(NOVEL_DIR):
+        novel_path = os.path.join(NOVEL_DIR, novel_name)
+        if os.path.isdir(novel_path):
+            chapters = []
+            
+            # 扫描章节目录
+            for chapter_name in sorted(os.listdir(novel_path)):
+                chapter_path = os.path.join(novel_path, chapter_name)
+                if os.path.isdir(chapter_path):
+                    # 检查是否有en.json文件
+                    en_json_path = os.path.join(chapter_path, 'en.json')
+                    if os.path.exists(en_json_path):
+                        chapters.append({
+                            'name': chapter_name,
+                            'path': f'{novel_name}/{chapter_name}'
+                        })
+            
+            if chapters:  # 只有当有章节时才添加小说
+                novels.append({
+                    'name': novel_name,
+                    'chapters': chapters
+                })
+    
+    return jsonify(novels)
+
+@app.route('/novel/chapter/<novel_name>/<chapter_name>')
+def get_chapter_content(novel_name, chapter_name):
+    """获取指定章节的内容"""
+    try:
+        chapter_path = os.path.join(NOVEL_DIR, novel_name, chapter_name)
+        en_json_path = os.path.join(chapter_path, 'en.json')
+        
+        if not os.path.exists(en_json_path):
+            return jsonify({'error': '章节文件不存在'}), 404
+        
+        with open(en_json_path, 'r', encoding='utf-8') as f:
+            content = json.load(f)
+        
+        return jsonify(content)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # ================= 入口 =================
 if __name__ == '__main__':

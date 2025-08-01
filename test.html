@@ -1,64 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
-  <title>DAG Visualization</title>
-  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <meta charset="UTF-8">
+  <title>ChatGPT 代理 API 示例</title>
   <style>
-    #mynetwork {
-      width: 800px; height: 600px; border: 1px solid lightgray;
-    }
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    textarea { width: 100%; height: 100px; }
+    #output { white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; margin-top: 1rem; }
   </style>
 </head>
 <body>
-<h3>DAG Visualization</h3>
-<div id="mynetwork"></div>
+  <h2>ChatGPT API 示例</h2>
+  <label>你的提问：</label><br>
+  <textarea id="input">你好，请介绍一下你自己。</textarea><br>
+  <button onclick="send()">发送</button>
 
-<script>
-  // 后端返回的 JSON 数据示例，替换成后端接口调用结果即可
-  const data = {
-    nodes: [
-      {id: 'must', label: 'must'},
-      {id: 'moist', label: 'moist'},
-      {id: 'moisture', label: 'moisture'},
-      {id: 'damp', label: 'damp'},
-      {id: 'wet', label: 'wet'},
-      {id: 'humid', label: 'humid'},
-      {id: 'humidity', label: 'humidity'},
-      {id: 'musty', label: 'musty'},
-      {id: 'mustiness', label: 'mustiness'},
-      {id: 'mold', label: 'mold'},
-      {id: 'moldy', label: 'moldy'}
-    ],
-    edges: [
-      {from: 'must', to: 'moist'},
-      {from: 'moist', to: 'moisture'},
-      {from: 'moisture', to: 'damp'},
-      {from: 'moisture', to: 'wet'},
-      {from: 'moisture', to: 'humid'},
-      {from: 'humid', to: 'humidity'},
-      {from: 'must', to: 'musty'},
-      {from: 'musty', to: 'mustiness'},
-      {from: 'mustiness', to: 'mold'},
-      {from: 'mold', to: 'moldy'}
-    ]
-  };
+  <div id="output">等待回复...</div>
 
-  const container = document.getElementById('mynetwork');
-  const options = {
-    layout: {
-      hierarchical: {
-        direction: 'UD',  // 上到下
-        sortMethod: 'directed'
+  <script>
+    const API_KEY = "sk-F4Oe5MiaApayE1x4771f24E4E2C54e2dB82185589dAc427e";  // ⚠️ 替换成你的 Key
+    const API_URL = "https://free.v36.cm/v1/chat/completions";
+
+    async function send() {
+      const input = document.getElementById("input").value;
+      const output = document.getElementById("output");
+      output.textContent = "等待回复...";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + API_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "user", content: input }
+            ]
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error("HTTP " + res.status + ": " + err);
+        }
+
+        const data = await res.json();
+        output.textContent = data.choices?.[0]?.message?.content || "无内容返回";
+      } catch (e) {
+        output.textContent = "出错了：" + e.message;
       }
-    },
-    edges: {
-      arrows: 'to',
-      smooth: true
-    },
-    physics: false
-  };
-
-  const network = new vis.Network(container, data, options);
-</script>
+    }
+  </script>
 </body>
 </html>
