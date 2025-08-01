@@ -446,7 +446,6 @@
     let isEditMode = false;
     let currentEditingDag = null;
     let editingNodeId = null;
-    let nodeCounter = 1;
 
     // DOM元素缓存
     const wordListElement = document.getElementById('wordList');
@@ -729,7 +728,6 @@
       
       console.log('编辑当前DAG:', currentSelectedDag.name);
       isEditMode = true;
-      nodeCounter = currentSelectedDag.nodes.length || 1;
       
       // 深拷贝现有DAG数据用于编辑
       currentEditingDag = JSON.parse(JSON.stringify(currentSelectedDag));
@@ -797,7 +795,6 @@
     function startNewDag() {
       console.log('开始新建DAG');
       isEditMode = true;
-      nodeCounter = 1;
       
       // 创建新的空DAG数据
       currentEditingDag = {
@@ -961,19 +958,16 @@
         return;
       }
       
-      nodeCounter++;
-      const newNodeId = 'node_' + nodeCounter;
       const newNode = {
-        id: newNodeId,
-        label: childText,
-        x: 0,
-        y: 100
+        id: childText,
+        label: childText
       };
       
       const newEdge = {
         from: editingNodeId,
-        to: newNodeId
+        to: childText
       };
+      console.log('添加子节点:', newNode, '到父节点:', editingNodeId);
       
       currentEditingDag.nodes.push(newNode);
       currentEditingDag.edges.push(newEdge);
@@ -1126,6 +1120,12 @@
           
           // 重新加载DAG列表
           await loadDagList();
+          // 渲染新的或更新的DAG
+          if (isUpdate) {
+            currentSelectedDag = dagList[currentEditingDag.originalIndex];
+            renderDAG(currentSelectedDag);
+          }
+          
         } else {
           alert(`保存失败: ${result.error}`);
         }

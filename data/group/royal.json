@@ -1,0 +1,58 @@
+{
+  "edges": [
+    {
+      "from": "root",
+      "id": "9557975a-d95e-4e11-89f0-37adcb1a6f19",
+      "to": "regal"
+    },
+    {
+      "from": "regal",
+      "id": "c331c7a0-344e-4828-8a4c-d8034c957b59",
+      "to": "reign"
+    },
+    {
+      "from": "reign",
+      "id": "59a8a402-c4b8-4481-ba4a-582f56b0f9c4",
+      "to": "foreign"
+    },
+    {
+      "from": "reign",
+      "id": "1bc2932f-89a6-4297-9da1-8c8854a113a6",
+      "to": "realm"
+    },
+    {
+      "from": "root",
+      "id": "30262f56-1009-4c02-b486-f88ee7deaa36",
+      "to": "regent"
+    }
+  ],
+  "name": "royal",
+  "nodes": [
+    {
+      "id": "root",
+      "label": "royal",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "regal",
+      "label": "regal"
+    },
+    {
+      "id": "reign",
+      "label": "reign"
+    },
+    {
+      "id": "foreign",
+      "label": "foreign"
+    },
+    {
+      "id": "realm",
+      "label": "realm"
+    },
+    {
+      "id": "regent",
+      "label": "regent"
+    }
+  ]
+}
