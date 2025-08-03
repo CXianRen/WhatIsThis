@@ -31,6 +31,11 @@ async function loadWordDetails(word,
   skip_title = false,
   skip_pronunciation = false) {
   try {
+    // 确保DOM元素已初始化
+    if (!rightPanelTitle) {
+      initWordDetailPanel();
+    }
+    
     const response = await fetch(`/loadWordDetails/${encodeURIComponent(word)}`);
     if (!response.ok) throw new Error('网络请求失败');
     const data = await response.json();

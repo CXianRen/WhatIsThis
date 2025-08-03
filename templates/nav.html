@@ -2,25 +2,306 @@
 <html lang="zh-cn">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>功能导航</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f7f7f7; }
-    .nav-container { max-width: 400px; margin: 80px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #ccc; padding: 32px; }
-    h2 { text-align: center; margin-bottom: 32px; }
-    .nav-list { list-style: none; padding: 0; }
-    .nav-list li { margin: 18px 0; }
-    .nav-list a { display: block; padding: 16px; background: #1976d2; color: #fff; border-radius: 6px; text-decoration: none; font-size: 20px; text-align: center; transition: background 0.2s; }
-    .nav-list a:hover { background: #1565c0; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      height: 100vh;
+      padding: 20px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .nav-container { 
+      width: 100%;
+      max-width: 1200px; 
+      height: 100%;
+      max-height: calc(100vh - 40px);
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px; 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+      padding: 40px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    h2 { 
+      text-align: center; 
+      margin-bottom: 30px; 
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      list-style: none;
+      padding: 0;
+      flex: 1;
+      align-content: center;
+      overflow: hidden;
+    }
+    
+    .nav-item {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .nav-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      border-color: #667eea;
+    }
+    
+    .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 30px;
+      text-decoration: none;
+      color: #333;
+      height: 100%;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-icon.image-learning {
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+    
+    .nav-icon.group-words {
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+    }
+    
+    .nav-icon.novel-reader {
+      background: linear-gradient(135deg, #fa709a, #fee140);
+    }
+    
+    .nav-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .nav-description {
+      font-size: 0.95rem;
+      color: #666;
+      text-align: center;
+      line-height: 1.5;
+    }
+    
+    .nav-item:hover .nav-icon {
+      transform: scale(1.1);
+    }
+    
+    /* 移动端优化 */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .nav-container {
+        padding: 30px 20px;
+        border-radius: 15px;
+      }
+      
+      h2 {
+        font-size: 2rem;
+        margin-bottom: 30px;
+      }
+      
+      .nav-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .nav-link {
+        padding: 30px 20px;
+      }
+      
+      .nav-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+        margin-bottom: 15px;
+      }
+      
+      .nav-title {
+        font-size: 1.2rem;
+      }
+      
+      .nav-description {
+        font-size: 0.9rem;
+      }
+    }
+    
+    /* 小屏幕进一步优化 */
+    @media (max-width: 480px) {
+      .nav-container {
+        padding: 20px 15px;
+      }
+      
+      h2 {
+        font-size: 1.8rem;
+      }
+      
+      .nav-link {
+        padding: 25px 15px;
+      }
+      
+      .nav-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.8rem;
+      }
+      
+      .nav-title {
+        font-size: 1.1rem;
+      }
+    }
+    
+    /* 横屏手机优化 - 宽度大于高度且宽度不超过1024px */
+    @media (max-height: 600px) and (orientation: landscape) and (max-width: 1024px) {
+      body {
+        padding: 10px;
+      }
+      
+      .nav-container {
+        padding: 20px;
+        height: calc(100vh - 20px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      
+      h2 {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        flex-shrink: 0;
+      }
+      
+      .nav-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        flex: 1;
+        align-content: center;
+      }
+      
+      .nav-link {
+        padding: 20px 15px;
+      }
+      
+      .nav-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+      }
+      
+      .nav-title {
+        font-size: 1rem;
+        margin-bottom: 5px;
+      }
+      
+      .nav-description {
+        font-size: 0.8rem;
+        line-height: 1.3;
+      }
+    }
+    
+    /* 更小的横屏设备 */
+    @media (max-height: 500px) and (orientation: landscape) and (max-width: 900px) {
+      .nav-container {
+        padding: 15px;
+      }
+      
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+      }
+      
+      .nav-link {
+        padding: 15px 10px;
+      }
+      
+      .nav-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+      }
+      
+      .nav-title {
+        font-size: 0.9rem;
+        margin-bottom: 3px;
+      }
+      
+      .nav-description {
+        font-size: 0.7rem;
+        line-height: 1.2;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="nav-container">
     <h2>WhatIsThis</h2>
-    <ul class="nav-list">
-      <li><a href="/app1">Learn with Image</a></li>
-      <li><a href="/app2">Learn with group words</a></li>
-      <li><a href="/app3">Novel Reader</a></li>
-      <!-- 可继续添加更多功能入口 -->
+    <ul class="nav-grid">
+      <li class="nav-item">
+        <a href="/app1" class="nav-link">
+          <div class="nav-icon image-learning">🖼️</div>
+          <div class="nav-title">Learn with Image</div>
+          <div class="nav-description">通过图像学习词汇，直观理解单词含义</div>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/app2" class="nav-link">
+          <div class="nav-icon group-words">📚</div>
+          <div class="nav-title">Learn with Group Words</div>
+          <div class="nav-description">分组学习相关词汇，系统化记忆</div>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/app3" class="nav-link">
+          <div class="nav-icon novel-reader">📖</div>
+          <div class="nav-title">Novel Reader</div>
+          <div class="nav-description">沉浸式小说阅读，在语境中学习</div>
+        </a>
+      </li>
     </ul>
   </div>
 </body>

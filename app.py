@@ -339,4 +339,4 @@ def get_chapter_content(novel_name, chapter_name):
 
 # ================= 入口 =================
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
