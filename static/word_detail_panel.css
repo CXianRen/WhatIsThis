@@ -1,6 +1,6 @@
 /* 右侧详情栏样式 */
 .right-panel {
-  width: 300px;
+  width: 100%;
   background: #f8f9fa;
   border-left: 1px solid #e0e0e0;
   padding: 20px;

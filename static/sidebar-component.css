@@ -118,13 +118,26 @@
   border-radius: 15px 0 0 15px;
   padding: 15px;
   transform: translateX(100%);
+  box-sizing: border-box;
 }
 
-/* 右侧面板横屏优化 - 支持30%宽度 */
+/* 右侧面板横屏优化 - 支持30%和50%宽度 */
 .sidebar-right[style*="30%"] {
   width: 30% !important;
   max-width: 30% !important;
   border-radius: 0;
+}
+
+.sidebar-right[style*="50%"] {
+  width: 50% !important;
+  max-width: 50% !important;
+  border-radius: 0;
+}
+
+/* 右侧面板百分比宽度的通用处理 */
+.sidebar-right[style*="%"] {
+  border-radius: 0;
+  max-width: none !important; /* 移除最大宽度限制 */
 }
 
 .sidebar-right.show {
