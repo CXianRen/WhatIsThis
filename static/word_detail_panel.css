@@ -1,9 +1,9 @@
 /* 右侧详情栏样式 */
 .right-panel {
-  width: 100%;
+  width: 95%;
   background: #f8f9fa;
   border-left: 1px solid #e0e0e0;
-  padding: 20px;
+  padding: 5px;
   overflow-y: auto;
   max-height: 800px;
 }
@@ -54,7 +54,7 @@
 }
 
 .notes-area {
-  width: 100%;
+  width: 95%;
   height: 100px;
   padding: 8px;
   border: 1px solid #ddd;
