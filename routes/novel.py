@@ -2,6 +2,7 @@
 from flask import Blueprint, jsonify, request
 import os
 import json
+import re
 from config import NOVEL_DIR
 
 # ================= 小说阅读蓝图 =================
@@ -20,17 +21,31 @@ def get_novel_list():
         if os.path.isdir(novel_path):
             chapters = []
             
-            # 扫描txt文件和传统的章节目录
-            # 首先检查txt文件
+            # 扫描txt文件（原始中文章节）
             txt_files = sorted([f for f in os.listdir(novel_path) if f.endswith('.txt')])
             for txt_file in txt_files:
+                base_name = txt_file[:-4]  # 去掉.txt扩展名
+                
+                # 检查该章节的翻译版本
+                translations = []
+                for lang_code in ['en', 'se', 'fr']:
+                    lang_file = f"{base_name}.{lang_code}.json"
+                    lang_path = os.path.join(novel_path, lang_file)
+                    if os.path.exists(lang_path):
+                        translations.append({
+                            'lang': lang_code,
+                            'file': lang_file,
+                            'path': f'{novel_name}/{lang_file}'
+                        })
+                
                 chapters.append({
-                    'name': txt_file[:-4],  # 去掉.txt扩展名
+                    'name': base_name,
                     'path': f'{novel_name}/{txt_file}',
-                    'type': 'txt'
+                    'type': 'txt',
+                    'translations': translations
                 })
             
-            # 然后检查传统的章节目录（兼容旧格式）
+            # 兼容传统的章节目录（旧格式）
             for item_name in sorted(os.listdir(novel_path)):
                 item_path = os.path.join(novel_path, item_name)
                 if os.path.isdir(item_path):
@@ -40,7 +55,8 @@ def get_novel_list():
                         chapters.append({
                             'name': item_name,
                             'path': f'{novel_name}/{item_name}',
-                            'type': 'json'
+                            'type': 'json',
+                            'translations': []
                         })
             
             if chapters:  # 只有当有章节时才添加小说
@@ -55,45 +71,105 @@ def get_novel_list():
 def get_chapter_content(novel_name, chapter_name):
     """获取指定章节的内容"""
     try:
-        # 先尝试txt文件格式
+        novel_path = os.path.join(NOVEL_DIR, novel_name)
+        
+        # 如果章节名称没有扩展名，尝试找到对应的文件
+        if not any(chapter_name.endswith(ext) for ext in ['.txt', '.en.json', '.se.json', '.fr.json']):
+            # 尝试找英文翻译文件
+            en_file = f"{chapter_name}.en.json"
+            en_path = os.path.join(novel_path, en_file)
+            if os.path.exists(en_path):
+                chapter_name = en_file
+            else:
+                # 尝试找txt文件
+                txt_file = f"{chapter_name}.txt"
+                txt_path = os.path.join(novel_path, txt_file)
+                if os.path.exists(txt_path):
+                    chapter_name = txt_file
+                else:
+                    return jsonify({'error': f'Chapter not found: {chapter_name}'}), 404
+        
+        # 处理新的翻译文件格式 (.en.json, .se.json, .fr.json)
+        if any(chapter_name.endswith(f'.{lang}.json') for lang in ['en', 'se', 'fr']):
+            json_path = os.path.join(novel_path, chapter_name)
+            if os.path.exists(json_path):
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    translation_data = json.load(f)
+                
+                # 新格式：content是数组，包含 {id, src, target} 结构
+                if 'content' in translation_data and isinstance(translation_data['content'], list):
+                    sentences = []
+                    for item in translation_data['content']:
+                        if isinstance(item, dict) and 'src' in item and 'target' in item:
+                            sentences.append({
+                                'text': item['src'],
+                                'translation': item['target']
+                            })
+                    
+                    return jsonify({
+                        'title': translation_data.get('title', chapter_name),
+                        'original_title': translation_data.get('original_title', ''),
+                        'language': translation_data.get('language', ''),
+                        'language_name': translation_data.get('language_name', ''),
+                        'sentences': sentences
+                    })
+        
+        # 处理txt文件格式（原始中文）
         if chapter_name.endswith('.txt'):
-            txt_path = os.path.join(NOVEL_DIR, novel_name, chapter_name)
+            txt_path = os.path.join(novel_path, chapter_name)
             if os.path.exists(txt_path):
                 with open(txt_path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
-                # 解析txt内容，转换为适合阅读器的格式
-                lines = content.strip().split('\n')
-                title = lines[0].strip() if lines else chapter_name[:-4]
-                text_content = '\n'.join(lines[1:]).strip() if len(lines) > 1 else content
+                # 从文件名获取标题（去掉.txt扩展名）
+                base_name = chapter_name[:-4]
+                title = base_name
                 
-                # 将内容按段落分割
-                paragraphs = [p.strip() for p in text_content.split('\n') if p.strip()]
+                # 尝试从对应的英文翻译文件获取更好的标题
+                en_file = f"{base_name}.en.json"
+                en_path = os.path.join(novel_path, en_file)
+                if os.path.exists(en_path):
+                    try:
+                        with open(en_path, 'r', encoding='utf-8') as f:
+                            en_data = json.load(f)
+                            if 'original_title' in en_data and en_data['original_title']:
+                                title = en_data['original_title']
+                            elif 'title' in en_data and en_data['title']:
+                                title = en_data['title']
+                    except:
+                        pass
+                
+                # 将内容按句号分割
+                sentences_text = re.split(r'[。！？]', content.strip())
+                sentences_text = [s.strip() for s in sentences_text if s.strip()]
                 
                 # 转换为阅读器期望的格式
                 sentences = []
-                for para in paragraphs:
-                    sentences.extend([{
-                        'text': sentence.strip() + '。',
-                        'translation': ''  # txt格式暂时没有翻译
-                    } for sentence in para.split('。') if sentence.strip()])
+                for sentence in sentences_text:
+                    if sentence:
+                        sentences.append({
+                            'text': sentence + '。',
+                            'translation': ''  # txt格式没有翻译
+                        })
                 
                 return jsonify({
                     'title': title,
+                    'original_title': title,
+                    'language': 'zh',
+                    'language_name': '中文',
                     'sentences': sentences
                 })
         
-        # 兼容旧的json格式
-        chapter_path = os.path.join(NOVEL_DIR, novel_name, chapter_name)
-        en_json_path = os.path.join(chapter_path, 'en.json')
+        # 兼容旧的json格式（目录结构）
+        chapter_path = os.path.join(novel_path, chapter_name)
+        if os.path.isdir(chapter_path):
+            en_json_path = os.path.join(chapter_path, 'en.json')
+            if os.path.exists(en_json_path):
+                with open(en_json_path, 'r', encoding='utf-8') as f:
+                    content = json.load(f)
+                return jsonify(content)
         
-        if not os.path.exists(en_json_path):
-            return jsonify({'error': '章节文件不存在'}), 404
-        
-        with open(en_json_path, 'r', encoding='utf-8') as f:
-            content = json.load(f)
-        
-        return jsonify(content)
+        return jsonify({'error': '章节文件不存在'}), 404
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -142,17 +218,28 @@ def get_novel_chapters(novel_name):
         txt_path = os.path.join(novel_path, txt_file)
         base_name = txt_file[:-4]  # 去掉.txt扩展名
         
-        # 读取中文章节内容
+        # 从文件名获取基础标题
         title = base_name
-        content = ""
         
+        # 尝试从对应的英文翻译文件获取更好的标题
+        en_file = base_name + '.en.json'
+        en_path = os.path.join(novel_path, en_file)
+        if os.path.exists(en_path):
+            try:
+                with open(en_path, 'r', encoding='utf-8') as f:
+                    en_data = json.load(f)
+                    if 'original_title' in en_data and en_data['original_title']:
+                        title = en_data['original_title']
+                    elif 'title' in en_data and en_data['title']:
+                        title = en_data['title']
+            except:
+                pass
+        
+        # 读取中文章节内容
+        content = ""
         try:
             with open(txt_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                # 尝试从内容第一行获取标题
-                lines = content.strip().split('\n')
-                if lines and lines[0].strip():
-                    title = lines[0].strip()
         except:
             pass
         
@@ -235,7 +322,7 @@ def create_chapter(novel_name):
         
         # 保存章节内容到txt文件
         with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f"{chapter_title}\n\n{chapter_content}")
+            f.write(f"{chapter_content}")
         
         return jsonify({'success': True, 'message': '章节创建成功'})
         
@@ -266,7 +353,7 @@ def update_chapter(novel_name, chapter_id):
         
         # 更新文件内容
         with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f"{chapter_title}\n\n{chapter_content}")
+            f.write(f"{chapter_content}")
         
         return jsonify({'success': True, 'message': '章节更新成功'})
         
@@ -335,25 +422,28 @@ def add_language_version(novel_name, chapter_id, lang_code):
         
         base_name = txt_files[chapter_id - 1][:-4]
         
-        # 获取原始章节标题
-        txt_path = os.path.join(novel_dir, txt_files[chapter_id - 1])
+        # 从文件名获取原始章节标题
         original_title = base_name
-        try:
-            with open(txt_path, 'r', encoding='utf-8') as f:
-                lines = f.read().strip().split('\n')
-                if lines and lines[0].strip():
-                    original_title = lines[0].strip()
-        except:
-            pass
+        
+        # 尝试从已有的英文翻译文件获取更好的标题
+        existing_en_file = base_name + '.en.json'
+        existing_en_path = os.path.join(novel_dir, existing_en_file)
+        if os.path.exists(existing_en_path):
+            try:
+                with open(existing_en_path, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+                    if 'original_title' in existing_data and existing_data['original_title']:
+                        original_title = existing_data['original_title']
+            except:
+                pass
         
         # 创建语言版本文件
         lang_file = base_name + supported_languages[lang_code]
         lang_path = os.path.join(novel_dir, lang_file)
         
-        # 假设内容第一行是标题，其余是正文
-        content_lines = content.split('\n', 1)
-        title = content_lines[0].strip() if content_lines else original_title
-        body = content_lines[1] if len(content_lines) > 1 else ''
+        # 标题直接使用原始标题，内容使用用户提供的完整内容
+        title = original_title
+        body = content
         
         lang_data = {
             'title': title,

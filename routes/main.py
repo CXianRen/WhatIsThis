@@ -48,6 +48,13 @@ def novel_upload():
 def novel_translation():
     return render_template('NovelTranslation.html')
 
+# 网站清单
+@main_bp.route('/site.webmanifest')
+def site_webmanifest():
+    return send_from_directory('static', 'site.webmanifest')
+
+# 图片文件服务
+
 @main_bp.route('/list')
 def list_images():
     return jsonify(list(name_id_map.keys()))

@@ -4,7 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Novel Reader</title>
+  <title>Novel Reader - WhatIsThis</title>
+  
+  <!-- Favicon and Icons -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.svg">
+  <meta name="theme-color" content="#667eea">
+  
   <link rel="stylesheet" href="/static/sidebar-component.css">
   <style>
     body {
@@ -341,6 +347,15 @@
           sentenceStates[chapterPath] = {};
         }
 
+        // 初始化每个句子的状态（默认显示翻译）
+        if (currentContent.sentences) {
+          currentContent.sentences.forEach((_, index) => {
+            if (!(index in sentenceStates[chapterPath])) {
+              sentenceStates[chapterPath][index] = 'english';
+            }
+          });
+        }
+
         renderChapterContent(currentContent, chapterPath);
 
       } catch (error) {
@@ -351,16 +366,29 @@
 
     // 渲染章节内容
     function renderChapterContent(content, chapterPath) {
-      chapterInfoElement.textContent = `共 ${content.total_sentences} 句`;
+      // 处理新格式：content.sentences 数组
+      const sentences = content.sentences || [];
+      chapterInfoElement.textContent = `共 ${sentences.length} 句`;
 
-      const sentenceHTML = content.results.map(sentence => {
-        const currentState = sentenceStates[chapterPath][sentence.index] || 'english';
-        const isEnglish = currentState === 'english';
-        const cssClass = isEnglish ? 'english-text' : 'chinese-text';
-        const text = isEnglish ? sentence.english : sentence.chinese;
+      const sentenceHTML = sentences.map((sentence, index) => {
+        const currentState = sentenceStates[chapterPath][index] || 'english';
+        const isChinese = currentState === 'chinese';
+        const cssClass = isChinese ? 'chinese-text' : 'english-text';
+        
+        // 新格式：text是中文，translation是翻译
+        const text = isChinese ? sentence.text : sentence.translation;
+        
+        // 如果没有翻译，显示提示
+        if (!sentence.translation && !isChinese) {
+          return `
+            <div class="sentence no-translation" onclick="toggleSentence(${index}, '${chapterPath}')">
+              <div class="${cssClass}">暂无翻译</div>
+            </div>
+          `;
+        }
         
         return `
-          <div class="sentence ${isEnglish ? '' : 'chinese'}" onclick="toggleSentence(${sentence.index}, '${chapterPath}')">
+          <div class="sentence ${isChinese ? 'chinese' : ''}" onclick="toggleSentence(${index}, '${chapterPath}')">
             <div class="${cssClass}">${text}</div>
           </div>
         `;
@@ -372,7 +400,7 @@
     // 切换句子的中英文显示
     function toggleSentence(sentenceIndex, chapterPath) {
       const currentState = sentenceStates[chapterPath][sentenceIndex] || 'english';
-      sentenceStates[chapterPath][sentenceIndex] = currentState === 'english' ? 'chinese' : 'english';
+      sentenceStates[chapterPath][sentenceIndex] = currentState === 'chinese' ? 'english' : 'chinese';
       
       if (currentContent) {
         renderChapterContent(currentContent, chapterPath);

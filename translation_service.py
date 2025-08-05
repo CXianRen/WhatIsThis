@@ -1,6 +1,7 @@
 # ================= 翻译服务模块 =================
 import re
 import time
+import json
 import requests
 import threading
 from queue import Queue
@@ -19,10 +20,10 @@ def split_sentences(text: str) -> list:
     sentences = [s.strip() for s in sentences if s.strip()]
     return sentences
 
-def translate_sentence(sentence: str, target_language: str, retry_times: int = 3) -> str:
-    """调用API将句子转换为目标语言"""
+def translate_sentences_batch(sentences: list, target_language: str, retry_times: int = 3) -> list:
+    """批量翻译句子，每次最多10个句子"""
     if target_language not in SUPPORTED_LANGUAGES:
-        return f"[不支持的语言] {sentence}"
+        return [f"[不支持的语言] {sentence}" for sentence in sentences]
     
     headers = {
         "Authorization": f"Bearer {TRANSLATION_API_KEY}",
@@ -30,32 +31,73 @@ def translate_sentence(sentence: str, target_language: str, retry_times: int = 3
     }
     
     language_config = SUPPORTED_LANGUAGES[target_language]
-    prompt = f"""{language_config['prompt']}:
-###
-{sentence}
-###"""
+    
+    # 构建JSON格式的输入
+    sentences_json = {
+        "sentences": [{"id": i+1, "text": sentence} for i, sentence in enumerate(sentences)]
+    }
+    
+    prompt = f"""{language_config['prompt']}。
+
+请翻译以下JSON格式的句子列表，保持相同的JSON结构返回：
+
+输入：
+{json.dumps(sentences_json, ensure_ascii=False, indent=2)}
+
+要求：
+1. 返回相同的JSON结构
+2. 保持id字段不变
+3. 将text字段翻译为目标语言
+4. 只返回JSON，不要其他说明文字"""
     
     data = {
-        "model": "gpt-3.5-turbo",
+        "model": "deepseek-chat",
         "messages": [
+            {
+                "role": "system", 
+                "content": "You are a professional translation assistant. You must return valid JSON format only."
+            },
             {
                 "role": "user",
                 "content": prompt
             }
         ],
-        "max_tokens": 500,
-        "temperature": 0.3
+        "max_tokens": 2000,
+        "temperature": 0.1,
+        "stream": False
     }
     
     for attempt in range(retry_times):
         try:
-            response = requests.post(TRANSLATION_API_URL, headers=headers, json=data, timeout=30)
+            response = requests.post(TRANSLATION_API_URL, headers=headers, json=data, timeout=60)
             
             if response.status_code == 200:
                 result = response.json()
                 if 'choices' in result and len(result['choices']) > 0:
-                    translated_text = result['choices'][0]['message']['content'].strip()
-                    return translated_text
+                    translated_content = result['choices'][0]['message']['content'].strip()
+                    
+                    # 尝试解析JSON响应
+                    try:
+                        # 清理可能的markdown代码块标记
+                        if translated_content.startswith('```json'):
+                            translated_content = translated_content.replace('```json', '').replace('```', '')
+                        elif translated_content.startswith('```'):
+                            translated_content = translated_content.replace('```', '', 1).replace('```', '')
+                        
+                        translated_content = translated_content.strip()
+                        translated_json = json.loads(translated_content)
+                        
+                        if 'sentences' in translated_json:
+                            # 按id排序并提取翻译文本
+                            sorted_sentences = sorted(translated_json['sentences'], key=lambda x: x.get('id', 0))
+                            return [item.get('text', f'[翻译失败] {sentences[i]}') for i, item in enumerate(sorted_sentences)]
+                        else:
+                            print(f"JSON结构错误: {translated_json}")
+                            
+                    except json.JSONDecodeError as e:
+                        print(f"JSON解析失败: {e}")
+                        print(f"原始响应: {translated_content}")
+                        
                 else:
                     print(f"API响应格式错误: {result}")
             else:
@@ -70,32 +112,67 @@ def translate_sentence(sentence: str, target_language: str, retry_times: int = 3
             print(f"未知错误: {e}")
         
         if attempt < retry_times - 1:
-            time.sleep(2)
+            time.sleep(3)
     
-    return f"[翻译失败] {sentence}"
+    return [f"[翻译失败] {sentence}" for sentence in sentences]
 
-def translate_chapter_content(content: str, target_language: str) -> dict:
-    """翻译整个章节内容"""
+def translate_chapter_content_with_progress(content: str, target_language: str, task_id: str = None) -> dict:
+    """翻译整个章节内容（带进度跟踪的优化版）"""
     print(f"开始翻译章节到 {target_language}")
     
     sentences = split_sentences(content)
     print(f"拆分得到 {len(sentences)} 个句子")
     
     translated_sentences = []
-    for i, sentence in enumerate(sentences):
-        print(f"正在翻译第 {i+1}/{len(sentences)} 个句子...")
-        translated = translate_sentence(sentence, target_language)
-        translated_sentences.append(translated)
-        time.sleep(0.2)
+    batch_size = 10
+    total_batches = (len(sentences) + batch_size - 1) // batch_size
     
-    translated_content = '。'.join(translated_sentences) + '。' if translated_sentences else ''
+    # 按批次处理句子
+    for i in range(0, len(sentences), batch_size):
+        # 检查任务是否被停止
+        if task_id and task_id in stopped_tasks:
+            print(f"任务 {task_id} 已被停止，中断翻译")
+            break
+            
+        batch = sentences[i:i + batch_size]
+        batch_num = i // batch_size + 1
+        
+        print(f"正在翻译第 {batch_num}/{total_batches} 批（{len(batch)} 个句子）...")
+        
+        # 更新进度（50% + 40% * 当前批次进度）
+        if task_id and task_id in translation_results:
+            progress = 50 + int(40 * batch_num / total_batches)
+            translation_results[task_id]['progress'] = min(progress, 90)
+        
+        # 批量翻译
+        translated_batch = translate_sentences_batch(batch, target_language)
+        translated_sentences.extend(translated_batch)
+        
+        # 批次间稍作延迟
+        if i + batch_size < len(sentences):
+            time.sleep(1)
+    
+    # 创建一对一对照格式的内容
+    bilingual_content = []
+    for i, (original, translated) in enumerate(zip(sentences, translated_sentences)):
+        bilingual_content.append({
+            "id": i + 1,
+            "src": original,
+            "target": translated
+        })
+    
+    print(f"翻译完成，共处理 {len(sentences)} 个句子，发送 {total_batches} 次API请求")
     
     return {
-        'content': translated_content,
+        'content': bilingual_content,
         'language': target_language,
         'total_sentences': len(sentences),
         'processed_time': time.strftime("%Y-%m-%d %H:%M:%S")
     }
+
+def translate_chapter_content(content: str, target_language: str) -> dict:
+    """翻译整个章节内容（优化版：批量处理）"""
+    return translate_chapter_content_with_progress(content, target_language)
 
 def process_translation_queue():
     """处理翻译队列的后台线程"""
@@ -173,10 +250,23 @@ def process_translation_task(task):
         with open(txt_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # 解析标题和内容
-        lines = content.strip().split('\n')
-        title = lines[0].strip() if lines else ''
-        body_content = '\n'.join(lines[1:]).strip() if len(lines) > 1 else content
+        # 从文件名获取标题（不是从内容第一行）
+        base_name = os.path.splitext(txt_files[chapter_id - 1])[0]
+        title = base_name
+        
+        # 尝试从已有的英文翻译文件获取更好的标题
+        existing_en_file = f"{base_name}.en.json"
+        existing_en_path = os.path.join(novel_dir, existing_en_file)
+        if os.path.exists(existing_en_path):
+            try:
+                with open(existing_en_path, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+                    if 'original_title' in existing_data and existing_data['original_title']:
+                        title = existing_data['original_title']
+            except:
+                pass
+        
+        body_content = content
         
         # 检查任务是否被停止
         if task_id in stopped_tasks:
@@ -191,7 +281,11 @@ def process_translation_task(task):
         # 翻译标题和内容
         print(f"开始翻译章节 {title} 到 {SUPPORTED_LANGUAGES[lang_code]['name']}")
         
-        translated_title = translate_sentence(title, lang_code) if title else ''
+        # 使用批量翻译处理标题
+        translated_title = ''
+        if title:
+            title_result = translate_sentences_batch([title], lang_code)
+            translated_title = title_result[0] if title_result else title
         
         # 检查任务是否被停止
         if task_id in stopped_tasks:
@@ -202,7 +296,8 @@ def process_translation_task(task):
         
         translation_results[task_id]['progress'] = 50
         
-        translation_result = translate_chapter_content(body_content, lang_code)
+        # 使用批量翻译处理章节内容
+        translation_result = translate_chapter_content_with_progress(body_content, lang_code, task_id)
         
         # 检查任务是否被停止
         if task_id in stopped_tasks:
@@ -213,14 +308,17 @@ def process_translation_task(task):
         
         translation_results[task_id]['progress'] = 90
         
-        # 准备翻译数据
+        # 准备翻译数据（中英对照格式）
         translation_data = {
             'title': translated_title,
-            'content': translation_result['content'],
+            'content': translation_result['content'],  # 已经是中英对照格式
             'original_title': title,
+            'original_sentences': translation_result.get('original_sentences', []),
+            'translated_sentences': translation_result.get('translated_sentences', []),
             'language': lang_code,
             'language_name': SUPPORTED_LANGUAGES[lang_code]['name'],
             'total_sentences': translation_result['total_sentences'],
+            'total_api_calls': translation_result.get('total_api_calls', 0),
             'translated_at': time.strftime('%Y-%m-%d %H:%M:%S'),
             'processed_time': translation_result['processed_time']
         }

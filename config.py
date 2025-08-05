@@ -21,15 +21,15 @@ os.makedirs(ANNOTATION_DIR, exist_ok=True)
 os.makedirs(ANNOTATION_IMAGES_DIR, exist_ok=True)
 
 # 翻译API配置
-TRANSLATION_API_KEY = "sk-F4Oe5MiaApayE1x4771f24E4E2C54e2dB82185589dAc427e"
-TRANSLATION_API_URL = "https://free.v36.cm/v1/chat/completions"
+TRANSLATION_API_KEY = "sk-69431a48ab1842b7b3646e6241ecd69e"
+TRANSLATION_API_URL = "https://api.deepseek.com/chat/completions"
 
 # 支持的语言配置
 SUPPORTED_LANGUAGES = {
     'en': {
         'name': '英语',
         'flag': '🇺🇸',
-        'prompt': '将以下文本转换成[英文], 词汇难度[小学], 只返回转换后的文本'
+        'prompt': '将以下文本转换成[英文], 词汇难度[B1], 只返回转换后的文本'
     },
     'se': {
         'name': '瑞典语', 

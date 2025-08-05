@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>小说语言转换</title>
+  <title>小说语言转换 - WhatIsThis</title>
+  
+  <!-- Favicon and Icons -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.svg">
+  <meta name="theme-color" content="#667eea">
+  
   <style>
     * {
       margin: 0;
@@ -566,7 +572,6 @@
   <div class="container">
     <div class="header">
       <h1>🌍 小说语言转换</h1>
-      <p>批量转换小说章节为不同语言版本</p>
     </div>
     
     <!-- 导航标签 -->
@@ -635,8 +640,8 @@
             <button class="btn btn-secondary" onclick="clearQueue()" id="clearBtn">
               🗑️ 清空队列
             </button>
-            <button class="btn btn-success" onclick="addSelectedToQueue()" id="addBtn">
-              ➕ 添加到队列
+            <button class="btn btn-success" onclick="clearStoppedTasks()" id="clearStoppedBtn">
+              🧹 清理已停止
             </button>
             <button class="btn btn-danger" onclick="stopAllTasks()" id="stopAllBtn">
               ⏹️ 停止全部
@@ -739,6 +744,16 @@
           select.appendChild(option);
         }
       });
+      
+      // 添加语言选择变化监听器
+      select.addEventListener('change', function() {
+        // 当语言改变时，更新章节选择状态
+        if (currentNovel && currentNovel.chapters) {
+          selectedChapters.clear();
+          updateChapterSelection();
+          updateSelectAllCheckbox();
+        }
+      });
     }
 
     // 加载小说列表
@@ -834,6 +849,7 @@
       
       chapterList.innerHTML = currentNovel.chapters.map(chapter => `
         <div class="chapter-item ${selectedChapters.has(chapter.id) ? 'selected' : ''}" 
+             data-chapter-id="${chapter.id}"
              onclick="toggleChapterSelection(${chapter.id})">
           <input type="checkbox" class="chapter-checkbox" 
                  ${selectedChapters.has(chapter.id) ? 'checked' : ''}
@@ -887,91 +903,116 @@
 
     // 切换章节选择
     function toggleChapterSelection(chapterId) {
-      if (selectedChapters.has(chapterId)) {
-        selectedChapters.delete(chapterId);
+      const targetLanguage = document.getElementById('targetLanguage').value;
+      
+      if (!targetLanguage) {
+        alert('请先选择目标语言');
+        return;
+      }
+      
+      // 检查是否已在队列中
+      const existingTaskIndex = conversionQueue.findIndex(
+        task => task.novelName === currentNovel.name && 
+               task.chapterId === chapterId && 
+               task.targetLanguage === targetLanguage
+      );
+      
+      if (existingTaskIndex !== -1) {
+        // 如果已在队列中，则移除
+        const task = conversionQueue[existingTaskIndex];
+        
+        // 检查任务状态，只允许移除未开始的任务
+        if (task.status === 'processing' || task.status === 'queued') {
+          alert('该章节正在处理中，无法移除');
+          return;
+        }
+        
+        if (confirm(`确定要从队列中移除"${task.chapterTitle}"吗？`)) {
+          conversionQueue.splice(existingTaskIndex, 1);
+          selectedChapters.delete(chapterId);
+          console.log('从队列移除任务:', task);
+        } else {
+          return; // 用户取消，不执行任何操作
+        }
       } else {
-        selectedChapters.add(chapterId);
+        // 如果不在队列中，则添加
+        const chapter = currentNovel.chapters.find(c => c.id === chapterId);
+        if (chapter) {
+          const task = {
+            id: Date.now() + Math.random(),
+            novelName: currentNovel.name,
+            chapterId: chapterId,
+            chapterTitle: chapter.title,
+            targetLanguage: targetLanguage,
+            targetLanguageName: supportedLanguages[targetLanguage].name,
+            status: 'waiting',
+            progress: 0,
+            error: null,
+            startTime: null,
+            endTime: null
+          };
+          conversionQueue.push(task);
+          selectedChapters.add(chapterId);
+          console.log('添加任务到队列:', task);
+        }
       }
       
       // 更新UI
-      const chapterItem = document.querySelector(`[onclick*="${chapterId}"]`);
-      const checkbox = chapterItem.querySelector('.chapter-checkbox');
-      
-      if (selectedChapters.has(chapterId)) {
-        chapterItem.classList.add('selected');
-        checkbox.checked = true;
-      } else {
-        chapterItem.classList.remove('selected');
-        checkbox.checked = false;
-      }
-      
+      renderConversionQueue();
+      updateStats();
+      updateChapterSelection();
       updateSelectAllCheckbox();
-      console.log('已选择章节:', Array.from(selectedChapters));
+    }
+
+    // 更新章节选择状态
+    function updateChapterSelection() {
+      const targetLanguage = document.getElementById('targetLanguage').value;
+      
+      if (!currentNovel || !currentNovel.chapters) return;
+      
+      currentNovel.chapters.forEach(chapter => {
+        const chapterItem = document.querySelector(`[data-chapter-id="${chapter.id}"]`);
+        const checkbox = chapterItem?.querySelector('.chapter-checkbox');
+        
+        if (chapterItem && checkbox) {
+          // 检查该章节是否在队列中
+          const isInQueue = conversionQueue.some(
+            task => task.novelName === currentNovel.name && 
+                   task.chapterId === chapter.id && 
+                   task.targetLanguage === targetLanguage
+          );
+          
+          if (isInQueue) {
+            chapterItem.classList.add('selected');
+            checkbox.checked = true;
+            selectedChapters.add(chapter.id);
+          } else {
+            chapterItem.classList.remove('selected');
+            checkbox.checked = false;
+            selectedChapters.delete(chapter.id);
+          }
+        }
+      });
     }
 
     // 全选/取消全选
     function toggleSelectAll() {
       const selectAllCheckbox = document.getElementById('selectAll');
       const isSelectAll = selectAllCheckbox.checked;
+      const targetLanguage = document.getElementById('targetLanguage').value;
       
-      if (isSelectAll) {
-        // 全选
-        currentNovel.chapters.forEach(chapter => {
-          selectedChapters.add(chapter.id);
-        });
-      } else {
-        // 取消全选
-        selectedChapters.clear();
-      }
-      
-      // 重新渲染章节列表
-      loadChapters();
-      console.log('全选状态:', isSelectAll, '已选择:', Array.from(selectedChapters));
-    }
-
-    // 更新全选复选框状态
-    function updateSelectAllCheckbox() {
-      const selectAllCheckbox = document.getElementById('selectAll');
-      if (!currentNovel || !currentNovel.chapters) {
+      if (!targetLanguage) {
+        alert('请先选择目标语言');
         selectAllCheckbox.checked = false;
         return;
       }
       
-      const totalChapters = currentNovel.chapters.length;
-      const selectedCount = selectedChapters.size;
-      
-      selectAllCheckbox.checked = totalChapters > 0 && selectedCount === totalChapters;
-      selectAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalChapters;
-    }
-
-    // 添加选中的章节到队列
-    function addSelectedToQueue() {
-      const targetLanguage = document.getElementById('targetLanguage').value;
-      
-      if (!targetLanguage) {
-        alert('请选择目标语言');
-        return;
-      }
-      
-      if (selectedChapters.size === 0) {
-        alert('请选择要转换的章节');
-        return;
-      }
-      
-      console.log('添加到队列 - 目标语言:', targetLanguage, '选中章节:', Array.from(selectedChapters));
-      
-      // 保存选中章节数量
-      const selectedCount = selectedChapters.size;
-      let addedCount = 0;
-      
-      // 添加到转换队列
-      selectedChapters.forEach(chapterId => {
-        const chapter = currentNovel.chapters.find(c => c.id === chapterId);
-        if (chapter) {
-          // 检查是否已存在相同的任务
+      if (isSelectAll) {
+        // 全选 - 将所有章节添加到队列
+        currentNovel.chapters.forEach(chapter => {
           const existingTask = conversionQueue.find(
             task => task.novelName === currentNovel.name && 
-                   task.chapterId === chapterId && 
+                   task.chapterId === chapter.id && 
                    task.targetLanguage === targetLanguage
           );
           
@@ -979,32 +1020,95 @@
             const task = {
               id: Date.now() + Math.random(),
               novelName: currentNovel.name,
-              chapterId: chapterId,
+              chapterId: chapter.id,
               chapterTitle: chapter.title,
               targetLanguage: targetLanguage,
               targetLanguageName: supportedLanguages[targetLanguage].name,
-              status: 'waiting', // waiting, processing, completed, failed
+              status: 'waiting',
               progress: 0,
               error: null,
               startTime: null,
               endTime: null
             };
             conversionQueue.push(task);
-            addedCount++;
-            console.log('添加任务到队列:', task);
           }
+          selectedChapters.add(chapter.id);
+        });
+      } else {
+        // 取消全选 - 从队列中移除当前语言的所有章节
+        const tasksToRemove = conversionQueue.filter(
+          task => task.novelName === currentNovel.name && 
+                 task.targetLanguage === targetLanguage &&
+                 (task.status === 'waiting' || task.status === 'completed' || task.status === 'failed' || task.status === 'stopped')
+        );
+        
+        if (tasksToRemove.length > 0) {
+          const hasProcessingTasks = conversionQueue.some(
+            task => task.novelName === currentNovel.name && 
+                   task.targetLanguage === targetLanguage &&
+                   (task.status === 'processing' || task.status === 'queued')
+          );
+          
+          if (hasProcessingTasks) {
+            alert('有正在处理的任务，无法全部移除');
+            selectAllCheckbox.checked = true;
+            return;
+          }
+          
+          if (confirm(`确定要从队列中移除所有 ${supportedLanguages[targetLanguage].name} 翻译任务吗？`)) {
+            // 移除任务
+            tasksToRemove.forEach(task => {
+              const index = conversionQueue.indexOf(task);
+              if (index !== -1) {
+                conversionQueue.splice(index, 1);
+              }
+            });
+            selectedChapters.clear();
+          } else {
+            selectAllCheckbox.checked = true;
+            return;
+          }
+        } else {
+          selectedChapters.clear();
         }
-      });
+      }
       
+      // 更新UI
       renderConversionQueue();
       updateStats();
+      updateChapterSelection();
+      console.log('全选状态:', isSelectAll, '队列长度:', conversionQueue.length);
+    }
+
+    // 更新全选复选框状态
+    function updateSelectAllCheckbox() {
+      const selectAllCheckbox = document.getElementById('selectAll');
+      const targetLanguage = document.getElementById('targetLanguage').value;
       
-      // 清空选择
-      selectedChapters.clear();
-      document.getElementById('selectAll').checked = false;
-      loadChapters();
+      if (!currentNovel || !currentNovel.chapters || !targetLanguage) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+        return;
+      }
       
-      alert(`已添加 ${addedCount} 个章节到转换队列`);
+      // 计算当前语言在队列中的章节数量
+      const chaptersInQueue = conversionQueue.filter(
+        task => task.novelName === currentNovel.name && 
+               task.targetLanguage === targetLanguage
+      ).length;
+      
+      const totalChapters = currentNovel.chapters.length;
+      
+      if (chaptersInQueue === 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+      } else if (chaptersInQueue === totalChapters) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+      } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+      }
     }
 
     // 渲染转换队列
