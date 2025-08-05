@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小说语言转换</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      min-height: calc(100vh - 40px);
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 20px;
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    
+    .header p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+    
+    .nav-tabs {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .nav-tab {
+      padding: 15px 25px;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #666;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    
+    .nav-tab:hover {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+    
+    .nav-tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 30px;
+      height: calc(100vh - 250px);
+    }
+    
+    .left-panel {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      overflow-y: auto;
+    }
+    
+    .right-panel {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      overflow-y: auto;
+    }
+    
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #333;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 10px;
+    }
+    
+    /* 小说选择 */
+    .novel-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      margin: 10px 0;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .novel-item:hover {
+      background: #e9ecef;
+      border-color: #667eea;
+      transform: translateY(-2px);
+    }
+    
+    .novel-item.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border-color: #667eea;
+    }
+    
+    .novel-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    .chapter-count {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 0.9rem;
+    }
+    
+    /* 章节列表 */
+    .chapter-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      margin: 8px 0;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .chapter-item:hover {
+      background: #e9ecef;
+    }
+    
+    .chapter-item.selected {
+      background: #e3f2fd;
+      border-color: #2196f3;
+    }
+    
+    .chapter-checkbox {
+      margin-right: 15px;
+      transform: scale(1.2);
+    }
+    
+    .chapter-info {
+      flex: 1;
+    }
+    
+    .chapter-title {
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .language-flags {
+      display: flex;
+      gap: 4px;
+      margin-top: 5px;
+    }
+    
+    .flag {
+      font-size: 16px;
+      opacity: 0.3;
+      transition: all 0.3s ease;
+    }
+    
+    .flag.available {
+      opacity: 1;
+    }
+    
+    /* 转换控制区域 */
+    .conversion-controls {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .control-row {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .control-label {
+      font-weight: 500;
+      color: #333;
+      font-size: 0.9rem;
+    }
+    
+    .language-select {
+      padding: 10px 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: white;
+      cursor: pointer;
+      transition: border-color 0.3s ease;
+      min-width: 200px;
+    }
+    
+    .language-select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .batch-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+    }
+    
+    .btn-primary:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background: #218838;
+    }
+    
+    /* 转换队列 */
+    .conversion-queue {
+      background: white;
+      border-radius: 10px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .queue-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #e9ecef;
+      transition: background-color 0.3s ease;
+    }
+    
+    .queue-item:last-child {
+      border-bottom: none;
+    }
+    
+    .queue-item.processing {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+    }
+    
+    .queue-item.completed {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+    }
+    
+    .queue-item.failed {
+      background: #f8d7da;
+      border-left: 4px solid #dc3545;
+    }
+    
+    .queue-info {
+      flex: 1;
+    }
+    
+    .queue-title {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    
+    .queue-details {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    .queue-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 180px;
+      flex-direction: column;
+    }
+    
+    .status-text {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    
+    .status-text.waiting {
+      color: #6c757d;
+    }
+    
+    .status-text.processing {
+      color: #ffc107;
+    }
+    
+    .status-text.completed {
+      color: #28a745;
+    }
+    
+    .status-text.failed {
+      color: #dc3545;
+    }
+    
+    .estimated-time {
+      font-size: 0.8rem;
+      color: #007bff;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    
+    .duration-time {
+      font-size: 0.8rem;
+      color: #28a745;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    
+    .error-message {
+      font-size: 0.8rem;
+      color: #dc3545;
+      margin-top: 2px;
+      font-style: italic;
+    }
+    
+    .progress-percentage {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 2px;
+      text-align: center;
+    }
+    
+    /* 进度条 */
+    .progress-container {
+      width: 100px;
+      height: 8px;
+      background: #e9ecef;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      transition: width 0.3s ease;
+      border-radius: 4px;
+    }
+    
+    .progress-bar.success {
+      background: #28a745;
+    }
+    
+    .progress-bar.error {
+      background: #dc3545;
+    }
+    
+    /* 统计信息 */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .stat-number {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+    
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+        margin: 10px;
+      }
+      
+      .main-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        height: auto;
+      }
+      
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .left-panel, .right-panel {
+        padding: 20px;
+      }
+      
+      .control-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .batch-actions {
+        flex-direction: column;
+      }
+      
+      .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌍 小说语言转换</h1>
+      <p>批量转换小说章节为不同语言版本</p>
+    </div>
+    
+    <!-- 导航标签 -->
+    <div class="nav-tabs">
+      <a href="/novel-upload" class="nav-tab">📖 章节管理</a>
+      <a href="/novel-translation" class="nav-tab active">🌍 语言转换</a>
+    </div>
+    
+    <div class="main-content">
+      <!-- 左侧面板 - 小说和章节选择 -->
+      <div class="left-panel">
+        <!-- 小说选择 -->
+        <div class="novel-selector">
+          <h3 class="section-title">选择小说</h3>
+          <div id="novelList">
+            <!-- 小说列表将在这里动态生成 -->
+          </div>
+        </div>
+        
+        <!-- 章节选择 -->
+        <div class="chapter-selector">
+          <h3 class="section-title">选择章节</h3>
+          <div style="margin-bottom: 15px;">
+            <label>
+              <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+              全选/取消全选
+            </label>
+          </div>
+          <div id="chapterList">
+            <div class="empty-state">
+              <div class="empty-icon">📖</div>
+              <p>请先选择一个小说</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 右侧面板 - 转换控制和队列 -->
+      <div class="right-panel">
+        <!-- 转换控制 -->
+        <div class="conversion-controls">
+          <h3 class="section-title">转换设置</h3>
+          
+          <div class="control-row">
+            <div class="control-group">
+              <label class="control-label">目标语言</label>
+              <select id="targetLanguage" class="language-select">
+                <option value="">选择目标语言</option>
+              </select>
+            </div>
+            
+            <div class="control-group">
+              <label class="control-label">覆盖设置</label>
+              <select id="overwriteMode" class="language-select" style="min-width: 150px;">
+                <option value="ask">询问是否覆盖</option>
+                <option value="skip">跳过已存在</option>
+                <option value="overwrite">直接覆盖</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="batch-actions">
+            <button class="btn btn-primary" onclick="startBatchConversion()" id="startBtn">
+              🚀 开始批量转换
+            </button>
+            <button class="btn btn-secondary" onclick="clearQueue()" id="clearBtn">
+              🗑️ 清空队列
+            </button>
+            <button class="btn btn-success" onclick="addSelectedToQueue()" id="addBtn">
+              ➕ 添加到队列
+            </button>
+          </div>
+        </div>
+        
+        <!-- 统计信息 -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-number" id="totalCount">0</div>
+            <div class="stat-label">总计</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="waitingCount">0</div>
+            <div class="stat-label">等待中</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="processingCount">0</div>
+            <div class="stat-label">处理中</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="completedCount">0</div>
+            <div class="stat-label">已完成</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="failedCount">0</div>
+            <div class="stat-label">失败</div>
+          </div>
+        </div>
+        
+        <!-- 转换队列 -->
+        <div class="conversion-queue-section">
+          <h3 class="section-title">转换队列</h3>
+          <div id="conversionQueue" class="conversion-queue">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <p>队列为空，请添加要转换的章节</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 全局变量
+    let novels = [];
+    let currentNovel = null;
+    let selectedChapters = new Set();
+    let conversionQueue = [];
+    let isProcessing = false;
+    let supportedLanguages = {};
+    
+    // 语言配置
+    const LANGUAGES = {
+      'zh': { flag: '🇨🇳', name: '中文', extension: '.txt' },
+      'en': { flag: '🇺🇸', name: '英文', extension: '.en.json' },
+      'se': { flag: '🇸🇪', name: '瑞典语', extension: '.se.json' },
+      'fr': { flag: '🇫🇷', name: '法语', extension: '.fr.json' }
+    };
+    
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSupportedLanguages();
+      loadNovels();
+    });
+
+    // 加载支持的语言
+    async function loadSupportedLanguages() {
+      console.log('开始加载支持的语言...');
+      try {
+        const response = await fetch('/api/supported-languages');
+        if (response.ok) {
+          supportedLanguages = await response.json();
+          console.log('支持的语言:', supportedLanguages);
+          initializeLanguageSelect();
+        } else {
+          console.error('加载支持语言失败:', response.statusText);
+        }
+      } catch (error) {
+        console.error('加载支持语言失败:', error);
+      }
+    }
+
+    // 初始化语言选择下拉框
+    function initializeLanguageSelect() {
+      const select = document.getElementById('targetLanguage');
+      select.innerHTML = '<option value="">选择目标语言</option>';
+      
+      Object.keys(supportedLanguages).forEach(langCode => {
+        if (langCode !== 'zh') { // 排除中文，因为中文是源语言
+          const option = document.createElement('option');
+          option.value = langCode;
+          option.textContent = `${supportedLanguages[langCode].flag} ${supportedLanguages[langCode].name}`;
+          select.appendChild(option);
+        }
+      });
+    }
+
+    // 加载小说列表
+    async function loadNovels() {
+      console.log('开始加载小说列表...');
+      try {
+        const response = await fetch('/api/novels');
+        if (response.ok) {
+          novels = await response.json();
+          console.log('小说列表:', novels);
+        } else {
+          console.error('加载小说列表失败:', response.statusText);
+          novels = [];
+        }
+        renderNovelList();
+      } catch (error) {
+        console.error('加载小说列表失败:', error);
+        novels = [];
+        renderNovelList();
+      }
+    }
+
+    // 渲染小说列表
+    function renderNovelList() {
+      const novelList = document.getElementById('novelList');
+      
+      if (novels.length === 0) {
+        novelList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📚</div>
+            <p>还没有小说</p>
+          </div>
+        `;
+        return;
+      }
+      
+      novelList.innerHTML = novels.map(novel => `
+        <div class="novel-item ${currentNovel?.id === novel.id ? 'active' : ''}" 
+             onclick="selectNovel(${novel.id})">
+          <div class="novel-name">${novel.displayName || novel.name}</div>
+          <div class="chapter-count">${novel.chapterCount || 0} 章节</div>
+        </div>
+      `).join('');
+    }
+
+    // 选择小说
+    async function selectNovel(novelId) {
+      console.log('选择小说:', novelId);
+      currentNovel = novels.find(n => n.id === novelId);
+      selectedChapters.clear();
+      renderNovelList();
+      await loadChapters();
+    }
+
+    // 加载章节列表
+    async function loadChapters() {
+      const chapterList = document.getElementById('chapterList');
+      
+      if (!currentNovel) {
+        chapterList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📖</div>
+            <p>请先选择一个小说</p>
+          </div>
+        `;
+        return;
+      }
+
+      console.log('加载章节列表:', currentNovel.name);
+      try {
+        const response = await fetch(`/api/novels/${currentNovel.name}/chapters`);
+        if (response.ok) {
+          currentNovel.chapters = await response.json();
+          console.log('章节列表:', currentNovel.chapters);
+        } else {
+          console.error('加载章节失败:', response.statusText);
+          currentNovel.chapters = [];
+        }
+      } catch (error) {
+        console.error('加载章节失败:', error);
+        currentNovel.chapters = [];
+      }
+      
+      if (!currentNovel.chapters || currentNovel.chapters.length === 0) {
+        chapterList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📖</div>
+            <p>该小说还没有章节</p>
+          </div>
+        `;
+        return;
+      }
+      
+      chapterList.innerHTML = currentNovel.chapters.map(chapter => `
+        <div class="chapter-item ${selectedChapters.has(chapter.id) ? 'selected' : ''}" 
+             onclick="toggleChapterSelection(${chapter.id})">
+          <input type="checkbox" class="chapter-checkbox" 
+                 ${selectedChapters.has(chapter.id) ? 'checked' : ''}
+                 onchange="event.stopPropagation(); toggleChapterSelection(${chapter.id})">
+          <div class="chapter-info">
+            <div class="chapter-title">${chapter.title}</div>
+            <div class="language-flags">
+              ${renderLanguageFlags(chapter)}
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      updateSelectAllCheckbox();
+    }
+
+    // 检查章节的语言支持
+    function getChapterLanguageSupport(chapter) {
+      const support = {};
+      
+      // 检查中文支持 (原始 .txt 文件)
+      if (chapter.filename && chapter.filename.endsWith('.txt')) {
+        support.zh = true;
+      }
+      
+      // 检查其他语言支持
+      if (chapter.languages) {
+        Object.keys(chapter.languages).forEach(lang => {
+          if (LANGUAGES[lang]) {
+            support[lang] = true;
+          }
+        });
+      }
+      
+      return support;
+    }
+
+    // 渲染语言标识
+    function renderLanguageFlags(chapter) {
+      const support = getChapterLanguageSupport(chapter);
+      
+      return Object.keys(LANGUAGES).map(lang => {
+        const langConfig = LANGUAGES[lang];
+        const isAvailable = support[lang] || false;
+        return `<span class="flag ${isAvailable ? 'available' : ''}" 
+                      title="${langConfig.name}${isAvailable ? ' (已支持)' : ' (未支持)'}">
+                  ${langConfig.flag}
+                </span>`;
+      }).join('');
+    }
+
+    // 切换章节选择
+    function toggleChapterSelection(chapterId) {
+      if (selectedChapters.has(chapterId)) {
+        selectedChapters.delete(chapterId);
+      } else {
+        selectedChapters.add(chapterId);
+      }
+      
+      // 更新UI
+      const chapterItem = document.querySelector(`[onclick*="${chapterId}"]`);
+      const checkbox = chapterItem.querySelector('.chapter-checkbox');
+      
+      if (selectedChapters.has(chapterId)) {
+        chapterItem.classList.add('selected');
+        checkbox.checked = true;
+      } else {
+        chapterItem.classList.remove('selected');
+        checkbox.checked = false;
+      }
+      
+      updateSelectAllCheckbox();
+      console.log('已选择章节:', Array.from(selectedChapters));
+    }
+
+    // 全选/取消全选
+    function toggleSelectAll() {
+      const selectAllCheckbox = document.getElementById('selectAll');
+      const isSelectAll = selectAllCheckbox.checked;
+      
+      if (isSelectAll) {
+        // 全选
+        currentNovel.chapters.forEach(chapter => {
+          selectedChapters.add(chapter.id);
+        });
+      } else {
+        // 取消全选
+        selectedChapters.clear();
+      }
+      
+      // 重新渲染章节列表
+      loadChapters();
+      console.log('全选状态:', isSelectAll, '已选择:', Array.from(selectedChapters));
+    }
+
+    // 更新全选复选框状态
+    function updateSelectAllCheckbox() {
+      const selectAllCheckbox = document.getElementById('selectAll');
+      if (!currentNovel || !currentNovel.chapters) {
+        selectAllCheckbox.checked = false;
+        return;
+      }
+      
+      const totalChapters = currentNovel.chapters.length;
+      const selectedCount = selectedChapters.size;
+      
+      selectAllCheckbox.checked = totalChapters > 0 && selectedCount === totalChapters;
+      selectAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalChapters;
+    }
+
+    // 添加选中的章节到队列
+    function addSelectedToQueue() {
+      const targetLanguage = document.getElementById('targetLanguage').value;
+      
+      if (!targetLanguage) {
+        alert('请选择目标语言');
+        return;
+      }
+      
+      if (selectedChapters.size === 0) {
+        alert('请选择要转换的章节');
+        return;
+      }
+      
+      console.log('添加到队列 - 目标语言:', targetLanguage, '选中章节:', Array.from(selectedChapters));
+      
+      // 保存选中章节数量
+      const selectedCount = selectedChapters.size;
+      let addedCount = 0;
+      
+      // 添加到转换队列
+      selectedChapters.forEach(chapterId => {
+        const chapter = currentNovel.chapters.find(c => c.id === chapterId);
+        if (chapter) {
+          // 检查是否已存在相同的任务
+          const existingTask = conversionQueue.find(
+            task => task.novelName === currentNovel.name && 
+                   task.chapterId === chapterId && 
+                   task.targetLanguage === targetLanguage
+          );
+          
+          if (!existingTask) {
+            const task = {
+              id: Date.now() + Math.random(),
+              novelName: currentNovel.name,
+              chapterId: chapterId,
+              chapterTitle: chapter.title,
+              targetLanguage: targetLanguage,
+              targetLanguageName: supportedLanguages[targetLanguage].name,
+              status: 'waiting', // waiting, processing, completed, failed
+              progress: 0,
+              error: null,
+              startTime: null,
+              endTime: null
+            };
+            conversionQueue.push(task);
+            addedCount++;
+            console.log('添加任务到队列:', task);
+          }
+        }
+      });
+      
+      renderConversionQueue();
+      updateStats();
+      
+      // 清空选择
+      selectedChapters.clear();
+      document.getElementById('selectAll').checked = false;
+      loadChapters();
+      
+      alert(`已添加 ${addedCount} 个章节到转换队列`);
+    }
+
+    // 渲染转换队列
+    function renderConversionQueue() {
+      const queueContainer = document.getElementById('conversionQueue');
+      
+      if (conversionQueue.length === 0) {
+        queueContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>队列为空，请添加要转换的章节</p>
+          </div>
+        `;
+        return;
+      }
+      
+      queueContainer.innerHTML = conversionQueue.map(task => {
+        let timeInfo = '';
+        if (task.estimatedTime && task.estimatedTime > 0) {
+          const minutes = Math.floor(task.estimatedTime / 60);
+          const seconds = Math.floor(task.estimatedTime % 60);
+          timeInfo = `<div class="estimated-time">预计剩余: ${minutes}分${seconds}秒</div>`;
+        } else if (task.status === 'completed' && task.startTime && task.endTime) {
+          const duration = Math.floor((task.endTime - task.startTime) / 1000);
+          const minutes = Math.floor(duration / 60);
+          const seconds = duration % 60;
+          timeInfo = `<div class="duration-time">耗时: ${minutes}分${seconds}秒</div>`;
+        }
+        
+        return `
+          <div class="queue-item ${task.status}" data-task-id="${task.id}">
+            <div class="queue-info">
+              <div class="queue-title">${task.chapterTitle}</div>
+              <div class="queue-details">
+                ${task.novelName} → ${task.targetLanguageName}
+              </div>
+              ${timeInfo}
+              ${task.error ? `<div class="error-message">错误: ${task.error}</div>` : ''}
+            </div>
+            <div class="queue-status">
+              <div class="status-text ${task.status}">
+                ${getStatusText(task.status)}
+              </div>
+              <div class="progress-container">
+                <div class="progress-bar ${task.status === 'completed' ? 'success' : task.status === 'failed' ? 'error' : ''}" 
+                     style="width: ${task.progress}%"></div>
+              </div>
+              <div class="progress-percentage">${task.progress}%</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 获取状态文本
+    function getStatusText(status) {
+      const statusMap = {
+        'waiting': '等待中',
+        'processing': '处理中',
+        'completed': '已完成',
+        'failed': '失败'
+      };
+      return statusMap[status] || status;
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      const stats = {
+        total: conversionQueue.length,
+        waiting: conversionQueue.filter(t => t.status === 'waiting').length,
+        processing: conversionQueue.filter(t => t.status === 'processing').length,
+        completed: conversionQueue.filter(t => t.status === 'completed').length,
+        failed: conversionQueue.filter(t => t.status === 'failed').length
+      };
+      
+      document.getElementById('totalCount').textContent = stats.total;
+      document.getElementById('waitingCount').textContent = stats.waiting;
+      document.getElementById('processingCount').textContent = stats.processing;
+      document.getElementById('completedCount').textContent = stats.completed;
+      document.getElementById('failedCount').textContent = stats.failed;
+    }
+
+    // 开始批量转换
+    async function startBatchConversion() {
+      if (conversionQueue.length === 0) {
+        alert('队列为空，请先添加要转换的章节');
+        return;
+      }
+      
+      if (isProcessing) {
+        alert('转换正在进行中，请等待当前任务完成');
+        return;
+      }
+      
+      console.log('开始批量转换，队列长度:', conversionQueue.length);
+      isProcessing = true;
+      
+      // 更新按钮状态
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('startBtn').textContent = '转换中...';
+      
+      // 逐个处理队列中的任务
+      for (let i = 0; i < conversionQueue.length; i++) {
+        const task = conversionQueue[i];
+        
+        if (task.status === 'waiting') {
+          await processTask(task);
+        }
+      }
+      
+      isProcessing = false;
+      
+      // 恢复按钮状态
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('startBtn').textContent = '🚀 开始批量转换';
+      
+      console.log('批量转换完成');
+      alert('批量转换完成！');
+    }
+
+    // 处理单个转换任务
+    async function processTask(task) {
+      console.log('开始处理任务:', task);
+      
+      // 更新任务状态为处理中
+      task.status = 'processing';
+      task.progress = 0;
+      task.startTime = new Date();
+      
+      renderConversionQueue();
+      updateStats();
+      
+      try {
+        // 检查覆盖模式
+        const overwriteMode = document.getElementById('overwriteMode').value;
+        const chapter = currentNovel?.chapters?.find(c => c.id === task.chapterId);
+        
+        if (chapter) {
+          const support = getChapterLanguageSupport(chapter);
+          const hasExistingVersion = support[task.targetLanguage];
+          
+          if (hasExistingVersion && overwriteMode === 'skip') {
+            task.status = 'completed';
+            task.progress = 100;
+            task.endTime = new Date();
+            console.log('跳过已存在的版本:', task);
+            renderConversionQueue();
+            updateStats();
+            return;
+          }
+          
+          if (hasExistingVersion && overwriteMode === 'ask') {
+            const confirmed = confirm(`章节"${task.chapterTitle}"已存在${task.targetLanguageName}版本，是否覆盖？`);
+            if (!confirmed) {
+              task.status = 'completed';
+              task.progress = 100;
+              task.endTime = new Date();
+              console.log('用户选择不覆盖:', task);
+              renderConversionQueue();
+              updateStats();
+              return;
+            }
+          }
+        }
+        
+        // 启动异步翻译任务
+        const response = await fetch(`/api/novels/${task.novelName}/chapters/${task.chapterId}/translate/${task.targetLanguage}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            overwrite: overwriteMode === 'overwrite' || overwriteMode === 'ask'
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.task_id) {
+            // 开始轮询任务状态
+            task.serverTaskId = result.task_id;
+            await pollTaskProgress(task);
+          } else {
+            throw new Error(result.error || '启动翻译任务失败');
+          }
+        } else {
+          const errorResult = await response.json();
+          throw new Error(errorResult.error || `转换失败: ${response.statusText}`);
+        }
+        
+      } catch (error) {
+        console.error('任务处理失败:', task, error);
+        task.status = 'failed';
+        task.progress = 0;
+        task.error = error.message;
+        task.endTime = new Date();
+        renderConversionQueue();
+        updateStats();
+      }
+    }
+
+    // 轮询任务进度
+    async function pollTaskProgress(task) {
+      const maxAttempts = 300; // 最多轮询5分钟
+      let attempts = 0;
+      
+      const poll = async () => {
+        try {
+          const response = await fetch(`/api/translation/status/${task.serverTaskId}`);
+          if (response.ok) {
+            const status = await response.json();
+            
+            // 更新任务进度
+            task.progress = status.progress || 0;
+            task.estimatedTime = status.estimated_time;
+            
+            if (status.status === 'completed') {
+              task.status = 'completed';
+              task.progress = 100;
+              task.endTime = new Date();
+              console.log('任务完成:', task);
+              renderConversionQueue();
+              updateStats();
+              return;
+            } else if (status.status === 'failed') {
+              task.status = 'failed';
+              task.error = status.error || '翻译失败';
+              task.endTime = new Date();
+              console.log('任务失败:', task);
+              renderConversionQueue();
+              updateStats();
+              return;
+            } else if (status.status === 'processing' || status.status === 'queued') {
+              // 继续轮询
+              renderConversionQueue();
+              updateStats();
+              
+              attempts++;
+              if (attempts < maxAttempts) {
+                setTimeout(poll, 1000); // 每秒轮询一次
+              } else {
+                task.status = 'failed';
+                task.error = '任务超时';
+                task.endTime = new Date();
+                renderConversionQueue();
+                updateStats();
+              }
+            }
+          } else {
+            throw new Error('获取任务状态失败');
+          }
+        } catch (error) {
+          console.error('轮询任务状态失败:', error);
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 2000); // 出错时延长轮询间隔
+          } else {
+            task.status = 'failed';
+            task.error = '无法获取任务状态';
+            task.endTime = new Date();
+            renderConversionQueue();
+            updateStats();
+          }
+        }
+      };
+      
+      // 开始轮询
+      poll();
+    }
+
+    // 清空队列
+    function clearQueue() {
+      if (isProcessing) {
+        alert('转换正在进行中，无法清空队列');
+        return;
+      }
+      
+      if (conversionQueue.length === 0) {
+        alert('队列已经为空');
+        return;
+      }
+      
+      const confirmed = confirm(`确定要清空转换队列吗？这将删除 ${conversionQueue.length} 个待转换任务。`);
+      if (confirmed) {
+        conversionQueue = [];
+        renderConversionQueue();
+        updateStats();
+        console.log('队列已清空');
+      }
+    }
+  </script>
+</body>
+</html>
