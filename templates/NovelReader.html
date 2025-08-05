@@ -9,7 +9,14 @@
   <!-- Favicon and Icons -->
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.svg">
+  <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#667eea">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Novel Reader">
+  <meta name="mobile-web-app-capable" content="yes">
   
   <link rel="stylesheet" href="/static/sidebar-component.css">
   <style>
@@ -421,5 +428,8 @@
       }
     });
   </script>
+  
+  <!-- PWA Support Script -->
+  <script src="/static/pwa.js"></script>
 </body>
 </html>

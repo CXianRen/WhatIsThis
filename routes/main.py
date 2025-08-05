@@ -53,6 +53,14 @@ def novel_translation():
 def site_webmanifest():
     return send_from_directory('static', 'site.webmanifest')
 
+# Service Worker
+@main_bp.route('/sw.js')
+def service_worker():
+    response = send_from_directory('static', 'sw.js')
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+
 # 图片文件服务
 
 @main_bp.route('/list')

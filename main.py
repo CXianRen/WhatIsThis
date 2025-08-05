@@ -18,6 +18,9 @@ def create_app():
     """应用工厂函数"""
     app = Flask(__name__)
     
+    # 设置 MIME 类型
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1年缓存
+    
     # 初始化数据库和缓存
     init_db()
     load_img_cache()
@@ -30,6 +33,20 @@ def create_app():
     app.register_blueprint(novel_api_bp)
     app.register_blueprint(translation_bp)
     app.register_blueprint(annotation_bp)
+    
+    # 设置静态文件的 MIME 类型
+    @app.after_request
+    def after_request(response):
+        # 设置Service Worker的正确MIME类型
+        if response.headers.get('Content-Type') == 'text/html; charset=utf-8' and '/sw.js' in str(response.location or ''):
+            response.headers['Content-Type'] = 'application/javascript'
+        
+        # 设置安全头
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        
+        return response
     
     return app
 
