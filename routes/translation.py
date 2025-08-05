@@ -1,7 +1,14 @@
 # ================= 翻译API路由模块 =================
 from flask import Blueprint, jsonify, request
 import time
-from translation_service import add_translation_task, get_translation_status, SUPPORTED_LANGUAGES
+from translation_service import (
+    add_translation_task, 
+    get_translation_status, 
+    stop_translation_task,
+    stop_all_translation_tasks,
+    clear_stopped_tasks,
+    SUPPORTED_LANGUAGES
+)
 
 # 创建蓝图
 translation_bp = Blueprint('translation', __name__, url_prefix='/api')
@@ -148,3 +155,55 @@ def get_batch_translation_status():
 def get_supported_languages():
     """获取支持的语言列表"""
     return jsonify(SUPPORTED_LANGUAGES)
+
+@translation_bp.route('/translation/stop/<task_id>', methods=['POST'])
+def stop_translation_task_api(task_id):
+    """停止指定的翻译任务"""
+    try:
+        success, message = stop_translation_task(task_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': message
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': message
+            }), 400
+            
+    except Exception as e:
+        print(f"停止翻译任务失败: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@translation_bp.route('/translation/stop-all', methods=['POST'])
+def stop_all_translation_tasks_api():
+    """停止所有翻译任务"""
+    try:
+        stopped_count = stop_all_translation_tasks()
+        
+        return jsonify({
+            'success': True,
+            'message': f'已停止 {stopped_count} 个翻译任务',
+            'stopped_count': stopped_count
+        })
+        
+    except Exception as e:
+        print(f"停止所有翻译任务失败: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@translation_bp.route('/translation/clear-stopped', methods=['POST'])
+def clear_stopped_tasks_api():
+    """清理已停止的任务记录"""
+    try:
+        clear_stopped_tasks()
+        
+        return jsonify({
+            'success': True,
+            'message': '已清理停止的任务记录'
+        })
+        
+    except Exception as e:
+        print(f"清理停止任务记录失败: {e}")
+        return jsonify({'error': str(e)}), 500

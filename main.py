@@ -10,8 +10,7 @@ from database import init_db, load_img_cache, load_phonetic_cache
 # 导入所有路由蓝图
 from routes.main import main_bp
 from routes.group import group_bp
-from routes.novel import novel_bp
-from routes.novel_api import novel_api_bp
+from routes.novel import novel_bp, novel_api_bp
 from routes.translation import translation_bp
 from routes.annotation import annotation_bp
 
