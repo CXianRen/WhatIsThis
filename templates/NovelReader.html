@@ -563,7 +563,7 @@
         </div>
         <button class="night-mode-toggle" onclick="toggleNightMode()">
           <span id="nightModeIcon">🌙</span>
-          <span id="nightModeText">夜间模式</span>
+          <span id="nightModeText">Switch</span>
         </button>
       </div>
       <div id="contentArea">
@@ -1007,12 +1007,12 @@
       if (isNightMode) {
         body.classList.add('night-mode');
         nightModeIcon.textContent = '☀️';
-        nightModeText.textContent = '日间模式';
+        nightModeText.textContent = 'Switch';
         localStorage.setItem('nightMode', 'true');
       } else {
         body.classList.remove('night-mode');
         nightModeIcon.textContent = '🌙';
-        nightModeText.textContent = '夜间模式';
+        nightModeText.textContent = 'Switch';
         localStorage.setItem('nightMode', 'false');
       }
     }
