@@ -241,6 +241,9 @@
       flex: 1;
       cursor: text;
       user-select: text;
+      -webkit-user-select: text;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .english-text {
@@ -612,14 +615,15 @@
     // 初始化侧边栏组件
     function initSidebar() {
       const isMobile = window.innerWidth <= 768;
+      const isLandscape = window.innerWidth > window.innerHeight;
       
       sidebar = new SidebarComponent({
         title: '小说章节',
         containerId: 'container',
-        position: isMobile ? 'top' : 'left',
-        width: isMobile ? '100%' : '300px',
-        height: isMobile ? '40vh' : 'auto',
-        sidebarId: 'novelSidebar',
+        position: 'left',
+        width: isLandscape ? '50vw' : '80vw',
+        height: 'auto',
+        sidebarId: 'dagSidebar',
         showToggleButton: true,
         enableOverlay: true,
         autoHide: true
@@ -793,7 +797,8 @@
                  onmousedown="handleMouseDown(event)"
                  onmouseup="handleMouseUp(event)"
                  ontouchstart="handleTouchStart(event)"
-                 ontouchend="handleTouchEnd(event)">
+                 ontouchend="handleTouchEnd(event)"
+                 ontouchmove="handleTouchMove(event)">
               <div class="${cssClass}">${text}</div>
             </div>
           </div>
@@ -820,7 +825,7 @@
       clearTimeout(longPressTimer);
       longPressTimer = setTimeout(() => {
         handleLongPress(event);
-      }, 500); // 500ms长按
+      }, 1500); // 1500ms长按
     }
 
     // 处理鼠标抬起事件
@@ -834,26 +839,52 @@
     // 处理触摸开始事件
     function handleTouchStart(event) {
       clearTimeout(longPressTimer);
+      
+      // 保存触摸开始时的坐标和时间
+      const touch = event.touches[0];
+      event.startX = touch.clientX;
+      event.startY = touch.clientY;
+      event.startTime = Date.now();
+      
       longPressTimer = setTimeout(() => {
-        handleLongPress(event);
-      }, 500);
+        handleLongPress(event, touch);
+      }, 1500);
     }
 
     // 处理触摸结束事件
     function handleTouchEnd(event) {
       clearTimeout(longPressTimer);
-      setTimeout(() => {
-        handleTextSelection(event);
-      }, 100);
+      
+      // 检查是否为短触摸（可能是文本选择）
+      const touchDuration = Date.now() - (event.startTime || 0);
+      if (touchDuration < 1500) {
+        setTimeout(() => {
+          handleTextSelection(event);
+        }, 100);
+      }
+    }
+
+    // 处理触摸移动事件（取消长按如果移动太多）
+    function handleTouchMove(event) {
+      if (longPressTimer) {
+        const touch = event.touches[0];
+        const deltaX = Math.abs(touch.clientX - (event.startX || 0));
+        const deltaY = Math.abs(touch.clientY - (event.startY || 0));
+        
+        // 如果移动距离超过10像素，取消长按
+        if (deltaX > 10 || deltaY > 10) {
+          clearTimeout(longPressTimer);
+        }
+      }
     }
 
     // 处理长按事件
-    function handleLongPress(event) {
+    function handleLongPress(event, touch = null) {
       event.preventDefault();
       event.stopPropagation();
       
       // 获取点击位置的单词
-      const word = getWordAtPosition(event);
+      const word = getWordAtPosition(event, touch);
       if (word) {
         showWordDetail(word);
       }
@@ -872,9 +903,59 @@
       }
     }
 
-    // 获取点击位置的单词
-    function getWordAtPosition(event) {
-      const range = document.caretRangeFromPoint(event.clientX, event.clientY);
+    // 获取点击位置的单词（改进版，支持触摸设备）
+    function getWordAtPosition(event, touch = null) {
+      let clientX, clientY;
+      
+      // 确定坐标来源
+      if (touch) {
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+      } else if (event.touches && event.touches.length > 0) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+      } else if (event.changedTouches && event.changedTouches.length > 0) {
+        clientX = event.changedTouches[0].clientX;
+        clientY = event.changedTouches[0].clientY;
+      } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+      }
+
+      // 尝试多种方法获取文本范围
+      let range = null;
+      
+      // 方法1: 使用 document.caretRangeFromPoint (现代浏览器)
+      if (document.caretRangeFromPoint) {
+        range = document.caretRangeFromPoint(clientX, clientY);
+      }
+      
+      // 方法2: 使用 document.caretPositionFromPoint (Firefox)
+      if (!range && document.caretPositionFromPoint) {
+        const caretPos = document.caretPositionFromPoint(clientX, clientY);
+        if (caretPos && caretPos.offsetNode) {
+          range = document.createRange();
+          range.setStart(caretPos.offsetNode, caretPos.offset);
+          range.setEnd(caretPos.offsetNode, caretPos.offset);
+        }
+      }
+      
+      // 方法3: 备用方案 - 通过元素查找
+      if (!range) {
+        const element = document.elementFromPoint(clientX, clientY);
+        if (element && element.textContent) {
+          // 如果找到包含文本的元素，尝试估算位置
+          const textNode = getTextNodeFromElement(element);
+          if (textNode) {
+            range = document.createRange();
+            const textLength = textNode.textContent.length;
+            const midPoint = Math.floor(textLength / 2);
+            range.setStart(textNode, midPoint);
+            range.setEnd(textNode, midPoint);
+          }
+        }
+      }
+
       if (!range) return null;
 
       const textNode = range.startContainer;
@@ -896,6 +977,23 @@
 
       const word = text.substring(start, end).trim();
       return isEnglishWord(word) ? word : null;
+    }
+
+    // 辅助函数：从元素中查找文本节点
+    function getTextNodeFromElement(element) {
+      // 递归查找第一个文本节点
+      function findTextNode(node) {
+        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+          return node;
+        }
+        for (let child of node.childNodes) {
+          const textNode = findTextNode(child);
+          if (textNode) return textNode;
+        }
+        return null;
+      }
+      
+      return findTextNode(element);
     }
 
     // 检查是否为英文单词

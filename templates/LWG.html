@@ -109,7 +109,7 @@
     }
     
     /* DAG组和单词列表样式（用于侧边栏组件内容） */
-    .word-list {
+    .groups-list {
       list-style: none;
       padding: 0;
       margin: 0;
@@ -585,7 +585,7 @@
         return '<div class="loading">没有找到DAG</div>';
       }
 
-      let html = '<ul class="word-list">';
+      let html = '<ul class="groups-list">';
       
       dagList.forEach((dag, index) => {
         html += `
