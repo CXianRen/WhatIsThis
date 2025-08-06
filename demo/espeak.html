@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YouGlish Widget 4.2 播放示例</title>
+  <style>
+    body {
+      margin: 20px;
+      font-family: Arial, sans-serif;
+    }
+    
+    #youglish-widget-container {
+      width: 700px;
+      height: 450px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f9f9f9;
+      position: relative;
+    }
+    
+    /* 确保容器有足够的空间 */
+    #youglish-widget-container > * {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+</head>
+<body>
+  <h1>YouGlish Widget 测试</h1>
+  <p>正在加载语音示例...</p>
+  
+  <div style="margin: 10px 0;">
+    <input type="text" id="search-input" placeholder="输入要搜索的单词" value="hello" style="padding: 8px; margin-right: 10px; width: 200px;">
+    <button id="search-btn" onclick="searchWord()" style="padding: 8px 15px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">搜索</button>
+  </div>
+  
+  <div id="youglish-widget-container">
+    <a id="yg-widget-0" class="youglish-widget" 
+       data-query="hello" 
+       data-lang="english" 
+       data-components="8415" 
+       data-bkg-color="theme_light" 
+       rel="nofollow" 
+       href="https://youglish.com">Visit YouGlish.com</a>
+  </div>
+  
+  <div id="debug-info" style="margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px;">
+    <h3>调试信息：</h3>
+    <div id="debug-log"></div>
+  </div>
+
+  <script async src="https://youglish.com/public/emb/widget.js" charset="utf-8"></script>
+  <script>
+    function addDebugLog(message) {
+      const debugLog = document.getElementById('debug-log');
+      if (debugLog) {
+        const time = new Date().toLocaleTimeString();
+        debugLog.innerHTML += `<p>[${time}] ${message}</p>`;
+        console.log(message);
+      }
+    }
+
+    function searchWord() {
+      const searchInput = document.getElementById('search-input');
+      const searchWord = searchInput.value.trim();
+      
+      if (!searchWord) {
+        addDebugLog('❌ 请输入搜索词');
+        return;
+      }
+      
+      addDebugLog(`🔍 搜索单词: ${searchWord}`);
+      
+      try {
+        // 使用官方方式：更新 a 标签的 data-query 属性
+        const widget = document.getElementById('yg-widget-0');
+        if (widget) {
+          // 更新查询词
+          widget.setAttribute('data-query', encodeURIComponent(searchWord));
+          addDebugLog(`✅ 已更新查询词为: ${searchWord}`);
+          
+          // 重新初始化 widget
+          const container = document.getElementById('youglish-widget-container');
+          if (container) {
+            // 创建新的 widget 元素
+            const newWidget = document.createElement('a');
+            newWidget.id = 'yg-widget-' + Date.now();
+            newWidget.className = 'youglish-widget';
+            newWidget.setAttribute('data-query', encodeURIComponent(searchWord));
+            newWidget.setAttribute('data-lang', 'english');
+            newWidget.setAttribute('data-components', '8415');
+            newWidget.setAttribute('data-bkg-color', 'theme_light');
+            newWidget.setAttribute('rel', 'nofollow');
+            newWidget.href = 'https://youglish.com';
+            newWidget.textContent = 'Visit YouGlish.com';
+            
+            // 替换旧的 widget
+            container.innerHTML = '';
+            container.appendChild(newWidget);
+            
+            addDebugLog('✅ 已重新创建 widget');
+            
+            // 触发 YouGlish 重新处理页面
+            if (typeof YG !== 'undefined' && YG.reprocess) {
+              YG.reprocess();
+              addDebugLog('✅ 已触发 YouGlish 重新处理');
+            } else {
+              addDebugLog('⚠️ 无法触发重新处理，widget 可能需要手动刷新');
+            }
+          }
+        } else {
+          addDebugLog('❌ 找不到 widget 元素');
+        }
+        
+      } catch (error) {
+        addDebugLog(`❌ 搜索操作失败: ${error.message}`);
+        console.error('详细错误信息:', error);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      addDebugLog('DOM 内容已加载');
+      addDebugLog('✅ 使用官方 YouGlish 嵌入格式');
+      addDebugLog('请输入单词并点击搜索按钮测试');
+    });
+  </script>
+</body>
+</html>
