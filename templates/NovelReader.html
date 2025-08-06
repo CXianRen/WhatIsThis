@@ -19,6 +19,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   
   <link rel="stylesheet" href="/static/sidebar-component.css">
+  <link rel="stylesheet" href="/static/word_detail_panel.css">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -135,17 +136,41 @@
       margin-bottom: 20px;
       border-bottom: 1px solid #e0e0e0;
       padding-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .content-header h2 {
       margin: 0;
       color: #333;
+      flex: 1;
     }
 
     .content-header p {
       margin: 5px 0 0 0;
       color: #666;
       font-size: 14px;
+    }
+
+    /* 夜间模式切换按钮 */
+    .night-mode-toggle {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .night-mode-toggle:hover {
+      background: #1976d2;
+      transform: translateY(-1px);
     }
 
     .sentence-container {
@@ -157,10 +182,12 @@
       padding: 8px 12px;
       margin: 8px 0;
       border-radius: 4px;
-      cursor: pointer;
       transition: all 0.2s;
       border-left: 4px solid #2196f3;
       background: #f9f9f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .sentence:hover {
@@ -175,6 +202,45 @@
 
     .sentence.chinese:hover {
       background: #ffecb3;
+    }
+
+    .language-toggle {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid #2196f3;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      color: #2196f3;
+      transition: all 0.2s;
+    }
+
+    .language-toggle:hover {
+      background: #2196f3;
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .sentence.chinese .language-toggle {
+      border-color: #f44336;
+      color: #f44336;
+    }
+
+    .sentence.chinese .language-toggle:hover {
+      background: #f44336;
+      color: white;
+    }
+
+    .sentence-text {
+      flex: 1;
+      cursor: text;
+      user-select: text;
     }
 
     .english-text {
@@ -202,6 +268,288 @@
       border-radius: 4px;
       margin: 10px 0;
     }
+
+    /* 单词详情面板样式 */
+    .word-detail-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .word-detail-panel {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      margin: 20px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .word-detail-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 1;
+    }
+
+    .word-detail-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+      padding: 5px;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .word-detail-close:hover {
+      background: #f5f5f5;
+    }
+
+    .word-detail-content {
+      padding: 20px;
+    }
+
+    .word-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .word-pronunciation {
+      color: #666;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .word-loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .word-error {
+      text-align: center;
+      padding: 20px;
+      color: #f44336;
+      background: #ffebee;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+
+    /* 选中文本高亮 */
+    .sentence .selected-word {
+      background: #ffeb3b;
+      color: #333;
+      padding: 2px 4px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    /* 夜间模式样式 */
+    .night-mode {
+      background: #121212 !important;
+      color: #e0e0e0 !important;
+    }
+
+    .night-mode .container {
+      background: #1e1e1e !important;
+      box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .night-mode .content-header {
+      border-bottom-color: #333 !important;
+    }
+
+    .night-mode .content-header h2 {
+      color: #e0e0e0 !important;
+    }
+
+    .night-mode .content-header p {
+      color: #bbb !important;
+    }
+
+    .night-mode .sentence {
+      background: #2a2a2a !important;
+      border-left-color: #4fc3f7 !important;
+    }
+
+    .night-mode .sentence:hover {
+      background: #333 !important;
+    }
+
+    .night-mode .sentence.chinese {
+      background: #2d2416 !important;
+      border-left-color: #ff7043 !important;
+    }
+
+    .night-mode .sentence.chinese:hover {
+      background: #3d3426 !important;
+    }
+
+    .night-mode .language-toggle {
+      background: #333 !important;
+      border-color: #4fc3f7 !important;
+      color: #4fc3f7 !important;
+    }
+
+    .night-mode .language-toggle:hover {
+      background: #4fc3f7 !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .sentence.chinese .language-toggle {
+      border-color: #ff7043 !important;
+      color: #ff7043 !important;
+    }
+
+    .night-mode .sentence.chinese .language-toggle:hover {
+      background: #ff7043 !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .english-text {
+      color: #e0e0e0 !important;
+    }
+
+    .night-mode .chinese-text {
+      color: #bbb !important;
+    }
+
+    .night-mode .loading {
+      color: #bbb !important;
+    }
+
+    .night-mode .error {
+      background: #3d1a1a !important;
+      color: #ff7043 !important;
+    }
+
+    .night-mode .word-detail-panel {
+      background: #1e1e1e !important;
+      color: #e0e0e0 !important;
+    }
+
+    .night-mode .word-detail-header {
+      border-bottom-color: #333 !important;
+      background: #1e1e1e !important;
+    }
+
+    .night-mode .word-detail-close {
+      color: #bbb !important;
+    }
+
+    .night-mode .word-detail-close:hover {
+      background: #333 !important;
+    }
+
+    .night-mode .word-title {
+      color: #e0e0e0 !important;
+    }
+
+    .night-mode .word-pronunciation {
+      color: #bbb !important;
+    }
+
+    .night-mode .word-loading {
+      color: #bbb !important;
+    }
+
+    .night-mode .word-error {
+      background: #3d1a1a !important;
+      color: #ff7043 !important;
+    }
+
+    .night-mode .definition-section {
+      background: #2a2a2a !important;
+      border-left-color: #4fc3f7 !important;
+    }
+
+    .night-mode .definition-section h4 {
+      color: #4fc3f7 !important;
+    }
+
+    .night-mode .definition-section li {
+      color: #e0e0e0 !important;
+    }
+
+    .night-mode .definition-section li:before {
+      color: #4fc3f7 !important;
+    }
+
+    .night-mode .example-sentence {
+      background: #2a2a2a !important;
+      border-color: #333 !important;
+    }
+
+    .night-mode .scenario {
+      background: #1a2332 !important;
+      color: #4fc3f7 !important;
+      border-left-color: #4fc3f7 !important;
+    }
+
+    .night-mode .en-sentence {
+      background: #1a2e1a !important;
+      color: #66bb6a !important;
+      border-left-color: #66bb6a !important;
+    }
+
+    .night-mode .zh-sentence {
+      background: #2e1a0f !important;
+      color: #ffab40 !important;
+      border-left-color: #ffab40 !important;
+    }
+
+    .night-mode .synonym {
+      background: #1a2e1a !important;
+      color: #66bb6a !important;
+      border-color: #66bb6a !important;
+    }
+
+    .night-mode .synonym:hover {
+      background: #2e4a2e !important;
+    }
+
+    .night-mode .night-mode-toggle {
+      background: #ffab40 !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .night-mode-toggle:hover {
+      background: #ff8f00 !important;
+    }
   </style>
 </head>
 
@@ -209,11 +557,31 @@
   <div id="container" class="container">
     <div class="main-content">
       <div class="content-header">
-        <h2 id="currentChapter">选择一个章节开始阅读</h2>
-        <p id="chapterInfo"></p>
+        <div>
+          <h2 id="currentChapter">选择一个章节开始阅读</h2>
+          <p id="chapterInfo"></p>
+        </div>
+        <button class="night-mode-toggle" onclick="toggleNightMode()">
+          <span id="nightModeIcon">🌙</span>
+          <span id="nightModeText">夜间模式</span>
+        </button>
       </div>
       <div id="contentArea">
         <div class="loading">请从左侧选择章节</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 单词详情面板 -->
+  <div id="wordDetailOverlay" class="word-detail-overlay">
+    <div class="word-detail-panel">
+      <div class="word-detail-header">
+        <button class="word-detail-close" onclick="closeWordDetail()">&times;</button>
+        <div class="word-title" id="wordTitle">单词</div>
+        <div class="word-pronunciation" id="wordPronunciation"></div>
+      </div>
+      <div class="word-detail-content" id="wordDetailContent">
+        <div class="word-loading">正在加载单词信息...</div>
       </div>
     </div>
   </div>
@@ -226,11 +594,20 @@
     let currentContent = null;
     let sentenceStates = {}; // {chapterPath: {sentenceIndex: 'english'|'chinese'}}
     let sidebar = null;
+    let longPressTimer = null;
+    let selectedWord = '';
+    let isNightMode = false;
 
     // DOM元素缓存
     const currentChapterElement = document.getElementById('currentChapter');
     const chapterInfoElement = document.getElementById('chapterInfo');
     const contentAreaElement = document.getElementById('contentArea');
+    const wordDetailOverlay = document.getElementById('wordDetailOverlay');
+    const wordTitle = document.getElementById('wordTitle');
+    const wordPronunciation = document.getElementById('wordPronunciation');
+    const wordDetailContent = document.getElementById('wordDetailContent');
+    const nightModeIcon = document.getElementById('nightModeIcon');
+    const nightModeText = document.getElementById('nightModeText');
 
     // 初始化侧边栏组件
     function initSidebar() {
@@ -385,18 +762,40 @@
         // 新格式：text是中文，translation是翻译
         const text = isChinese ? sentence.text : sentence.translation;
         
+        // 语言切换图标
+        const toggleIcon = isChinese ? '中' : 'EN';
+        const toggleTitle = isChinese ? '切换到英文' : '切换到中文';
+        
         // 如果没有翻译，显示提示
         if (!sentence.translation && !isChinese) {
           return `
-            <div class="sentence no-translation" onclick="toggleSentence(${index}, '${chapterPath}')">
-              <div class="${cssClass}">暂无翻译</div>
+            <div class="sentence no-translation">
+              <div class="language-toggle" 
+                   onclick="toggleSentence(${index}, '${chapterPath}')" 
+                   title="${toggleTitle}">
+                ${toggleIcon}
+              </div>
+              <div class="sentence-text">
+                <div class="${cssClass}">暂无翻译</div>
+              </div>
             </div>
           `;
         }
         
         return `
-          <div class="sentence ${isChinese ? 'chinese' : ''}" onclick="toggleSentence(${index}, '${chapterPath}')">
-            <div class="${cssClass}">${text}</div>
+          <div class="sentence ${isChinese ? 'chinese' : ''}">
+            <div class="language-toggle" 
+                 onclick="toggleSentence(${index}, '${chapterPath}')" 
+                 title="${toggleTitle}">
+              ${toggleIcon}
+            </div>
+            <div class="sentence-text"
+                 onmousedown="handleMouseDown(event)"
+                 onmouseup="handleMouseUp(event)"
+                 ontouchstart="handleTouchStart(event)"
+                 ontouchend="handleTouchEnd(event)">
+              <div class="${cssClass}">${text}</div>
+            </div>
           </div>
         `;
       }).join('');
@@ -406,6 +805,8 @@
 
     // 切换句子的中英文显示
     function toggleSentence(sentenceIndex, chapterPath) {
+      event.stopPropagation(); // 阻止事件冒泡
+      
       const currentState = sentenceStates[chapterPath][sentenceIndex] || 'english';
       sentenceStates[chapterPath][sentenceIndex] = currentState === 'chinese' ? 'english' : 'chinese';
       
@@ -414,8 +815,222 @@
       }
     }
 
+    // 处理鼠标按下事件
+    function handleMouseDown(event) {
+      clearTimeout(longPressTimer);
+      longPressTimer = setTimeout(() => {
+        handleLongPress(event);
+      }, 500); // 500ms长按
+    }
+
+    // 处理鼠标抬起事件
+    function handleMouseUp(event) {
+      clearTimeout(longPressTimer);
+      setTimeout(() => {
+        handleTextSelection(event);
+      }, 100);
+    }
+
+    // 处理触摸开始事件
+    function handleTouchStart(event) {
+      clearTimeout(longPressTimer);
+      longPressTimer = setTimeout(() => {
+        handleLongPress(event);
+      }, 500);
+    }
+
+    // 处理触摸结束事件
+    function handleTouchEnd(event) {
+      clearTimeout(longPressTimer);
+      setTimeout(() => {
+        handleTextSelection(event);
+      }, 100);
+    }
+
+    // 处理长按事件
+    function handleLongPress(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // 获取点击位置的单词
+      const word = getWordAtPosition(event);
+      if (word) {
+        showWordDetail(word);
+      }
+    }
+
+    // 处理文本选择
+    function handleTextSelection(event) {
+      const selection = window.getSelection();
+      const selectedText = selection.toString().trim();
+      
+      if (selectedText && isEnglishWord(selectedText)) {
+        event.preventDefault();
+        event.stopPropagation();
+        showWordDetail(selectedText);
+        selection.removeAllRanges();
+      }
+    }
+
+    // 获取点击位置的单词
+    function getWordAtPosition(event) {
+      const range = document.caretRangeFromPoint(event.clientX, event.clientY);
+      if (!range) return null;
+
+      const textNode = range.startContainer;
+      if (textNode.nodeType !== Node.TEXT_NODE) return null;
+
+      const text = textNode.textContent;
+      let start = range.startOffset;
+      let end = range.startOffset;
+
+      // 向前查找单词边界
+      while (start > 0 && /[a-zA-Z]/.test(text[start - 1])) {
+        start--;
+      }
+
+      // 向后查找单词边界
+      while (end < text.length && /[a-zA-Z]/.test(text[end])) {
+        end++;
+      }
+
+      const word = text.substring(start, end).trim();
+      return isEnglishWord(word) ? word : null;
+    }
+
+    // 检查是否为英文单词
+    function isEnglishWord(text) {
+      return /^[a-zA-Z]+$/.test(text) && text.length > 1;
+    }
+
+    // 显示单词详情
+    async function showWordDetail(word) {
+      selectedWord = word;
+      wordTitle.textContent = word;
+      wordPronunciation.textContent = '';
+      wordDetailContent.innerHTML = '<div class="word-loading">正在加载单词信息...</div>';
+      wordDetailOverlay.style.display = 'flex';
+
+      try {
+        const response = await fetch(`/loadWordDetails/${encodeURIComponent(word)}`);
+        if (!response.ok) throw new Error('网络请求失败');
+
+        const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        // 更新面板内容
+        wordTitle.textContent = data.word || word;
+        wordPronunciation.textContent = data.pronunciation ? 
+          `${data.pronunciation} (${data.spelling_pronunciation || ''})` : '';
+
+        // 构建详细信息HTML
+        let detailHTML = '';
+
+        // 中文解释
+        if (data.explain_zh && data.explain_zh.length > 0) {
+          detailHTML += '<div class="definition-section"><h4>中文解释:</h4><ul>';
+          data.explain_zh.forEach(explain => {
+            detailHTML += `<li>${explain}</li>`;
+          });
+          detailHTML += '</ul></div>';
+        }
+
+        // 英文解释
+        if (data.explain_en && data.explain_en.length > 0) {
+          detailHTML += '<div class="definition-section"><h4>英文解释:</h4><ul>';
+          data.explain_en.forEach(explain => {
+            detailHTML += `<li>${explain}</li>`;
+          });
+          detailHTML += '</ul></div>';
+        }
+
+        // 例句
+        if (data.example_sentences && data.example_sentences.length > 0) {
+          detailHTML += '<div class="definition-section"><h4>例句:</h4>';
+          data.example_sentences.forEach(example => {
+            detailHTML += `
+              <div class="example-sentence">
+                <div class="scenario">${example.scenario}</div>
+                <div class="en-sentence">${example.en}</div>
+                <div class="zh-sentence">${example.zh}</div>
+              </div>
+            `;
+          });
+          detailHTML += '</div>';
+        }
+
+        // 同义词
+        if (data.synonyms && data.synonyms.length > 0) {
+          detailHTML += '<div class="definition-section"><h4>同义词:</h4><div class="synonyms">';
+          data.synonyms.forEach(synonym => {
+            detailHTML += `<span class="synonym">${synonym}</span>`;
+          });
+          detailHTML += '</div></div>';
+        }
+
+        wordDetailContent.innerHTML = detailHTML || '<div class="word-error">暂无详细信息</div>';
+
+      } catch (error) {
+        console.error('加载单词详细信息失败:', error);
+        wordDetailContent.innerHTML = `<div class="word-error">加载失败: ${error.message}</div>`;
+      }
+    }
+
+    // 关闭单词详情面板
+    function closeWordDetail() {
+      wordDetailOverlay.style.display = 'none';
+      selectedWord = '';
+    }
+
+    // 点击遮罩层关闭面板
+    wordDetailOverlay.addEventListener('click', (event) => {
+      if (event.target === wordDetailOverlay) {
+        closeWordDetail();
+      }
+    });
+
+    // ESC键关闭面板
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && wordDetailOverlay.style.display === 'flex') {
+        closeWordDetail();
+      }
+    });
+
+    // 切换夜间模式
+    function toggleNightMode() {
+      isNightMode = !isNightMode;
+      const body = document.body;
+      
+      if (isNightMode) {
+        body.classList.add('night-mode');
+        nightModeIcon.textContent = '☀️';
+        nightModeText.textContent = '日间模式';
+        localStorage.setItem('nightMode', 'true');
+      } else {
+        body.classList.remove('night-mode');
+        nightModeIcon.textContent = '🌙';
+        nightModeText.textContent = '夜间模式';
+        localStorage.setItem('nightMode', 'false');
+      }
+    }
+
+    // 加载夜间模式设置
+    function loadNightModeSettings() {
+      const savedNightMode = localStorage.getItem('nightMode');
+      if (savedNightMode === 'true') {
+        isNightMode = false; // 设为false，然后调用toggle来激活
+        toggleNightMode();
+      }
+    }
+
     // 页面初始化
-    document.addEventListener('DOMContentLoaded', initSidebar);
+    document.addEventListener('DOMContentLoaded', () => {
+      loadNightModeSettings();
+      initSidebar();
+    });
 
     // 窗口大小变化处理
     window.addEventListener('resize', () => {
