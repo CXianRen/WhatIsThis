@@ -1,23 +1,23 @@
 // Service Worker for WhatIsThis PWA
 const CACHE_NAME = 'whatisthis-v1.0.0';
-const urlsToCache = [
-  '/',
-  '/static/style.css',
-  '/static/sidebar-component.css',
-  '/static/sidebar-component.js',
-  '/static/word_detail_panel.css',
-  '/static/word_detail_panel.js',
-  '/static/favicon.svg',
-  '/static/apple-touch-icon.svg',
-  '/static/favicon-192.svg',
-  '/static/favicon-512.svg',
-  '/app1',
-  '/app2', 
-  '/app3',
-  '/app4',
-  '/novel-upload',
-  '/novel-translation'
-];
+// const urlsToCache = [
+//   '/',
+//   '/static/style.css',
+//   '/static/sidebar-component.css',
+//   '/static/sidebar-component.js',
+//   '/static/word_detail_panel.css',
+//   '/static/word_detail_panel.js',
+//   '/static/favicon.svg',
+//   '/static/apple-touch-icon.svg',
+//   '/static/favicon-192.svg',
+//   '/static/favicon-512.svg',
+//   '/app1',
+//   '/app2', 
+//   '/app3',
+//   '/app4',
+//   '/novel-upload',
+//   '/novel-translation'
+// ];
 
 // 安装事件 - 缓存资源
 self.addEventListener('install', function(event) {

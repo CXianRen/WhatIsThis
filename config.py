@@ -8,6 +8,8 @@ IMAGE_DIR = os.path.join(DATA_DIR, 'images')
 RESULT_JSON = os.path.join(DATA_DIR, 'result.json')
 IMG_CACHE_DB = os.path.join(DATA_DIR, 'img_cache.db')
 EN_PHONETIC_DB = os.path.join(DATA_DIR, 'en_phonetic.db')
+EN_DB = os.path.join(DATA_DIR, 'en_dict.db')
+
 GROUP_DIR = os.path.join(DATA_DIR, 'group')
 NOVEL_DIR = os.path.join(DATA_DIR, 'novel')
 ANNOTATION_DIR = os.path.join(DATA_DIR, 'annotations')

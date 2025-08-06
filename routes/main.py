@@ -1,6 +1,6 @@
 # ================= 基础路由模块 =================
 from flask import Blueprint, render_template, jsonify, send_from_directory, request
-from utils import search_images_api, search_images_as_api, get_phonetic, get_pronounce
+from utils import *
 import json
 import os
 from config import RESULT_JSON, IMAGE_DIR
@@ -78,13 +78,28 @@ def get_image(filename):
 @main_bp.route('/loadWordDetails/<word>', methods=['GET'])
 def load_word_details(word):
     """加载单词详情，包括音标、发音、笔记和图片"""
-    res = {
-        'word': word,
-        'phonetic': get_phonetic(word),
-        'audio': get_pronounce(word),
-        'notes': [],
-        'images': search_images_api(word, 5)
-    }
+#   {
+#     "word": ["hello", "hellos (rare plural)"],
+#     "pronunciation": ["/həˈləʊ/"],
+#     "spelling_pronunciation": ["huh-LOH"],
+#     "explain_zh": ["打招呼用语，表示问候", "电话用语，表示接听"],
+#     "explain_en": ["A common greeting used to acknowledge someone's presence", "Used to answer the phone or attract attention"],
+#     "example_sentences": [
+#         {
+#         "scenario": "见面时向朋友打招呼",
+#         "en": "Hello! How are you today?",
+#         "zh": "你好！今天过得怎么样？"
+#         },
+#         {
+#         "scenario": "接听电话时的第一句话",
+#         "en": "Hello, this is John speaking.",
+#         "zh": "你好，我是约翰。"
+#         }
+#     ],
+#     "synonyms": ["hi", "greetings"]
+#   }
+    res = AI_Dictionary(word)
+    res = json.loads(res)
     return jsonify(res)
 
 @main_bp.route('/searchImagesAs/<word>/<key>', methods=['GET'])

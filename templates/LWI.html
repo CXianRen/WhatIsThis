@@ -568,6 +568,7 @@
 
           // 初始化详情栏组件
           if (typeof initWordDetailPanel === 'function') {
+            console.log('Initializing word detail panel');
             initWordDetailPanel();
           } else {
             console.warn('initWordDetailPanel function is not defined');
@@ -665,8 +666,8 @@
       const bbox = annotation.bbox;
       if (!bbox) return;
       
-      loadWordDetails(annotation.text, false, skip_title= true, 
-                                skip_pronunciation = true); // 加载单词详细信息
+      // loadWordDetails(annotation.text, false, skip_title= true, 
+      //                           skip_pronunciation = true); // 加载单词详细信息
 
       console.log("Drawing annotation:", annotation);
       console.log("Image size:", image.width, "x", image.height);
@@ -765,7 +766,7 @@
           if (isInfoButton) {
             // 如果点击的是info div中的按钮，刷新more panel内容
             const wordDetailContainer = morePanel.getContent('wordDetail').querySelector('#wordDetailPanel');
-            if (wordDetailContainer) {
+            if (!wordDetailContainer) {
               loadWordDetailPanel(wordDetailContainer);
             }
             return; // 不关闭面板
@@ -806,9 +807,7 @@
                 // 显示more panel
                 showMorePanel();
                 // 加载单词详细信息到右侧面板
-                if (typeof loadWordDetails === 'function') {
-                  loadWordDetails(text, false);
-                }
+                loadWordDetails(text, false);
               };
               
               return button;

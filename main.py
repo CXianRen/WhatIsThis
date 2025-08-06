@@ -5,7 +5,7 @@ import os
 
 # 导入配置和数据库模块
 import config
-from database import init_db, load_img_cache, load_phonetic_cache
+from database import init_db, load_img_cache, load_phonetic_cache, load_en_dict_cache
 
 # 导入所有路由蓝图
 from routes.main import main_bp
@@ -25,6 +25,7 @@ def create_app():
     init_db()
     load_img_cache()
     load_phonetic_cache()
+    load_en_dict_cache()
     
     # 注册蓝图
     app.register_blueprint(main_bp)
