@@ -357,6 +357,92 @@
       font-size: 20px !important;
     }
 
+    /* ===== 单词工具栏样式 ===== */
+    .word-toolbar {
+      position: absolute;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      z-index: 1000;
+      padding: 8px;
+      gap: 8px;
+      display: flex;
+      align-items: center;
+      animation: toolbarFadeIn 0.2s ease;
+    }
+
+    @keyframes toolbarFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .word-toolbar-button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 60px;
+      justify-content: center;
+    }
+
+    .word-toolbar-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .word-toolbar-button:active {
+      transform: translateY(0);
+    }
+
+    .word-toolbar-button.ai-dict {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .word-toolbar-button.ai-dict:hover {
+      background: #45a049;
+    }
+
+    .word-toolbar-button.tool-2 {
+      background: #2196F3;
+      color: white;
+    }
+
+    .word-toolbar-button.tool-2:hover {
+      background: #1976D2;
+    }
+
+    .word-toolbar-button.tool-3 {
+      background: #FF9800;
+      color: white;
+    }
+
+    .word-toolbar-button.tool-3:hover {
+      background: #F57C00;
+    }
+
+    .selected-word-highlight {
+      background: #FFE082 !important;
+      border-radius: 3px;
+      padding: 2px 4px;
+      margin: -2px -4px;
+      position: relative;
+    }
+
     /* ===== 单词详情面板 ===== */
     .word-detail-overlay {
       position: fixed;
@@ -599,6 +685,181 @@
       color: #ff7043 !important;
     }
 
+    /* ===== 夜间模式 - 单词工具栏 ===== */
+    .night-mode .word-toolbar {
+      background: #2a2a2a !important;
+      border-color: #444 !important;
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .night-mode .word-toolbar-button.ai-dict {
+      background: #66bb6a !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .word-toolbar-button.ai-dict:hover {
+      background: #4caf50 !important;
+    }
+
+    .night-mode .word-toolbar-button.tool-2 {
+      background: #4fc3f7 !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .word-toolbar-button.tool-2:hover {
+      background: #29b6f6 !important;
+    }
+
+    .night-mode .word-toolbar-button.tool-3 {
+      background: #ffab40 !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .word-toolbar-button.tool-3:hover {
+      background: #ff8f00 !important;
+    }
+
+    .night-mode .selected-word-highlight {
+      background: #5d4e37 !important;
+    }
+
+    /* ===== YouGlish 面板样式 ===== */
+    .youglish-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1001;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .youglish-panel {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow: hidden;
+      position: relative;
+      margin: 20px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .youglish-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      position: relative;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .youglish-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+      padding: 5px;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .youglish-close:hover {
+      background: #f5f5f5;
+    }
+
+    .youglish-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+      margin: 0;
+    }
+
+    .youglish-word {
+      font-size: 18px;
+      color: #2196f3;
+      font-weight: 500;
+    }
+
+    .youglish-content {
+      padding: 20px;
+      background: #f9f9f9;
+    }
+
+    .youglish-status {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #fff;
+      border-radius: 4px;
+      border-left: 3px solid #2196f3;
+    }
+
+    #youglish-widget-container {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    /* 夜间模式 - YouGlish 面板 */
+    .night-mode .youglish-panel {
+      background: #1e1e1e !important;
+      color: #e0e0e0 !important;
+    }
+
+    .night-mode .youglish-header {
+      border-bottom-color: #333 !important;
+      background: #1e1e1e !important;
+    }
+
+    .night-mode .youglish-close {
+      color: #bbb !important;
+    }
+
+    .night-mode .youglish-close:hover {
+      background: #333 !important;
+    }
+
+    .night-mode .youglish-title {
+      color: #e0e0e0 !important;
+    }
+
+    .night-mode .youglish-word {
+      color: #4fc3f7 !important;
+    }
+
+    .night-mode .youglish-content {
+      background: #2a2a2a !important;
+    }
+
+    .night-mode .youglish-status {
+      background: #333 !important;
+      color: #e0e0e0 !important;
+      border-left-color: #4fc3f7 !important;
+    }
+
+    .night-mode #youglish-widget-container {
+      background: #333 !important;
+      border-color: #444 !important;
+    }
+
     /* 夜间模式 - 单词面板 */
     .night-mode .word-detail-panel {
       background: #1e1e1e !important;
@@ -705,6 +966,34 @@
     </div>
   </div>
 
+  <!-- 单词工具栏 -->
+  <div id="wordToolbar" class="word-toolbar">
+    <button class="word-toolbar-button ai-dict" onclick="openAIDictionary()">
+      🤖
+    </button>
+    <button class="word-toolbar-button tool-2" onclick="openTool2()">
+      📽️
+    </button>
+    <button class="word-toolbar-button tool-3" onclick="openTool3()">
+      🔧
+    </button>
+  </div>
+
+  <!-- YouGlish 发音面板 -->
+  <div id="youglishOverlay" class="youglish-overlay">
+    <div class="youglish-panel">
+      <div class="youglish-header">
+        <button class="youglish-close" onclick="closeYouglishPanel()">&times;</button>
+        <h3 class="youglish-title">🎵 单词发音</h3>
+        <span class="youglish-word" id="youglishWord">word</span>
+      </div>
+      <div class="youglish-content">
+        <div class="youglish-status" id="youglishStatus">正在初始化...</div>
+        <div id="youglish-widget-container"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- 单词详情面板 -->
   <div id="wordDetailOverlay" class="word-detail-overlay">
     <div class="word-detail-panel">
@@ -719,6 +1008,9 @@
     </div>
   </div>
 
+  <!-- YouGlish Widget API 脚本 -->
+  <script src="https://youglish.com/public/emb/widget.js" async></script>
+  
   <script src="/static/sidebar-component.js"></script>
   <script>
     let novelData = [];
@@ -729,19 +1021,29 @@
     let sidebar = null;
     let longPressTimer = null;
     let selectedWord = '';
+    let selectedWordElement = null;
+    let wordToolbarVisible = false;
     let isNightMode = false;
     let currentFontSize = 2; // 0:小, 1:较小, 2:中等, 3:较大, 4:大
     const fontSizes = ['small', 'medium', 'large', 'extra-large', 'huge'];
     const fontSizeNames = ['小', '较小', '中', '较大', '大'];
 
+    // YouGlish 相关变量
+    let youglishWidget = null;
+    let youglishAPIReady = false;
+
     // DOM元素缓存
     const currentChapterElement = document.getElementById('currentChapter');
     const chapterInfoElement = document.getElementById('chapterInfo');
     const contentAreaElement = document.getElementById('contentArea');
+    const wordToolbar = document.getElementById('wordToolbar');
     const wordDetailOverlay = document.getElementById('wordDetailOverlay');
     const wordTitle = document.getElementById('wordTitle');
     const wordPronunciation = document.getElementById('wordPronunciation');
     const wordDetailContent = document.getElementById('wordDetailContent');
+    const youglishOverlay = document.getElementById('youglishOverlay');
+    const youglishWord = document.getElementById('youglishWord');
+    const youglishStatus = document.getElementById('youglishStatus');
     const nightModeIcon = document.getElementById('nightModeIcon');
     // const nightModeText = document.getElementById('nightModeText');
     const fontSizeDisplay = document.getElementById('fontSizeDisplay');
@@ -959,7 +1261,7 @@
       clearTimeout(longPressTimer);
       longPressTimer = setTimeout(() => {
         handleLongPress(event);
-      }, 1500); // 1500ms长按
+      }, 1000); // 1500ms长按
     }
 
     // 处理鼠标抬起事件
@@ -982,7 +1284,7 @@
 
       longPressTimer = setTimeout(() => {
         handleLongPress(event, touch);
-      }, 1500);
+      }, 1000);
     }
 
     // 处理触摸结束事件
@@ -991,7 +1293,7 @@
 
       // 检查是否为短触摸（可能是文本选择）
       const touchDuration = Date.now() - (event.startTime || 0);
-      if (touchDuration < 1500) {
+      if (touchDuration < 1000) {
         setTimeout(() => {
           handleTextSelection(event);
         }, 100);
@@ -1020,7 +1322,8 @@
       // 获取点击位置的单词
       const word = getWordAtPosition(event, touch);
       if (word) {
-        showWordDetail(word);
+        // 高亮选中的单词并显示工具栏
+        highlightWordAndShowToolbar(event, word, touch);
       }
     }
 
@@ -1032,7 +1335,17 @@
       if (selectedText && isEnglishWord(selectedText)) {
         event.preventDefault();
         event.stopPropagation();
-        showWordDetail(selectedText);
+        
+        // 获取选择范围的位置
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        
+        // 高亮选中的单词并显示工具栏
+        highlightWordAndShowToolbar({
+          clientX: rect.left + rect.width / 2,
+          clientY: rect.bottom
+        }, selectedText);
+        
         selection.removeAllRanges();
       }
     }
@@ -1135,6 +1448,253 @@
       return /^[a-zA-Z]+$/.test(text) && text.length > 1;
     }
 
+    // 高亮单词并显示工具栏
+    function highlightWordAndShowToolbar(event, word, touch = null) {
+      // 清除之前的选择
+      clearWordSelection();
+      
+      selectedWord = word;
+      
+      // 获取位置坐标
+      let clientX, clientY;
+      if (touch) {
+        clientX = touch.clientX;
+        clientY = touch.clientY;
+      } else if (event.touches && event.touches.length > 0) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+      } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+      }
+
+      // 查找并高亮所有匹配的单词
+      // highlightWordInContent(word);
+      
+      // 显示工具栏
+      showWordToolbar(clientX, clientY);
+    }
+
+    // 在内容中高亮指定单词 for the future
+    // function highlightWordInContent(word) {
+    //   const sentenceTexts = document.querySelectorAll('.sentence-text');
+      
+    //   sentenceTexts.forEach(sentenceText => {
+    //     const textContent = sentenceText.innerHTML;
+        
+    //     // 使用正则表达式匹配整个单词（不区分大小写）
+    //     const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+    //     const highlightedContent = textContent.replace(regex, 
+    //       '<span class="selected-word-highlight">$1</span>'
+    //     );
+        
+    //     sentenceText.innerHTML = highlightedContent;
+    //   });
+    // }
+
+    // 显示单词工具栏
+    function showWordToolbar(x, y) {
+      wordToolbarVisible = true;
+      wordToolbar.style.display = 'flex';
+      
+      // 计算工具栏位置
+      const toolbarRect = wordToolbar.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // 默认在点击位置下方居中显示
+      let left = x - toolbarRect.width / 2;
+      let top = y + 10;
+      
+      // 边界检查和调整
+      if (left < 10) {
+        left = 10;
+      } else if (left + toolbarRect.width > viewportWidth - 10) {
+        left = viewportWidth - toolbarRect.width - 10;
+      }
+      
+      if (top + toolbarRect.height > viewportHeight - 10) {
+        // 如果下方空间不够，显示在上方
+        top = y - toolbarRect.height - 10;
+      }
+      
+      wordToolbar.style.left = `${left}px`;
+      wordToolbar.style.top = `${top}px`;
+    }
+
+    // 清除单词选择
+    function clearWordSelection() {
+      // 移除所有高亮
+      const highlightedWords = document.querySelectorAll('.selected-word-highlight');
+      highlightedWords.forEach(element => {
+        const parent = element.parentNode;
+        parent.replaceChild(document.createTextNode(element.textContent), element);
+        parent.normalize(); // 合并相邻的文本节点
+      });
+      
+      // 隐藏工具栏
+      hideWordToolbar();
+    }
+
+    // 隐藏单词工具栏
+    function hideWordToolbar() {
+      wordToolbarVisible = false;
+      wordToolbar.style.display = 'none';
+      // selectedWord = '';
+      selectedWordElement = null;
+    }
+
+    // 工具栏按钮事件处理
+    function openAIDictionary() {
+      if (selectedWord) {
+        hideWordToolbar();
+        showWordDetail(selectedWord);
+      }
+    }
+
+    function openTool2() {
+      if (selectedWord) {
+        console.log('工具2 - YouGlish发音:', selectedWord);
+        hideWordToolbar();
+        showYouglishPanel(selectedWord);
+      }
+    }
+
+    // ===== YouGlish 相关函数 =====
+    
+    // YouGlish API 准备就绪回调（必需的全局函数）
+    function onYouglishAPIReady() {
+      youglishAPIReady = true;
+      updateYouglishStatus('YouGlish API 已加载，正在初始化...');
+      
+      // 创建 widget
+      try {
+        youglishWidget = new YG.Widget('youglish-widget-container', {
+          width: 640,
+          height: 400,
+          components: 88, // 只显示必要组件
+          events: {
+            onFetchDone: onYouglishFetchDone,
+            onCaptionConsumed: onYouglishCaptionChange,
+            onVideoReady: onYouglishVideoReady,
+            onError: onYouglishError
+          }
+        });
+        
+        updateYouglishStatus('Widget 已创建，可以开始搜索');
+      } catch (error) {
+        console.error('YouGlish Widget 创建失败:', error);
+        updateYouglishStatus('Widget 创建失败: ' + error.message);
+      }
+    }
+    
+    // YouGlish 搜索完成事件
+    function onYouglishFetchDone(event) {
+      if (event.totalResult === 0) {
+        updateYouglishStatus('没有找到结果');
+      } else {
+        updateYouglishStatus(`找到 ${event.totalResult} 个发音示例`);
+      }
+    }
+    
+    // YouGlish 字幕变化事件
+    function onYouglishCaptionChange(event) {
+      if (youglishWidget) {
+        youglishWidget.pause(); // 暂停视频以便查看字幕
+        // 2秒后自动重播
+        setTimeout(() => {
+          if (youglishWidget) {
+            youglishWidget.replay();
+          }
+        }, 2000);
+      }
+    }
+    
+    // YouGlish 播放器准备就绪事件
+    function onYouglishVideoReady(event) {
+      updateYouglishStatus('播放器已准备就绪');
+    }
+    
+    // YouGlish 错误处理事件
+    function onYouglishError(event) {
+      updateYouglishStatus('发生错误：' + event.code);
+    }
+    
+    // 更新 YouGlish 状态显示
+    function updateYouglishStatus(message) {
+      if (youglishStatus) {
+        youglishStatus.textContent = message;
+      }
+    }
+    
+    // 显示 YouGlish 面板
+    function showYouglishPanel(word) {
+      if (!word) return;
+      
+      youglishWord.textContent = word;
+      youglishOverlay.style.display = 'flex';
+      
+      if (!youglishAPIReady) {
+        updateYouglishStatus('等待 YouGlish API 加载...');
+        // 检查 API 是否已加载
+        const checkAPI = setInterval(() => {
+          if (typeof YG !== 'undefined' && YG.Widget && youglishAPIReady) {
+            clearInterval(checkAPI);
+            searchWordInYouglish(word);
+          }
+        }, 500);
+        
+        // 超时检查
+        setTimeout(() => {
+          if (!youglishAPIReady) {
+            clearInterval(checkAPI);
+            updateYouglishStatus('YouGlish API 加载超时，请刷新页面重试');
+          }
+        }, 10000);
+      } else {
+        searchWordInYouglish(word);
+      }
+    }
+    
+    // 在 YouGlish 中搜索单词
+    function searchWordInYouglish(word) {
+      if (!youglishWidget) {
+        updateYouglishStatus('Widget 未初始化');
+        return;
+      }
+      
+      updateYouglishStatus('正在搜索: ' + word);
+      
+      try {
+        // 调用 YouGlish API 搜索
+        youglishWidget.fetch(word, 'english');
+      } catch (error) {
+        console.error('YouGlish 搜索失败:', error);
+        updateYouglishStatus('搜索失败: ' + error.message);
+      }
+    }
+    
+    // 关闭 YouGlish 面板
+    function closeYouglishPanel() {
+      youglishOverlay.style.display = 'none';
+      // 停止播放
+      if (youglishWidget) {
+        try {
+          youglishWidget.pause();
+        } catch (error) {
+          console.log('停止播放失败:', error);
+        }
+      }
+    }
+
+    function openTool3() {
+      if (selectedWord) {
+        console.log('工具3 - 处理单词:', selectedWord);
+        // TODO: 实现工具3的功能
+        hideWordToolbar();
+      }
+    }
+
     // 显示单词详情
     async function showWordDetail(word) {
       selectedWord = word;
@@ -1214,7 +1774,7 @@
     // 关闭单词详情面板
     function closeWordDetail() {
       wordDetailOverlay.style.display = 'none';
-      selectedWord = '';
+      clearWordSelection(); // 同时清除单词选择
     }
 
     // 点击遮罩层关闭面板
@@ -1224,12 +1784,45 @@
       }
     });
 
-    // ESC键关闭面板
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && wordDetailOverlay.style.display === 'flex') {
-        closeWordDetail();
+    // 点击遮罩层关闭 YouGlish 面板
+    youglishOverlay.addEventListener('click', (event) => {
+      if (event.target === youglishOverlay) {
+        closeYouglishPanel();
       }
     });
+
+    // ESC键关闭面板
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        if (wordDetailOverlay.style.display === 'flex') {
+          closeWordDetail();
+        } else if (youglishOverlay.style.display === 'flex') {
+          closeYouglishPanel();
+        } else if (wordToolbarVisible) {
+          clearWordSelection();
+        }
+      }
+    });
+
+    // 点击其他区域取消单词选择
+    document.addEventListener('click', (event) => {
+      // 如果点击的不是工具栏或其子元素，且工具栏可见，则隐藏工具栏
+      if (wordToolbarVisible && 
+          !wordToolbar.contains(event.target) && 
+          event.target.closest('.sentence-text')) {
+        clearWordSelection();
+      }
+      // console.log('点击区域:', wordToolbarVisible, !wordToolbar.contains(event.target), 
+      //                   event.target.closest('.sentence-text'));
+      // console.log('点击区域:', event.target);
+    });
+
+    // 滚动时隐藏工具栏
+    document.addEventListener('scroll', () => {
+      if (wordToolbarVisible) {
+        clearWordSelection();
+      }
+    }, true);
 
     // 增大字体
     function increaseFontSize() {
@@ -1311,6 +1904,7 @@
       loadNightModeSettings();
       loadFontSizeSettings();
       initSidebar();
+      onYouglishAPIReady(); // 确保YouGlish API准备就绪
     });
 
     // 窗口大小变化处理

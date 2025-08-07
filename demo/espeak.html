@@ -2,128 +2,236 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>YouGlish Widget 4.2 播放示例</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouGlish 单词发音器</title>
   <style>
     body {
       margin: 20px;
       font-family: Arial, sans-serif;
+      background: #f5f5f5;
     }
     
-    #youglish-widget-container {
-      width: 700px;
-      height: 450px;
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .search-section {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .search-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    #search-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    
+    #search-btn {
+      padding: 10px 20px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    #search-btn:hover {
+      background: #1976d2;
+    }
+    
+    .status {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    #youglish-widget {
+      width: 100%;
+      height: 400px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      overflow: hidden;
+      margin-bottom: 20px;
       background: #f9f9f9;
-      position: relative;
     }
     
-    /* 确保容器有足够的空间 */
-    #youglish-widget-container > * {
-      width: 100% !important;
-      height: 100% !important;
+    .subtitle-section {
+      padding: 15px;
+      background: #f0f8ff;
+      border-radius: 6px;
+      border-left: 4px solid #2196f3;
+    }
+    
+    .subtitle-section h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 16px;
+    }
+    
+    #subtitle-display {
+      font-size: 18px;
+      line-height: 1.6;
+      color: #333;
+      background: white;
+      padding: 15px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      min-height: 50px;
+      font-style: italic;
+    }
+    
+    .highlight {
+      background-color: #ffeb3b;
+      padding: 2px 4px;
+      border-radius: 2px;
     }
   </style>
 </head>
 <body>
-  <h1>YouGlish Widget 测试</h1>
-  <p>正在加载语音示例...</p>
-  
-  <div style="margin: 10px 0;">
-    <input type="text" id="search-input" placeholder="输入要搜索的单词" value="hello" style="padding: 8px; margin-right: 10px; width: 200px;">
-    <button id="search-btn" onclick="searchWord()" style="padding: 8px 15px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">搜索</button>
-  </div>
-  
-  <div id="youglish-widget-container">
-    <a id="yg-widget-0" class="youglish-widget" 
-       data-query="hello" 
-       data-lang="english" 
-       data-components="8415" 
-       data-bkg-color="theme_light" 
-       rel="nofollow" 
-       href="https://youglish.com">Visit YouGlish.com</a>
-  </div>
-  
-  <div id="debug-info" style="margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px;">
-    <h3>调试信息：</h3>
-    <div id="debug-log"></div>
+  <div class="container">
+    <h1>YouGlish 单词发音器</h1>
+    <p>输入单词，听真实语境中的发音</p>
+    
+    <div class="search-section">
+      <div class="search-group">
+        <input type="text" id="search-input" placeholder="输入要搜索的单词" value="hello">
+        <button id="search-btn" onclick="searchWord()">🔍 搜索</button>
+      </div>
+      <div class="status" id="status">准备就绪</div>
+    </div>
+    
+    <div id="youglish-widget"></div>
+    
+    <!-- <div class="subtitle-section">
+      <h3>📝 字幕</h3>
+      <div id="subtitle-display">字幕将在这里显示...</div>
+    </div> -->
   </div>
 
-  <script async src="https://youglish.com/public/emb/widget.js" charset="utf-8"></script>
+  <!-- YouGlish Widget API 脚本 -->
+  <script src="https://youglish.com/public/emb/widget.js" async></script>
+  
   <script>
-    function addDebugLog(message) {
-      const debugLog = document.getElementById('debug-log');
-      if (debugLog) {
-        const time = new Date().toLocaleTimeString();
-        debugLog.innerHTML += `<p>[${time}] ${message}</p>`;
-        console.log(message);
+    // 全局变量
+    let widget = null;
+    
+    // 更新状态显示
+    function updateStatus(message) {
+      document.getElementById('status').textContent = message;
+    }
+    
+    // 必需的 API 回调函数 - YouGlish API 加载完成后会自动调用
+    function onYouglishAPIReady() {
+      updateStatus('YouGlish API 已加载，正在初始化...');
+      
+      // 创建 widget
+      widget = new YG.Widget('youglish-widget', {
+        width: 640,
+        height: 400,
+        components: 88, // 只显示必要组件
+        events: {
+          onFetchDone: onFetchDone,
+          onCaptionConsumed: onCaptionChange,
+          onVideoReady: onVideoReady,
+          onError: onError
+        }
+      });
+      
+      updateStatus('Widget 已创建，可以开始搜索');
+    }
+    
+    // 搜索完成事件
+    function onFetchDone(event) {
+      if (event.totalResult === 0) {
+        updateStatus('没有找到结果');
+      } else {
+        updateStatus(`找到 ${event.totalResult} 个结果`);
       }
     }
-
+    
+    // 字幕变化事件
+    function onCaptionChange(event) {
+        // updateSubtitle(event.caption);
+        widget.pause(); // 暂停视频以便查看字幕
+        // block for 1 second to allow user to read subtitle
+        setTimeout(() => {
+          widget.replay();
+        }, 2000);
+    }
+    
+    // 播放器准备就绪事件
+    function onVideoReady(event) {
+      updateStatus('播放器已准备就绪');
+    }
+    
+    // 错误处理事件
+    function onError(event) {
+      updateStatus('发生错误：' + event.code);
+    }
+    
+    // 搜索单词函数
     function searchWord() {
       const searchInput = document.getElementById('search-input');
-      const searchWord = searchInput.value.trim();
+      const word = searchInput.value.trim();
       
-      if (!searchWord) {
-        addDebugLog('❌ 请输入搜索词');
+      if (!word) {
+        updateStatus('请输入要搜索的单词');
         return;
       }
       
-      addDebugLog(`🔍 搜索单词: ${searchWord}`);
-      
-      try {
-        // 使用官方方式：更新 a 标签的 data-query 属性
-        const widget = document.getElementById('yg-widget-0');
-        if (widget) {
-          // 更新查询词
-          widget.setAttribute('data-query', encodeURIComponent(searchWord));
-          addDebugLog(`✅ 已更新查询词为: ${searchWord}`);
-          
-          // 重新初始化 widget
-          const container = document.getElementById('youglish-widget-container');
-          if (container) {
-            // 创建新的 widget 元素
-            const newWidget = document.createElement('a');
-            newWidget.id = 'yg-widget-' + Date.now();
-            newWidget.className = 'youglish-widget';
-            newWidget.setAttribute('data-query', encodeURIComponent(searchWord));
-            newWidget.setAttribute('data-lang', 'english');
-            newWidget.setAttribute('data-components', '8415');
-            newWidget.setAttribute('data-bkg-color', 'theme_light');
-            newWidget.setAttribute('rel', 'nofollow');
-            newWidget.href = 'https://youglish.com';
-            newWidget.textContent = 'Visit YouGlish.com';
-            
-            // 替换旧的 widget
-            container.innerHTML = '';
-            container.appendChild(newWidget);
-            
-            addDebugLog('✅ 已重新创建 widget');
-            
-            // 触发 YouGlish 重新处理页面
-            if (typeof YG !== 'undefined' && YG.reprocess) {
-              YG.reprocess();
-              addDebugLog('✅ 已触发 YouGlish 重新处理');
-            } else {
-              addDebugLog('⚠️ 无法触发重新处理，widget 可能需要手动刷新');
-            }
-          }
-        } else {
-          addDebugLog('❌ 找不到 widget 元素');
-        }
-        
-      } catch (error) {
-        addDebugLog(`❌ 搜索操作失败: ${error.message}`);
-        console.error('详细错误信息:', error);
+      if (!widget) {
+        updateStatus('Widget 未初始化');
+        return;
       }
+      
+      updateStatus('正在搜索: ' + word);
+      updateSubtitle('');
+      
+      // 调用 YouGlish API 搜索
+      widget.fetch(word, 'english');
     }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      addDebugLog('DOM 内容已加载');
-      addDebugLog('✅ 使用官方 YouGlish 嵌入格式');
-      addDebugLog('请输入单词并点击搜索按钮测试');
+    
+    // 回车键搜索
+    document.getElementById('search-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        searchWord();
+      }
+    });
+    
+    // 页面加载完成后等待 YouGlish API
+    window.addEventListener('load', function() {
+      updateStatus('页面已加载，等待 YouGlish API...');
+      
+      // 检查 YouGlish API 是否已加载
+      const checkAPI = setInterval(() => {
+        if (typeof YG !== 'undefined' && YG.Widget) {
+          clearInterval(checkAPI);
+          updateStatus('YouGlish API 检测到，等待自动初始化...');
+        }
+      }, 500);
+      
+      // 超时检查
+      setTimeout(() => {
+        if (typeof YG === 'undefined') {
+          updateStatus('YouGlish API 加载超时，请刷新页面重试');
+        }
+      }, 15000);
     });
   </script>
+
 </body>
 </html>
