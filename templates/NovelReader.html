@@ -21,11 +21,17 @@
   <link rel="stylesheet" href="/static/sidebar-component.css">
   <link rel="stylesheet" href="/static/word_detail_panel.css">
   <style>
-    body {
+    /* ===== 基础样式 ===== */
+    html, body {
       font-family: Arial, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0px;
       background: #f5f5f5;
+    }
+
+    body {
+      height: 100vh;
+      padding: 0px;
     }
 
     .container {
@@ -39,7 +45,48 @@
       overflow: hidden;
     }
 
-    /* 小说列表样式 */
+    /* ===== 主内容区域 ===== */
+    .main-content {
+      flex: 1;
+      height: 100%;
+      padding: 5px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .content-header {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .content-header h2 {
+      margin: 0;
+      color: #333;
+      flex: 1;
+    }
+
+    .content-header p {
+      margin: 5px 0 0 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .control-area {
+      width: 95%;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    #chapterInfo {
+      margin: 0;
+    }
+
+    /* ===== 侧边栏 - 小说列表样式 ===== */
     .novel-list {
       list-style: none;
       padding: 0;
@@ -119,75 +166,7 @@
       border-color: #4caf50;
     }
 
-    html,
-    body {
-      padding: 2px;
-      margin: 0;
-    }
-
-    .main-content {
-      flex: 1;
-      height: 100%;
-      padding: 5px;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .content-header {
-      margin-bottom: 20px;
-      border-bottom: 1px solid #e0e0e0;
-      padding-bottom: 15px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .content-header h2 {
-      margin: 0;
-      color: #333;
-      flex: 1;
-    }
-
-    .content-header p {
-      margin: 5px 0 0 0;
-      color: #666;
-      font-size: 14px;
-    }
-
-    .control-area {
-      width: 95%;
-      display: flex;
-      justify-content:space-between;
-      gap: 10px;
-      /* margin-top: 10px; */
-    }
-
-    #chapterInfo {
-      margin: 0;
-    }
-
-    /* 夜间模式切换按钮 */
-    .night-mode-toggle {
-      background: #2196f3;
-      color: white;
-      border: none;
-      /* padding: 8px 12px; */
-      height: 20px;
-      width: 32px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .night-mode-toggle:hover {
-      background: #1976d2;
-      transform: translateY(-1px);
-    }
-
+    /* ===== 句子内容样式 ===== */
     .sentence-container {
       margin: 15px 0;
       line-height: 1.8;
@@ -273,21 +252,112 @@
       font-style: italic;
     }
 
-    .loading {
-      text-align: center;
-      padding: 40px;
+    .sentence .selected-word {
+      background: #ffeb3b;
+      color: #333;
+      padding: 2px 4px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    /* ===== 控制按钮样式 ===== */
+    .night-mode-toggle {
+      background: #2196f3;
+      color: white;
+      border: none;
+      height: 20px;
+      width: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .night-mode-toggle:hover {
+      background: #1976d2;
+      transform: translateY(-1px);
+    }
+
+    .font-size-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 10px;
+    }
+
+    .font-size-btn {
+      background: #4caf50;
+      color: white;
+      border: none;
+      width: 30px;
+      height: 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .font-size-btn:hover {
+      background: #45a049;
+      transform: scale(1.1);
+    }
+
+    .font-size-display {
       color: #666;
+      font-size: 12px;
+      min-width: 30px;
+      text-align: center;
     }
 
-    .error {
-      color: #f44336;
-      background: #ffebee;
-      padding: 12px;
-      border-radius: 4px;
-      margin: 10px 0;
+    /* ===== 字体大小变体 ===== */
+    .font-size-small .english-text {
+      font-size: 14px !important;
     }
 
-    /* 单词详情面板样式 */
+    .font-size-small .chinese-text {
+      font-size: 12px !important;
+    }
+
+    .font-size-medium .english-text {
+      font-size: 16px !important;
+    }
+
+    .font-size-medium .chinese-text {
+      font-size: 14px !important;
+    }
+
+    .font-size-large .english-text {
+      font-size: 18px !important;
+    }
+
+    .font-size-large .chinese-text {
+      font-size: 16px !important;
+    }
+
+    .font-size-extra-large .english-text {
+      font-size: 20px !important;
+    }
+
+    .font-size-extra-large .chinese-text {
+      font-size: 18px !important;
+    }
+
+    .font-size-huge .english-text {
+      font-size: 22px !important;
+    }
+
+    .font-size-huge .chinese-text {
+      font-size: 20px !important;
+    }
+
+    /* ===== 单词详情面板 ===== */
     .word-detail-overlay {
       position: fixed;
       top: 0;
@@ -318,7 +388,6 @@
         opacity: 0;
         transform: translateY(-50px);
       }
-
       to {
         opacity: 1;
         transform: translateY(0);
@@ -373,31 +442,27 @@
       margin-bottom: 15px;
     }
 
-    .word-loading {
+    /* ===== 通用状态样式 ===== */
+    .loading, .word-loading {
       text-align: center;
       padding: 40px;
       color: #666;
     }
 
-    .word-error {
-      text-align: center;
-      padding: 20px;
+    .error, .word-error {
       color: #f44336;
       background: #ffebee;
+      padding: 12px;
       border-radius: 4px;
       margin: 10px 0;
     }
 
-    /* 选中文本高亮 */
-    .sentence .selected-word {
-      background: #ffeb3b;
-      color: #333;
-      padding: 2px 4px;
-      border-radius: 3px;
-      cursor: pointer;
+    .word-error {
+      text-align: center;
+      padding: 20px;
     }
 
-    /* 夜间模式样式 */
+    /* ===== 夜间模式样式 ===== */
     .night-mode {
       background: #121212 !important;
       color: #e0e0e0 !important;
@@ -408,7 +473,7 @@
       box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* 侧边栏夜间模式样式 */
+    /* 夜间模式 - 侧边栏 */
     .night-mode .novel-title {
       background: #2a2a2a !important;
       border-color: #4fc3f7 !important;
@@ -441,6 +506,7 @@
       border-color: #66bb6a !important;
     }
 
+    /* 夜间模式 - 主内容区 */
     .night-mode .content-header {
       border-bottom-color: #333 !important;
     }
@@ -500,15 +566,40 @@
       color: #bbb !important;
     }
 
-    .night-mode .loading {
+    /* 夜间模式 - 控制按钮 */
+    .night-mode .night-mode-toggle {
+      background: #ffab40 !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .night-mode-toggle:hover {
+      background: #ff8f00 !important;
+    }
+
+    .night-mode .font-size-btn {
+      background: #66bb6a !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .font-size-btn:hover {
+      background: #4caf50 !important;
+    }
+
+    .night-mode .font-size-display {
       color: #bbb !important;
     }
 
-    .night-mode .error {
+    /* 夜间模式 - 状态样式 */
+    .night-mode .loading, .night-mode .word-loading {
+      color: #bbb !important;
+    }
+
+    .night-mode .error, .night-mode .word-error {
       background: #3d1a1a !important;
       color: #ff7043 !important;
     }
 
+    /* 夜间模式 - 单词面板 */
     .night-mode .word-detail-panel {
       background: #1e1e1e !important;
       color: #e0e0e0 !important;
@@ -533,15 +624,6 @@
 
     .night-mode .word-pronunciation {
       color: #bbb !important;
-    }
-
-    .night-mode .word-loading {
-      color: #bbb !important;
-    }
-
-    .night-mode .word-error {
-      background: #3d1a1a !important;
-      color: #ff7043 !important;
     }
 
     .night-mode .definition-section {
@@ -592,106 +674,6 @@
 
     .night-mode .synonym:hover {
       background: #2e4a2e !important;
-    }
-
-    .night-mode .night-mode-toggle {
-      background: #ffab40 !important;
-      color: #121212 !important;
-    }
-
-    .night-mode .night-mode-toggle:hover {
-      background: #ff8f00 !important;
-    }
-
-    /* 字体大小控制器样式 */
-    .font-size-control {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-left: 10px;
-    }
-
-    .font-size-btn {
-      background: #4caf50;
-      color: white;
-      border: none;
-      width: 30px;
-      height: 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
-
-    .font-size-btn:hover {
-      background: #45a049;
-      transform: scale(1.1);
-    }
-
-    .font-size-display {
-      color: #666;
-      font-size: 12px;
-      min-width: 30px;
-      text-align: center;
-    }
-
-    /* 夜间模式下的字体控制器 */
-    .night-mode .font-size-btn {
-      background: #66bb6a !important;
-      color: #121212 !important;
-    }
-
-    .night-mode .font-size-btn:hover {
-      background: #4caf50 !important;
-    }
-
-    .night-mode .font-size-display {
-      color: #bbb !important;
-    }
-
-    /* 动态字体大小类 */
-    .font-size-small .english-text {
-      font-size: 14px !important;
-    }
-
-    .font-size-small .chinese-text {
-      font-size: 12px !important;
-    }
-
-    .font-size-medium .english-text {
-      font-size: 16px !important;
-    }
-
-    .font-size-medium .chinese-text {
-      font-size: 14px !important;
-    }
-
-    .font-size-large .english-text {
-      font-size: 18px !important;
-    }
-
-    .font-size-large .chinese-text {
-      font-size: 16px !important;
-    }
-
-    .font-size-extra-large .english-text {
-      font-size: 20px !important;
-    }
-
-    .font-size-extra-large .chinese-text {
-      font-size: 18px !important;
-    }
-
-    .font-size-huge .english-text {
-      font-size: 22px !important;
-    }
-
-    .font-size-huge .chinese-text {
-      font-size: 20px !important;
     }
   </style>
 </head>
