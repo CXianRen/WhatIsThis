@@ -5,19 +5,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Novel Reader - WhatIsThis</title>
-  
+
   <!-- Favicon and Icons -->
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.svg">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#667eea">
-  
+
   <!-- PWA Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Novel Reader">
   <meta name="mobile-web-app-capable" content="yes">
-  
+
   <link rel="stylesheet" href="/static/sidebar-component.css">
   <link rel="stylesheet" href="/static/word_detail_panel.css">
   <style>
@@ -89,7 +89,7 @@
       padding: 0;
       margin: 0 0 0 16px;
       max-height: 0;
-      overflow: hidden;
+      overflow: auto;
       transition: max-height 0.3s ease;
     }
 
@@ -119,7 +119,8 @@
       border-color: #4caf50;
     }
 
-    html, body {
+    html,
+    body {
       padding: 2px;
       margin: 0;
     }
@@ -137,7 +138,7 @@
       border-bottom: 1px solid #e0e0e0;
       padding-bottom: 15px;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
     }
 
@@ -153,13 +154,27 @@
       font-size: 14px;
     }
 
+    .control-area {
+      width: 95%;
+      display: flex;
+      justify-content:space-between;
+      gap: 10px;
+      /* margin-top: 10px; */
+    }
+
+    #chapterInfo {
+      margin: 0;
+    }
+
     /* 夜间模式切换按钮 */
     .night-mode-toggle {
       background: #2196f3;
       color: white;
       border: none;
-      padding: 8px 12px;
-      border-radius: 20px;
+      /* padding: 8px 12px; */
+      height: 20px;
+      width: 32px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 12px;
       transition: all 0.3s ease;
@@ -303,6 +318,7 @@
         opacity: 0;
         transform: translateY(-50px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -390,6 +406,39 @@
     .night-mode .container {
       background: #1e1e1e !important;
       box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* 侧边栏夜间模式样式 */
+    .night-mode .novel-title {
+      background: #2a2a2a !important;
+      border-color: #4fc3f7 !important;
+      color: #4fc3f7 !important;
+    }
+
+    .night-mode .novel-title:hover {
+      background: #333 !important;
+    }
+
+    .night-mode .novel-title.expanded {
+      background: #4fc3f7 !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .chapter-item {
+      background: #2a2a2a !important;
+      border-color: #333 !important;
+      color: #e0e0e0 !important;
+    }
+
+    .night-mode .chapter-item:hover {
+      background: #1a332a !important;
+      border-color: #66bb6a !important;
+    }
+
+    .night-mode .chapter-item.active {
+      background: #66bb6a !important;
+      color: #121212 !important;
+      border-color: #66bb6a !important;
     }
 
     .night-mode .content-header {
@@ -553,6 +602,97 @@
     .night-mode .night-mode-toggle:hover {
       background: #ff8f00 !important;
     }
+
+    /* 字体大小控制器样式 */
+    .font-size-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 10px;
+    }
+
+    .font-size-btn {
+      background: #4caf50;
+      color: white;
+      border: none;
+      width: 30px;
+      height: 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .font-size-btn:hover {
+      background: #45a049;
+      transform: scale(1.1);
+    }
+
+    .font-size-display {
+      color: #666;
+      font-size: 12px;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    /* 夜间模式下的字体控制器 */
+    .night-mode .font-size-btn {
+      background: #66bb6a !important;
+      color: #121212 !important;
+    }
+
+    .night-mode .font-size-btn:hover {
+      background: #4caf50 !important;
+    }
+
+    .night-mode .font-size-display {
+      color: #bbb !important;
+    }
+
+    /* 动态字体大小类 */
+    .font-size-small .english-text {
+      font-size: 14px !important;
+    }
+
+    .font-size-small .chinese-text {
+      font-size: 12px !important;
+    }
+
+    .font-size-medium .english-text {
+      font-size: 16px !important;
+    }
+
+    .font-size-medium .chinese-text {
+      font-size: 14px !important;
+    }
+
+    .font-size-large .english-text {
+      font-size: 18px !important;
+    }
+
+    .font-size-large .chinese-text {
+      font-size: 16px !important;
+    }
+
+    .font-size-extra-large .english-text {
+      font-size: 20px !important;
+    }
+
+    .font-size-extra-large .chinese-text {
+      font-size: 18px !important;
+    }
+
+    .font-size-huge .english-text {
+      font-size: 22px !important;
+    }
+
+    .font-size-huge .chinese-text {
+      font-size: 20px !important;
+    }
   </style>
 </head>
 
@@ -562,12 +702,20 @@
       <div class="content-header">
         <div>
           <h2 id="currentChapter">选择一个章节开始阅读</h2>
-          <p id="chapterInfo"></p>
         </div>
-        <button class="night-mode-toggle" onclick="toggleNightMode()">
-          <span id="nightModeIcon">🌙</span>
-          <span id="nightModeText">Switch</span>
-        </button>
+
+        <div class="control-area">
+          <p id="chapterInfo"></p>
+          <button class="night-mode-toggle" onclick="toggleNightMode()">
+            <span id="nightModeIcon">🌙</span>
+            <!-- <span id="nightModeText">Switch</span> -->
+          </button>
+          <div class="font-size-control">
+            <button class="font-size-btn" onclick="decreaseFontSize()" title="减小字体">A-</button>
+            <span class="font-size-display" id="fontSizeDisplay">中</span>
+            <button class="font-size-btn" onclick="increaseFontSize()" title="增大字体">A+</button>
+          </div>
+        </div>
       </div>
       <div id="contentArea">
         <div class="loading">请从左侧选择章节</div>
@@ -600,6 +748,9 @@
     let longPressTimer = null;
     let selectedWord = '';
     let isNightMode = false;
+    let currentFontSize = 2; // 0:小, 1:较小, 2:中等, 3:较大, 4:大
+    const fontSizes = ['small', 'medium', 'large', 'extra-large', 'huge'];
+    const fontSizeNames = ['小', '较小', '中', '较大', '大'];
 
     // DOM元素缓存
     const currentChapterElement = document.getElementById('currentChapter');
@@ -610,13 +761,14 @@
     const wordPronunciation = document.getElementById('wordPronunciation');
     const wordDetailContent = document.getElementById('wordDetailContent');
     const nightModeIcon = document.getElementById('nightModeIcon');
-    const nightModeText = document.getElementById('nightModeText');
+    // const nightModeText = document.getElementById('nightModeText');
+    const fontSizeDisplay = document.getElementById('fontSizeDisplay');
 
     // 初始化侧边栏组件
     function initSidebar() {
       const isMobile = window.innerWidth <= 768;
       const isLandscape = window.innerWidth > window.innerHeight;
-      
+
       sidebar = new SidebarComponent({
         title: '小说章节',
         containerId: 'container',
@@ -641,7 +793,7 @@
         }
 
         novelData = await response.json();
-        
+
         if (sidebar) {
           sidebar.clearContent();
           sidebar.addContent(createNovelListContent(), 'novelList');
@@ -663,7 +815,7 @@
       }
 
       let html = '<ul class="novel-list">';
-      
+
       novelData.forEach((novel, novelIndex) => {
         html += `
           <li class="novel-item">
@@ -672,7 +824,7 @@
             </div>
             <ul class="chapter-list collapsed">
         `;
-        
+
         novel.chapters.forEach((chapter, chapterIndex) => {
           html += `
             <li class="chapter-item" onclick="selectChapter(${novelIndex}, ${chapterIndex}, this, event)">
@@ -680,17 +832,17 @@
             </li>
           `;
         });
-        
+
         html += `</ul></li>`;
       });
-      
+
       return html + '</ul>';
     }
 
     // 切换小说的展开/收起状态
     function toggleNovel(novelIndex, titleElement) {
       const chapterList = titleElement.parentElement.querySelector('.chapter-list');
-      
+
       if (chapterList.classList.contains('collapsed')) {
         chapterList.classList.replace('collapsed', 'expanded');
         titleElement.classList.add('expanded');
@@ -728,7 +880,7 @@
         }
 
         currentContent = await response.json();
-        
+
         // 初始化该章节的句子状态
         const chapterPath = `${novel.name}/${chapter.name}`;
         if (!sentenceStates[chapterPath]) {
@@ -762,14 +914,14 @@
         const currentState = sentenceStates[chapterPath][index] || 'english';
         const isChinese = currentState === 'chinese';
         const cssClass = isChinese ? 'chinese-text' : 'english-text';
-        
+
         // 新格式：text是中文，translation是翻译
         const text = isChinese ? sentence.text : sentence.translation;
-        
+
         // 语言切换图标
         const toggleIcon = isChinese ? '中' : 'EN';
         const toggleTitle = isChinese ? '切换到英文' : '切换到中文';
-        
+
         // 如果没有翻译，显示提示
         if (!sentence.translation && !isChinese) {
           return `
@@ -785,7 +937,7 @@
             </div>
           `;
         }
-        
+
         return `
           <div class="sentence ${isChinese ? 'chinese' : ''}">
             <div class="language-toggle" 
@@ -805,16 +957,16 @@
         `;
       }).join('');
 
-      contentAreaElement.innerHTML = `<div class="sentence-container">${sentenceHTML}</div>`;
+      contentAreaElement.innerHTML = `<div class="sentence-container font-size-${fontSizes[currentFontSize]}">${sentenceHTML}</div>`;
     }
 
     // 切换句子的中英文显示
     function toggleSentence(sentenceIndex, chapterPath) {
       event.stopPropagation(); // 阻止事件冒泡
-      
+
       const currentState = sentenceStates[chapterPath][sentenceIndex] || 'english';
       sentenceStates[chapterPath][sentenceIndex] = currentState === 'chinese' ? 'english' : 'chinese';
-      
+
       if (currentContent) {
         renderChapterContent(currentContent, chapterPath);
       }
@@ -839,13 +991,13 @@
     // 处理触摸开始事件
     function handleTouchStart(event) {
       clearTimeout(longPressTimer);
-      
+
       // 保存触摸开始时的坐标和时间
       const touch = event.touches[0];
       event.startX = touch.clientX;
       event.startY = touch.clientY;
       event.startTime = Date.now();
-      
+
       longPressTimer = setTimeout(() => {
         handleLongPress(event, touch);
       }, 1500);
@@ -854,7 +1006,7 @@
     // 处理触摸结束事件
     function handleTouchEnd(event) {
       clearTimeout(longPressTimer);
-      
+
       // 检查是否为短触摸（可能是文本选择）
       const touchDuration = Date.now() - (event.startTime || 0);
       if (touchDuration < 1500) {
@@ -870,7 +1022,7 @@
         const touch = event.touches[0];
         const deltaX = Math.abs(touch.clientX - (event.startX || 0));
         const deltaY = Math.abs(touch.clientY - (event.startY || 0));
-        
+
         // 如果移动距离超过10像素，取消长按
         if (deltaX > 10 || deltaY > 10) {
           clearTimeout(longPressTimer);
@@ -882,7 +1034,7 @@
     function handleLongPress(event, touch = null) {
       event.preventDefault();
       event.stopPropagation();
-      
+
       // 获取点击位置的单词
       const word = getWordAtPosition(event, touch);
       if (word) {
@@ -894,7 +1046,7 @@
     function handleTextSelection(event) {
       const selection = window.getSelection();
       const selectedText = selection.toString().trim();
-      
+
       if (selectedText && isEnglishWord(selectedText)) {
         event.preventDefault();
         event.stopPropagation();
@@ -906,7 +1058,7 @@
     // 获取点击位置的单词（改进版，支持触摸设备）
     function getWordAtPosition(event, touch = null) {
       let clientX, clientY;
-      
+
       // 确定坐标来源
       if (touch) {
         clientX = touch.clientX;
@@ -924,12 +1076,12 @@
 
       // 尝试多种方法获取文本范围
       let range = null;
-      
+
       // 方法1: 使用 document.caretRangeFromPoint (现代浏览器)
       if (document.caretRangeFromPoint) {
         range = document.caretRangeFromPoint(clientX, clientY);
       }
-      
+
       // 方法2: 使用 document.caretPositionFromPoint (Firefox)
       if (!range && document.caretPositionFromPoint) {
         const caretPos = document.caretPositionFromPoint(clientX, clientY);
@@ -939,7 +1091,7 @@
           range.setEnd(caretPos.offsetNode, caretPos.offset);
         }
       }
-      
+
       // 方法3: 备用方案 - 通过元素查找
       if (!range) {
         const element = document.elementFromPoint(clientX, clientY);
@@ -992,7 +1144,7 @@
         }
         return null;
       }
-      
+
       return findTextNode(element);
     }
 
@@ -1014,14 +1166,14 @@
         if (!response.ok) throw new Error('网络请求失败');
 
         const data = await response.json();
-        
+
         if (data.error) {
           throw new Error(data.error);
         }
 
         // 更新面板内容
         wordTitle.textContent = data.word || word;
-        wordPronunciation.textContent = data.pronunciation ? 
+        wordPronunciation.textContent = data.pronunciation ?
           `${data.pronunciation} (${data.spelling_pronunciation || ''})` : '';
 
         // 构建详细信息HTML
@@ -1097,20 +1249,68 @@
       }
     });
 
+    // 增大字体
+    function increaseFontSize() {
+      if (currentFontSize < fontSizes.length - 1) {
+        currentFontSize++;
+        updateFontSize();
+      }
+    }
+
+    // 减小字体
+    function decreaseFontSize() {
+      if (currentFontSize > 0) {
+        currentFontSize--;
+        updateFontSize();
+      }
+    }
+
+    // 更新字体大小
+    function updateFontSize() {
+      const sentenceContainer = document.querySelector('.sentence-container');
+      if (sentenceContainer) {
+        // 移除所有字体大小类
+        fontSizes.forEach(size => {
+          sentenceContainer.classList.remove(`font-size-${size}`);
+        });
+        // 添加当前字体大小类
+        sentenceContainer.classList.add(`font-size-${fontSizes[currentFontSize]}`);
+      }
+
+      // 更新显示
+      fontSizeDisplay.textContent = fontSizeNames[currentFontSize];
+
+      // 保存到本地存储
+      localStorage.setItem('fontSize', currentFontSize.toString());
+    }
+
+    // 加载字体大小设置
+    function loadFontSizeSettings() {
+      const savedFontSize = localStorage.getItem('fontSize');
+      if (savedFontSize !== null) {
+        currentFontSize = parseInt(savedFontSize);
+        // 确保值在有效范围内
+        if (currentFontSize < 0 || currentFontSize >= fontSizes.length) {
+          currentFontSize = 2; // 默认中等
+        }
+        fontSizeDisplay.textContent = fontSizeNames[currentFontSize];
+      }
+    }
+
     // 切换夜间模式
     function toggleNightMode() {
       isNightMode = !isNightMode;
       const body = document.body;
-      
+
       if (isNightMode) {
         body.classList.add('night-mode');
         nightModeIcon.textContent = '☀️';
-        nightModeText.textContent = 'Switch';
+        // nightModeText.textContent = 'Switch';
         localStorage.setItem('nightMode', 'true');
       } else {
         body.classList.remove('night-mode');
         nightModeIcon.textContent = '🌙';
-        nightModeText.textContent = 'Switch';
+        // nightModeText.textContent = 'Switch';
         localStorage.setItem('nightMode', 'false');
       }
     }
@@ -1127,6 +1327,7 @@
     // 页面初始化
     document.addEventListener('DOMContentLoaded', () => {
       loadNightModeSettings();
+      loadFontSizeSettings();
       initSidebar();
     });
 
@@ -1134,15 +1335,16 @@
     window.addEventListener('resize', () => {
       const isMobile = window.innerWidth <= 768;
       const currentIsMobile = sidebar?.options.position === 'top';
-      
+
       if (isMobile !== currentIsMobile) {
         sidebar?.destroy();
         initSidebar();
       }
     });
   </script>
-  
+
   <!-- PWA Support Script -->
   <script src="/static/pwa.js"></script>
 </body>
+
 </html>
