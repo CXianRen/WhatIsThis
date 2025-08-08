@@ -1039,6 +1039,7 @@
     // YouGlish 相关变量
     let youglishWidget = null;
     let youglishAPIReady = false;
+    let youglishTimer = null;
 
     // DOM元素缓存
     const currentChapterElement = document.getElementById('currentChapter');
@@ -1555,7 +1556,7 @@
       if (youglishWidget) {
         youglishWidget.pause(); // 暂停视频以便查看字幕
         // 2秒后自动重播
-        setTimeout(() => {
+        youglishTimer = setTimeout(() => {
           if (youglishWidget) {
             youglishWidget.replay();
           }
@@ -1633,9 +1634,16 @@
       // 停止播放
       if (youglishWidget) {
         try {
+          console.log("stop the YouGlish widget");
           youglishWidget.pause();
         } catch (error) {
           console.log('停止播放失败:', error);
+        }
+        if (youglishTimer) {
+          // stop the timer
+          console.log("clear the YouGlish timer");
+          clearTimeout(youglishTimer);
+          youglishTimer = null;
         }
       }
       clearWordSelection();
