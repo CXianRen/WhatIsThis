@@ -22,7 +22,8 @@
   <link rel="stylesheet" href="/static/word_detail_panel.css">
   <style>
     /* ===== 基础样式 ===== */
-    html, body {
+    html,
+    body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0px;
@@ -378,6 +379,7 @@
         opacity: 0;
         transform: translateY(-10px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -474,6 +476,7 @@
         opacity: 0;
         transform: translateY(-50px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -529,13 +532,15 @@
     }
 
     /* ===== 通用状态样式 ===== */
-    .loading, .word-loading {
+    .loading,
+    .word-loading {
       text-align: center;
       padding: 40px;
       color: #666;
     }
 
-    .error, .word-error {
+    .error,
+    .word-error {
       color: #f44336;
       background: #ffebee;
       padding: 12px;
@@ -676,11 +681,13 @@
     }
 
     /* 夜间模式 - 状态样式 */
-    .night-mode .loading, .night-mode .word-loading {
+    .night-mode .loading,
+    .night-mode .word-loading {
       color: #bbb !important;
     }
 
-    .night-mode .error, .night-mode .word-error {
+    .night-mode .error,
+    .night-mode .word-error {
       background: #3d1a1a !important;
       color: #ff7043 !important;
     }
@@ -1010,7 +1017,7 @@
 
   <!-- YouGlish Widget API 脚本 -->
   <script src="https://youglish.com/public/emb/widget.js" async></script>
-  
+
   <script src="/static/sidebar-component.js"></script>
   <script>
     let novelData = [];
@@ -1020,6 +1027,7 @@
     let sentenceStates = {}; // {chapterPath: {sentenceIndex: 'english'|'chinese'}}
     let sidebar = null;
     let longPressTimer = null;
+    let isDragSelection = false;
     let selectedWord = '';
     let selectedWordElement = null;
     let wordToolbarVisible = false;
@@ -1234,7 +1242,8 @@
                  onmouseup="handleMouseUp(event)"
                  ontouchstart="handleTouchStart(event)"
                  ontouchend="handleTouchEnd(event)"
-                 ontouchmove="handleTouchMove(event)">
+                 ontouchmove="handleTouchMove(event)"
+                 oncontextmenu="handleContextMenu(event)">
               <div class="${cssClass}">${text}</div>
             </div>
           </div>
@@ -1256,74 +1265,146 @@
       }
     }
 
+
+    // ----------- UI 事件 ------------//
+
     // 处理鼠标按下事件
     function handleMouseDown(event) {
+      clearWordSelection();
       clearTimeout(longPressTimer);
-      longPressTimer = setTimeout(() => {
-        handleLongPress(event);
-      }, 1000); // 1500ms长按
+      console.log("press");
+      event.startTime = Date.now();
     }
 
     // 处理鼠标抬起事件
     function handleMouseUp(event) {
-      clearTimeout(longPressTimer);
-      setTimeout(() => {
-        handleTextSelection(event);
-      }, 100);
-    }
-
-    // 处理触摸开始事件
-    function handleTouchStart(event) {
-      clearTimeout(longPressTimer);
-
-      // 保存触摸开始时的坐标和时间
-      const touch = event.touches[0];
-      event.startX = touch.clientX;
-      event.startY = touch.clientY;
-      event.startTime = Date.now();
-
-      longPressTimer = setTimeout(() => {
-        handleLongPress(event, touch);
-      }, 1000);
-    }
-
-    // 处理触摸结束事件
-    function handleTouchEnd(event) {
-      clearTimeout(longPressTimer);
-
-      // 检查是否为短触摸（可能是文本选择）
-      const touchDuration = Date.now() - (event.startTime || 0);
-      if (touchDuration < 1000) {
+      console.log("release");
+      const clickDuration = Date.now() - (event.startTime || 0);
+      if (clickDuration > 1000) {
         setTimeout(() => {
           handleTextSelection(event);
         }, 100);
       }
     }
 
-    // 处理触摸移动事件（取消长按如果移动太多）
-    function handleTouchMove(event) {
-      if (longPressTimer) {
-        const touch = event.touches[0];
-        const deltaX = Math.abs(touch.clientX - (event.startX || 0));
-        const deltaY = Math.abs(touch.clientY - (event.startY || 0));
+    // blocking the default context menu
+    function handleContextMenu(event) {
+      event.preventDefault();
+    }
 
-        // 如果移动距离超过10像素，取消长按
-        if (deltaX > 10 || deltaY > 10) {
-          clearTimeout(longPressTimer);
-        }
+    // 处理触摸开始事件
+    function handleTouchStart(event) {
+      console.log("touch start");
+
+      clearWordSelection();
+      window.getSelection().removeAllRanges();
+      clearTimeout(longPressTimer);
+
+      // 保存触摸开始时的坐标和时间
+      const touch = event.touches[0];
+      event.startX = touch.clientX;
+      event.startY = touch.clientY;
+
+      // 初始化拖拽选择标记
+      isDragSelection = false;
+
+      longPressTimer = setTimeout(() => {
+        isDragSelection = true;
+        console.log("long press detected");
+        window.getSelection().removeAllRanges(); // 清除之前的选择
+      }, 600);
+    }
+
+    // 处理触摸结束事件
+    function handleTouchEnd(event) {
+      console.log("touch end");
+      clearTimeout(longPressTimer);
+
+      // 如果是拖拽选择或长时间触摸，处理文本选择
+      if (isDragSelection) {
+        setTimeout(() => {
+          console.log("drag selection end detected");
+          const selection = window.getSelection();
+          const word = selection.toString().trim();
+
+          console.log("drag selection detected word:", word);
+          if (word) {
+
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            console.log("selected word rect:", rect);
+            const x = rect.left + window.scrollX + rect.width / 2;
+            const y = rect.bottom + window.scrollY;
+            console.log("show word toolbar at:", x, y);
+            selectedWord = word;
+            showWordToolbar(x, y);
+            highlightWordInContent(word);
+          }
+        }, 100);
       }
     }
 
-    // 处理长按事件
-    function handleLongPress(event, touch = null) {
-      event.preventDefault();
-      event.stopPropagation();
+    // 工具函数：将选区扩展到单词边界
+    function expandRangeToWord(range) {
+      if (!range || !range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) {
+        return;
+      }
 
-      // 获取点击位置的单词
-      const word = getWordAtPosition(event, touch);
-      if (word) {
-        // 高亮选中的单词并显示工具栏
-        highlightWordAndShowToolbar(event, word, touch);
+      const text = range.startContainer.textContent;
+      let start = range.startOffset;
+      let end = range.endOffset;
+
+      // 向前扩展
+      while (start > 0 && /\w/.test(text[start - 1])) {
+        start--;
+      }
+
+      // 向后扩展
+      while (end < text.length && /\w/.test(text[end])) {
+        end++;
+      }
+
+      range.setStart(range.startContainer, start);
+      range.setEnd(range.startContainer, end);
+    }
+
+    // 处理触摸移动事件（取消长按如果移动太多）
+    function handleTouchMove(event) {
+      // console.log("touch move");
+
+      const touch = event.touches[0];
+      const deltaX = Math.abs(touch.clientX - (event.startX || 0));
+      const deltaY = Math.abs(touch.clientY - (event.startY || 0));
+      // console.log("deltaX:", deltaX, "deltaY:", deltaY);
+
+      if (!isDragSelection) {
+        if (deltaX > 5 || deltaY > 5) {
+          // 取消长按
+          clearTimeout(longPressTimer);
+        }
+      } else {
+        // 进入 拖动选择中
+        event.preventDefault();
+
+        let range;
+        if (document.caretRangeFromPoint) {
+          range = document.caretRangeFromPoint(touch.clientX, touch.clientY);
+        } else {
+          console.assert("caretRangeFromPoint not supported");
+        }
+
+        if (range) {
+          expandRangeToWord(range);
+          const selection = window.getSelection();
+          if (selection.rangeCount === 0) {
+            selection.addRange(range);
+          } else {
+            const existingRange = selection.getRangeAt(0);
+            existingRange.setEnd(range.endContainer, range.endOffset);
+            expandRangeToWord(existingRange);
+          }
+        }
+
       }
     }
 
@@ -1331,193 +1412,66 @@
     function handleTextSelection(event) {
       const selection = window.getSelection();
       const selectedText = selection.toString().trim();
-
-      if (selectedText && isEnglishWord(selectedText)) {
-        event.preventDefault();
-        event.stopPropagation();
-        
+      console.log("selectedText:", selectedText);
+      if (selectedText) {
+        selectedWord = selectedText;
         // 获取选择范围的位置
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
-        
-        // 高亮选中的单词并显示工具栏
-        highlightWordAndShowToolbar({
-          clientX: rect.left + rect.width / 2,
-          clientY: rect.bottom
-        }, selectedText);
-        
+
+        // show the bar
+        const x = rect.left + rect.width / 2;
+        const y = rect.bottom;
+        showWordToolbar(x, y);
+        highlightWordInContent(selectedWord);
+
         selection.removeAllRanges();
       }
     }
 
-    // 获取点击位置的单词（改进版，支持触摸设备）
-    function getWordAtPosition(event, touch = null) {
-      let clientX, clientY;
-
-      // 确定坐标来源
-      if (touch) {
-        clientX = touch.clientX;
-        clientY = touch.clientY;
-      } else if (event.touches && event.touches.length > 0) {
-        clientX = event.touches[0].clientX;
-        clientY = event.touches[0].clientY;
-      } else if (event.changedTouches && event.changedTouches.length > 0) {
-        clientX = event.changedTouches[0].clientX;
-        clientY = event.changedTouches[0].clientY;
-      } else {
-        clientX = event.clientX;
-        clientY = event.clientY;
-      }
-
-      // 尝试多种方法获取文本范围
-      let range = null;
-
-      // 方法1: 使用 document.caretRangeFromPoint (现代浏览器)
-      if (document.caretRangeFromPoint) {
-        range = document.caretRangeFromPoint(clientX, clientY);
-      }
-
-      // 方法2: 使用 document.caretPositionFromPoint (Firefox)
-      if (!range && document.caretPositionFromPoint) {
-        const caretPos = document.caretPositionFromPoint(clientX, clientY);
-        if (caretPos && caretPos.offsetNode) {
-          range = document.createRange();
-          range.setStart(caretPos.offsetNode, caretPos.offset);
-          range.setEnd(caretPos.offsetNode, caretPos.offset);
-        }
-      }
-
-      // 方法3: 备用方案 - 通过元素查找
-      if (!range) {
-        const element = document.elementFromPoint(clientX, clientY);
-        if (element && element.textContent) {
-          // 如果找到包含文本的元素，尝试估算位置
-          const textNode = getTextNodeFromElement(element);
-          if (textNode) {
-            range = document.createRange();
-            const textLength = textNode.textContent.length;
-            const midPoint = Math.floor(textLength / 2);
-            range.setStart(textNode, midPoint);
-            range.setEnd(textNode, midPoint);
-          }
-        }
-      }
-
-      if (!range) return null;
-
-      const textNode = range.startContainer;
-      if (textNode.nodeType !== Node.TEXT_NODE) return null;
-
-      const text = textNode.textContent;
-      let start = range.startOffset;
-      let end = range.startOffset;
-
-      // 向前查找单词边界
-      while (start > 0 && /[a-zA-Z]/.test(text[start - 1])) {
-        start--;
-      }
-
-      // 向后查找单词边界
-      while (end < text.length && /[a-zA-Z]/.test(text[end])) {
-        end++;
-      }
-
-      const word = text.substring(start, end).trim();
-      return isEnglishWord(word) ? word : null;
-    }
-
-    // 辅助函数：从元素中查找文本节点
-    function getTextNodeFromElement(element) {
-      // 递归查找第一个文本节点
-      function findTextNode(node) {
-        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-          return node;
-        }
-        for (let child of node.childNodes) {
-          const textNode = findTextNode(child);
-          if (textNode) return textNode;
-        }
-        return null;
-      }
-
-      return findTextNode(element);
-    }
-
-    // 检查是否为英文单词
-    function isEnglishWord(text) {
-      return /^[a-zA-Z]+$/.test(text) && text.length > 1;
-    }
-
-    // 高亮单词并显示工具栏
-    function highlightWordAndShowToolbar(event, word, touch = null) {
-      // 清除之前的选择
-      clearWordSelection();
-      
-      selectedWord = word;
-      
-      // 获取位置坐标
-      let clientX, clientY;
-      if (touch) {
-        clientX = touch.clientX;
-        clientY = touch.clientY;
-      } else if (event.touches && event.touches.length > 0) {
-        clientX = event.touches[0].clientX;
-        clientY = event.touches[0].clientY;
-      } else {
-        clientX = event.clientX;
-        clientY = event.clientY;
-      }
-
-      // 查找并高亮所有匹配的单词
-      // highlightWordInContent(word);
-      
-      // 显示工具栏
-      showWordToolbar(clientX, clientY);
-    }
-
     // 在内容中高亮指定单词 for the future
-    // function highlightWordInContent(word) {
-    //   const sentenceTexts = document.querySelectorAll('.sentence-text');
-      
-    //   sentenceTexts.forEach(sentenceText => {
-    //     const textContent = sentenceText.innerHTML;
-        
-    //     // 使用正则表达式匹配整个单词（不区分大小写）
-    //     const regex = new RegExp(`\\b(${word})\\b`, 'gi');
-    //     const highlightedContent = textContent.replace(regex, 
-    //       '<span class="selected-word-highlight">$1</span>'
-    //     );
-        
-    //     sentenceText.innerHTML = highlightedContent;
-    //   });
-    // }
+    function highlightWordInContent(word) {
+      const sentenceTexts = document.querySelectorAll('.sentence-text');
+
+      sentenceTexts.forEach(sentenceText => {
+        const textContent = sentenceText.innerHTML;
+
+        // 使用正则表达式匹配整个单词（不区分大小写）
+        const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+        const highlightedContent = textContent.replace(regex,
+          '<span class="selected-word-highlight">$1</span>'
+        );
+
+        sentenceText.innerHTML = highlightedContent;
+      });
+    }
 
     // 显示单词工具栏
     function showWordToolbar(x, y) {
       wordToolbarVisible = true;
       wordToolbar.style.display = 'flex';
-      
+
       // 计算工具栏位置
       const toolbarRect = wordToolbar.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      
+
       // 默认在点击位置下方居中显示
       let left = x - toolbarRect.width / 2;
       let top = y + 10;
-      
+
       // 边界检查和调整
       if (left < 10) {
         left = 10;
       } else if (left + toolbarRect.width > viewportWidth - 10) {
         left = viewportWidth - toolbarRect.width - 10;
       }
-      
+
       if (top + toolbarRect.height > viewportHeight - 10) {
         // 如果下方空间不够，显示在上方
         top = y - toolbarRect.height - 10;
       }
-      
+
       wordToolbar.style.left = `${left}px`;
       wordToolbar.style.top = `${top}px`;
     }
@@ -1531,9 +1485,6 @@
         parent.replaceChild(document.createTextNode(element.textContent), element);
         parent.normalize(); // 合并相邻的文本节点
       });
-      
-      // 隐藏工具栏
-      hideWordToolbar();
     }
 
     // 隐藏单词工具栏
@@ -1548,6 +1499,7 @@
     function openAIDictionary() {
       if (selectedWord) {
         hideWordToolbar();
+        clearWordSelection();
         showWordDetail(selectedWord);
       }
     }
@@ -1556,17 +1508,18 @@
       if (selectedWord) {
         console.log('工具2 - YouGlish发音:', selectedWord);
         hideWordToolbar();
+        clearWordSelection();
         showYouglishPanel(selectedWord);
       }
     }
 
     // ===== YouGlish 相关函数 =====
-    
+
     // YouGlish API 准备就绪回调（必需的全局函数）
     function onYouglishAPIReady() {
       youglishAPIReady = true;
       updateYouglishStatus('YouGlish API 已加载，正在初始化...');
-      
+
       // 创建 widget
       try {
         youglishWidget = new YG.Widget('youglish-widget-container', {
@@ -1580,14 +1533,14 @@
             onError: onYouglishError
           }
         });
-        
+
         updateYouglishStatus('Widget 已创建，可以开始搜索');
       } catch (error) {
         console.error('YouGlish Widget 创建失败:', error);
         updateYouglishStatus('Widget 创建失败: ' + error.message);
       }
     }
-    
+
     // YouGlish 搜索完成事件
     function onYouglishFetchDone(event) {
       if (event.totalResult === 0) {
@@ -1596,7 +1549,7 @@
         updateYouglishStatus(`找到 ${event.totalResult} 个发音示例`);
       }
     }
-    
+
     // YouGlish 字幕变化事件
     function onYouglishCaptionChange(event) {
       if (youglishWidget) {
@@ -1609,31 +1562,31 @@
         }, 2000);
       }
     }
-    
+
     // YouGlish 播放器准备就绪事件
     function onYouglishVideoReady(event) {
       updateYouglishStatus('播放器已准备就绪');
     }
-    
+
     // YouGlish 错误处理事件
     function onYouglishError(event) {
       updateYouglishStatus('发生错误：' + event.code);
     }
-    
+
     // 更新 YouGlish 状态显示
     function updateYouglishStatus(message) {
       if (youglishStatus) {
         youglishStatus.textContent = message;
       }
     }
-    
+
     // 显示 YouGlish 面板
     function showYouglishPanel(word) {
       if (!word) return;
-      
+
       youglishWord.textContent = word;
       youglishOverlay.style.display = 'flex';
-      
+
       if (!youglishAPIReady) {
         updateYouglishStatus('等待 YouGlish API 加载...');
         // 检查 API 是否已加载
@@ -1643,7 +1596,7 @@
             searchWordInYouglish(word);
           }
         }, 500);
-        
+
         // 超时检查
         setTimeout(() => {
           if (!youglishAPIReady) {
@@ -1655,16 +1608,16 @@
         searchWordInYouglish(word);
       }
     }
-    
+
     // 在 YouGlish 中搜索单词
     function searchWordInYouglish(word) {
       if (!youglishWidget) {
         updateYouglishStatus('Widget 未初始化');
         return;
       }
-      
+
       updateYouglishStatus('正在搜索: ' + word);
-      
+
       try {
         // 调用 YouGlish API 搜索
         youglishWidget.fetch(word, 'english');
@@ -1673,7 +1626,7 @@
         updateYouglishStatus('搜索失败: ' + error.message);
       }
     }
-    
+
     // 关闭 YouGlish 面板
     function closeYouglishPanel() {
       youglishOverlay.style.display = 'none';
@@ -1685,12 +1638,15 @@
           console.log('停止播放失败:', error);
         }
       }
+      clearWordSelection();
+      hideWordToolbar(); // 隐藏工具栏
     }
 
     function openTool3() {
       if (selectedWord) {
         console.log('工具3 - 处理单词:', selectedWord);
         // TODO: 实现工具3的功能
+        hideWordToolbar();
         hideWordToolbar();
       }
     }
@@ -1775,6 +1731,7 @@
     function closeWordDetail() {
       wordDetailOverlay.style.display = 'none';
       clearWordSelection(); // 同时清除单词选择
+      hideWordToolbar(); // 隐藏工具栏
     }
 
     // 点击遮罩层关闭面板
@@ -1791,36 +1748,22 @@
       }
     });
 
-    // ESC键关闭面板
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        if (wordDetailOverlay.style.display === 'flex') {
-          closeWordDetail();
-        } else if (youglishOverlay.style.display === 'flex') {
-          closeYouglishPanel();
-        } else if (wordToolbarVisible) {
-          clearWordSelection();
-        }
-      }
-    });
-
     // 点击其他区域取消单词选择
     document.addEventListener('click', (event) => {
       // 如果点击的不是工具栏或其子元素，且工具栏可见，则隐藏工具栏
-      if (wordToolbarVisible && 
-          !wordToolbar.contains(event.target) && 
-          event.target.closest('.sentence-text')) {
+      if (wordToolbarVisible &&
+        !wordToolbar.contains(event.target) &&
+        event.target.closest('.sentence-text')) {
         clearWordSelection();
+        hideWordToolbar();
       }
-      // console.log('点击区域:', wordToolbarVisible, !wordToolbar.contains(event.target), 
-      //                   event.target.closest('.sentence-text'));
-      // console.log('点击区域:', event.target);
     });
 
     // 滚动时隐藏工具栏
     document.addEventListener('scroll', () => {
       if (wordToolbarVisible) {
         clearWordSelection();
+        hideWordToolbar();
       }
     }, true);
 
