@@ -10,7 +10,7 @@ from database import init_db, load_img_cache, load_phonetic_cache, load_en_dict_
 # 导入所有路由蓝图
 from routes.main import main_bp
 from routes.group import group_bp
-from routes.novel import novel_bp, novel_api_bp
+from routes.novel import novel_bp
 from routes.translation import translation_bp
 from routes.annotation import annotation_bp
 
@@ -31,7 +31,6 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(group_bp)
     app.register_blueprint(novel_bp)
-    app.register_blueprint(novel_api_bp)
     app.register_blueprint(translation_bp)
     app.register_blueprint(annotation_bp)
     

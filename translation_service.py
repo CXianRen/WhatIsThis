@@ -1,18 +1,15 @@
-# ================= 翻译服务模块 =================
+# ================= 翻译服务模块 (简化版) =================
 import re
 import time
 import json
 import requests
 import threading
-from queue import Queue
 from config import TRANSLATION_API_KEY, TRANSLATION_API_URL, SUPPORTED_LANGUAGES
 
-# 翻译队列管理
-translation_queue = Queue()
+# 简化的翻译管理
 translation_results = {}  # 存储翻译结果和进度
-translation_thread = None
-queue_processing = False
-stopped_tasks = set()  # 存储被停止的任务ID
+current_task = None  # 当前正在处理的任务
+processing_lock = threading.Lock()  # 确保只有一个任务在执行
 
 def split_sentences(text: str) -> list:
     """将文本按句号拆分成句子列表"""
@@ -129,11 +126,6 @@ def translate_chapter_content_with_progress(content: str, target_language: str, 
     
     # 按批次处理句子
     for i in range(0, len(sentences), batch_size):
-        # 检查任务是否被停止
-        if task_id and task_id in stopped_tasks:
-            print(f"任务 {task_id} 已被停止，中断翻译")
-            break
-            
         batch = sentences[i:i + batch_size]
         batch_num = i // batch_size + 1
         
@@ -170,63 +162,48 @@ def translate_chapter_content_with_progress(content: str, target_language: str, 
         'processed_time': time.strftime("%Y-%m-%d %H:%M:%S")
     }
 
-def translate_chapter_content(content: str, target_language: str) -> dict:
-    """翻译整个章节内容（优化版：批量处理）"""
-    return translate_chapter_content_with_progress(content, target_language)
-
-def process_translation_queue():
-    """处理翻译队列的后台线程"""
-    global queue_processing
-    queue_processing = True
-    
-    while queue_processing:
-        try:
-            if not translation_queue.empty():
-                task = translation_queue.get(timeout=1)
-                process_translation_task(task)
-            else:
-                time.sleep(0.5)
-        except Exception as e:
-            print(f"队列处理错误: {e}")
-            time.sleep(1)
-
 def process_translation_task(task):
-    """处理单个翻译任务"""
+    """处理单个翻译任务（同步处理，不使用队列）"""
     from config import NOVEL_DIR
+    from routes.novel import __parse_novel_raw_name
     import os
     import json
     
     task_id = task['task_id']
     
     try:
-        # 检查任务是否被停止
-        if task_id in stopped_tasks:
-            translation_results[task_id]['status'] = 'stopped'
-            translation_results[task_id]['error'] = '任务已被停止'
-            translation_results[task_id]['end_time'] = time.time()
-            return
-        
         # 更新任务状态
         translation_results[task_id]['status'] = 'processing'
         translation_results[task_id]['progress'] = 10
         translation_results[task_id]['start_time'] = time.time()
         
         novel_name = task['novel_name']
-        chapter_id = task['chapter_id']
+        chapter_id = task['chapter_id']  # 这是实际的 cid
         lang_code = task['lang_code']
         overwrite = task.get('overwrite', False)
         
         novel_dir = os.path.join(NOVEL_DIR, novel_name)
         
-        # 找到对应的txt文件
-        txt_files = sorted([f for f in os.listdir(novel_dir) if f.endswith('.txt')])
-        if chapter_id <= 0 or chapter_id > len(txt_files):
+        # 使用 novel.py 中的解析函数查找章节文件
+        txt_files = [f for f in os.listdir(novel_dir) if f.endswith('.txt')]
+        target_file = None
+        target_info = None
+        
+        for txt_file in txt_files:
+            try:
+                info = __parse_novel_raw_name(txt_file)
+                if info['cid'] == chapter_id:
+                    target_file = txt_file
+                    target_info = info
+                    break
+            except (ValueError, IndexError, KeyError):
+                continue
+        
+        if not target_file:
             raise Exception('章节不存在')
         
         # 检查目标语言文件是否已存在
-        txt_filename = txt_files[chapter_id - 1]
-        base_name = os.path.splitext(txt_filename)[0]
-        target_filename = f"{base_name}.{lang_code}.json"
+        target_filename = f"{target_info['basename']}.{lang_code}.json"
         target_path = os.path.join(novel_dir, target_filename)
         
         if os.path.exists(target_path) and not overwrite:
@@ -235,27 +212,19 @@ def process_translation_task(task):
             translation_results[task_id]['end_time'] = time.time()
             return
         
-        # 检查任务是否被停止
-        if task_id in stopped_tasks:
-            translation_results[task_id]['status'] = 'stopped'
-            translation_results[task_id]['error'] = '任务已被停止'
-            translation_results[task_id]['end_time'] = time.time()
-            return
-        
         # 更新进度
         translation_results[task_id]['progress'] = 20
         
         # 读取原始中文内容
-        txt_path = os.path.join(novel_dir, txt_files[chapter_id - 1])
+        txt_path = os.path.join(novel_dir, target_file)
         with open(txt_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # 从文件名获取标题（不是从内容第一行）
-        base_name = os.path.splitext(txt_files[chapter_id - 1])[0]
-        title = base_name
+        # 使用解析出的标题
+        title = target_info['title']
         
         # 尝试从已有的英文翻译文件获取更好的标题
-        existing_en_file = f"{base_name}.en.json"
+        existing_en_file = f"{target_info['basename']}.en.json"
         existing_en_path = os.path.join(novel_dir, existing_en_file)
         if os.path.exists(existing_en_path):
             try:
@@ -267,13 +236,6 @@ def process_translation_task(task):
                 pass
         
         body_content = content
-        
-        # 检查任务是否被停止
-        if task_id in stopped_tasks:
-            translation_results[task_id]['status'] = 'stopped'
-            translation_results[task_id]['error'] = '任务已被停止'
-            translation_results[task_id]['end_time'] = time.time()
-            return
         
         # 更新进度
         translation_results[task_id]['progress'] = 30
@@ -287,24 +249,10 @@ def process_translation_task(task):
             title_result = translate_sentences_batch([title], lang_code)
             translated_title = title_result[0] if title_result else title
         
-        # 检查任务是否被停止
-        if task_id in stopped_tasks:
-            translation_results[task_id]['status'] = 'stopped'
-            translation_results[task_id]['error'] = '任务已被停止'
-            translation_results[task_id]['end_time'] = time.time()
-            return
-        
         translation_results[task_id]['progress'] = 50
         
         # 使用批量翻译处理章节内容
         translation_result = translate_chapter_content_with_progress(body_content, lang_code, task_id)
-        
-        # 检查任务是否被停止
-        if task_id in stopped_tasks:
-            translation_results[task_id]['status'] = 'stopped'
-            translation_results[task_id]['error'] = '任务已被停止'
-            translation_results[task_id]['end_time'] = time.time()
-            return
         
         translation_results[task_id]['progress'] = 90
         
@@ -313,12 +261,9 @@ def process_translation_task(task):
             'title': translated_title,
             'content': translation_result['content'],  # 已经是中英对照格式
             'original_title': title,
-            'original_sentences': translation_result.get('original_sentences', []),
-            'translated_sentences': translation_result.get('translated_sentences', []),
             'language': lang_code,
             'language_name': SUPPORTED_LANGUAGES[lang_code]['name'],
             'total_sentences': translation_result['total_sentences'],
-            'total_api_calls': translation_result.get('total_api_calls', 0),
             'translated_at': time.strftime('%Y-%m-%d %H:%M:%S'),
             'processed_time': translation_result['processed_time']
         }
@@ -342,45 +287,52 @@ def process_translation_task(task):
         translation_results[task_id]['error'] = str(e)
         translation_results[task_id]['end_time'] = time.time()
 
-def start_translation_worker():
-    """启动翻译工作线程"""
-    global translation_thread
-    if translation_thread is None or not translation_thread.is_alive():
-        translation_thread = threading.Thread(target=process_translation_queue, daemon=True)
-        translation_thread.start()
-        print("翻译工作线程已启动")
-
 def add_translation_task(task_id, novel_name, chapter_id, lang_code, overwrite=False):
-    """添加翻译任务到队列"""
-    # 初始化任务状态
-    translation_results[task_id] = {
-        'task_id': task_id,
-        'novel_name': novel_name,
-        'chapter_id': chapter_id,
-        'lang_code': lang_code,
-        'status': 'queued',
-        'progress': 0,
-        'start_time': None,
-        'end_time': None,
-        'error': None,
-        'result': None,
-        'filename': None
-    }
+    """添加翻译任务并立即执行（简化版）"""
+    global current_task
     
-    # 创建翻译任务
-    task = {
-        'task_id': task_id,
-        'novel_name': novel_name,
-        'chapter_id': chapter_id,
-        'lang_code': lang_code,
-        'overwrite': overwrite
-    }
+    # 检查是否有任务正在进行
+    with processing_lock:
+        if current_task is not None:
+            # 如果有任务正在进行，返回错误
+            return None
+        
+        # 初始化任务状态
+        translation_results[task_id] = {
+            'task_id': task_id,
+            'novel_name': novel_name,
+            'chapter_id': chapter_id,
+            'lang_code': lang_code,
+            'status': 'queued',
+            'progress': 0,
+            'start_time': None,
+            'end_time': None,
+            'error': None,
+            'result': None,
+            'filename': None
+        }
+        
+        # 创建翻译任务
+        task = {
+            'task_id': task_id,
+            'novel_name': novel_name,
+            'chapter_id': chapter_id,
+            'lang_code': lang_code,
+            'overwrite': overwrite
+        }
+        
+        current_task = task_id
     
-    # 添加任务到队列
-    translation_queue.put(task)
+    # 在后台线程中执行翻译
+    def run_translation():
+        global current_task
+        try:
+            process_translation_task(task)
+        finally:
+            current_task = None
     
-    # 确保工作线程在运行
-    start_translation_worker()
+    thread = threading.Thread(target=run_translation, daemon=True)
+    thread.start()
     
     return task_id
 
@@ -417,22 +369,21 @@ def get_translation_status(task_id):
     return result
 
 def stop_translation_task(task_id):
-    """停止翻译任务"""
-    global stopped_tasks
-    
+    """停止翻译任务（简化版：只能标记为失败）"""
     if task_id not in translation_results:
         return False, "任务不存在"
     
     task = translation_results[task_id]
     
-    if task['status'] in ['completed', 'failed', 'stopped']:
+    if task['status'] in ['completed', 'failed']:
         return False, f"任务已经是{task['status']}状态，无法停止"
     
-    # 添加到停止任务集合
-    stopped_tasks.add(task_id)
+    if task['status'] == 'processing':
+        # 正在执行的任务无法立即停止，只能等待完成
+        return False, "任务正在执行中，无法停止"
     
-    # 立即更新任务状态
-    translation_results[task_id]['status'] = 'stopped'
+    # 更新任务状态为失败
+    translation_results[task_id]['status'] = 'failed'
     translation_results[task_id]['error'] = '任务已被用户停止'
     translation_results[task_id]['end_time'] = time.time()
     
@@ -440,14 +391,11 @@ def stop_translation_task(task_id):
     return True, "任务已停止"
 
 def stop_all_translation_tasks():
-    """停止所有翻译任务"""
-    global stopped_tasks
-    
+    """停止所有翻译任务（简化版）"""
     stopped_count = 0
     for task_id, task in translation_results.items():
-        if task['status'] in ['queued', 'processing']:
-            stopped_tasks.add(task_id)
-            translation_results[task_id]['status'] = 'stopped'
+        if task['status'] in ['queued']:
+            translation_results[task_id]['status'] = 'failed'
             translation_results[task_id]['error'] = '批量停止操作'
             translation_results[task_id]['end_time'] = time.time()
             stopped_count += 1
@@ -457,16 +405,13 @@ def stop_all_translation_tasks():
 
 def clear_stopped_tasks():
     """清理已停止任务的记录"""
-    global stopped_tasks
-    stopped_tasks.clear()
-    
     # 移除已停止的任务记录
     to_remove = []
     for task_id, task in translation_results.items():
-        if task['status'] == 'stopped':
+        if task['status'] in ['failed', 'completed']:
             to_remove.append(task_id)
     
     for task_id in to_remove:
         del translation_results[task_id]
     
-    print(f"已清理 {len(to_remove)} 个已停止的任务记录")
+    print(f"已清理 {len(to_remove)} 个任务记录")

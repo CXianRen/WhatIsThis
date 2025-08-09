@@ -1085,7 +1085,37 @@
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        novelData = await response.json();
+        const novels = await response.json();
+        
+        // 为每个小说加载章节信息
+        novelData = [];
+        for (const novel of novels) {
+          try {
+            const chaptersResponse = await fetch(`/novel/${novel.name}/chapters`);
+            if (chaptersResponse.ok) {
+              const chapters = await chaptersResponse.json();
+              novelData.push({
+                name: novel.name,
+                display_name: novel.display_name,
+                chapters: chapters
+              });
+            } else {
+              // 如果获取章节失败，仍然添加小说，但章节为空
+              novelData.push({
+                name: novel.name,
+                display_name: novel.display_name,
+                chapters: []
+              });
+            }
+          } catch (chapterError) {
+            console.error(`加载小说 ${novel.name} 的章节失败:`, chapterError);
+            novelData.push({
+              name: novel.name,
+              display_name: novel.display_name,
+              chapters: []
+            });
+          }
+        }
 
         if (sidebar) {
           sidebar.clearContent();
@@ -1121,7 +1151,7 @@
         novel.chapters.forEach((chapter, chapterIndex) => {
           html += `
             <li class="chapter-item" onclick="selectChapter(${novelIndex}, ${chapterIndex}, this, event)">
-              ${chapter.name}
+              ${chapter.title}
             </li>
           `;
         });
@@ -1148,9 +1178,11 @@
     // 选择章节
     async function selectChapter(novelIndex, chapterIndex, chapterElement, event) {
       event.stopPropagation();
-
+      
       const novel = novelData[novelIndex];
       const chapter = novel.chapters[chapterIndex];
+      console.log(novel.chapters)
+      console.log(`选择章节: ${novel.name} - ${chapter.title}`);
 
       // 关闭侧边栏
       sidebar?.hide();
@@ -1162,27 +1194,29 @@
       // 更新当前章节信息
       currentNovel = novel;
       currentChapter = chapter;
-      currentChapterElement.textContent = `${novel.name} - ${chapter.name}`;
+      currentChapterElement.textContent = `${novel.name} - ${chapter.title}`;
       chapterInfoElement.textContent = '加载中...';
       contentAreaElement.innerHTML = '<div class="loading">加载章节内容中...</div>';
 
+      const url = `/novel/${novel.name}/chapters/${chapter.cid}/en`;
       try {
-        const response = await fetch(`/novel/chapter/${encodeURIComponent(novel.name)}/${encodeURIComponent(chapter.name)}`);
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
+        
         currentContent = await response.json();
+        console.log('加载章节内容成功:', currentContent);
 
         // 初始化该章节的句子状态
-        const chapterPath = `${novel.name}/${chapter.name}`;
+        const chapterPath = `${novel.name}/${chapter.title}`;
         if (!sentenceStates[chapterPath]) {
           sentenceStates[chapterPath] = {};
         }
 
         // 初始化每个句子的状态（默认显示翻译）
-        if (currentContent.sentences) {
-          currentContent.sentences.forEach((_, index) => {
+        if (currentContent.content) {
+          currentContent.content.forEach((_, index) => {
             if (!(index in sentenceStates[chapterPath])) {
               sentenceStates[chapterPath][index] = 'english';
             }
@@ -1199,8 +1233,8 @@
 
     // 渲染章节内容
     function renderChapterContent(content, chapterPath) {
-      // 处理新格式：content.sentences 数组
-      const sentences = content.sentences || [];
+      // 处理新格式：content.content 数组
+      const sentences = content.content || [];
       chapterInfoElement.textContent = `共 ${sentences.length} 句`;
 
       const sentenceHTML = sentences.map((sentence, index) => {
@@ -1209,27 +1243,11 @@
         const cssClass = isChinese ? 'chinese-text' : 'english-text';
 
         // 新格式：text是中文，translation是翻译
-        const text = isChinese ? sentence.text : sentence.translation;
+        const text = isChinese ? sentence.src : sentence.target;
 
         // 语言切换图标
         const toggleIcon = isChinese ? '中' : 'EN';
         const toggleTitle = isChinese ? '切换到英文' : '切换到中文';
-
-        // 如果没有翻译，显示提示
-        if (!sentence.translation && !isChinese) {
-          return `
-            <div class="sentence no-translation">
-              <div class="language-toggle" 
-                   onclick="toggleSentence(${index}, '${chapterPath}')" 
-                   title="${toggleTitle}">
-                ${toggleIcon}
-              </div>
-              <div class="sentence-text">
-                <div class="${cssClass}">暂无翻译</div>
-              </div>
-            </div>
-          `;
-        }
 
         return `
           <div class="sentence ${isChinese ? 'chinese' : ''}">

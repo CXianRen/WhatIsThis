@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,32 +11,32 @@
       padding: 0;
       box-sizing: border-box;
     }
-    
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       padding: 20px;
     }
-    
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
       background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
       backdrop-filter: blur(10px);
       padding: 30px;
       min-height: calc(100vh - 40px);
     }
-    
+
     .header {
       text-align: center;
       margin-bottom: 30px;
       border-bottom: 2px solid #e0e0e0;
       padding-bottom: 20px;
     }
-    
+
     .header h1 {
       font-size: 2.5rem;
       background: linear-gradient(135deg, #667eea, #764ba2);
@@ -45,35 +46,35 @@
       font-weight: 700;
       margin-bottom: 10px;
     }
-    
+
     .header p {
       color: #666;
       font-size: 1.1rem;
     }
-    
+
     .main-content {
       display: grid;
       grid-template-columns: 1fr 2fr;
       gap: 30px;
       height: calc(100vh - 200px);
     }
-    
+
     .left-panel {
       background: white;
       border-radius: 15px;
       padding: 25px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
       overflow-y: auto;
     }
-    
+
     .right-panel {
       background: white;
       border-radius: 15px;
       padding: 25px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
       overflow-y: auto;
     }
-    
+
     .section-title {
       font-size: 1.4rem;
       font-weight: 600;
@@ -82,12 +83,12 @@
       border-bottom: 2px solid #f0f0f0;
       padding-bottom: 10px;
     }
-    
+
     /* 小说选择区域 */
     .novel-selector {
       margin-bottom: 30px;
     }
-    
+
     .novel-item {
       display: flex;
       justify-content: space-between;
@@ -100,35 +101,35 @@
       cursor: pointer;
       transition: all 0.3s ease;
     }
-    
+
     .novel-item:hover {
       background: #e9ecef;
       border-color: #667eea;
       transform: translateY(-2px);
     }
-    
+
     .novel-item.active {
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
       border-color: #667eea;
     }
-    
+
     .novel-name {
       font-weight: 600;
       font-size: 1.1rem;
     }
-    
+
     .chapter-count {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       padding: 4px 12px;
       border-radius: 15px;
       font-size: 0.9rem;
     }
-    
+
     .novel-item.active .chapter-count {
-      background: rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.3);
     }
-    
+
     /* 新增小说按钮 */
     .add-novel-btn {
       width: 100%;
@@ -143,17 +144,17 @@
       transition: all 0.3s ease;
       margin-bottom: 20px;
     }
-    
+
     .add-novel-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(67,233,123,0.3);
+      box-shadow: 0 8px 20px rgba(67, 233, 123, 0.3);
     }
-    
+
     /* 章节列表 */
     .chapter-list {
       margin-bottom: 30px;
     }
-    
+
     .chapter-item {
       display: flex;
       justify-content: space-between;
@@ -165,48 +166,49 @@
       border-radius: 8px;
       transition: all 0.3s ease;
     }
-    
+
     .chapter-item:hover {
       background: #e9ecef;
     }
-    
+
     .chapter-info {
       flex: 1;
     }
-    
+
     .chapter-title {
       font-weight: 500;
       margin-bottom: 8px;
     }
-    
+
     /* 语言支持标识 */
     .language-flags {
       display: flex;
       gap: 4px;
       margin-top: 5px;
     }
-    
+
     .flag {
       font-size: 16px;
       opacity: 0.3;
       transition: all 0.3s ease;
       cursor: pointer;
     }
-    
+
     .flag.available {
       opacity: 1;
     }
-    
+
     .flag:hover {
       transform: scale(1.2);
     }
-    
+
     .chapter-actions {
       display: flex;
       gap: 8px;
     }
-    
-    .btn-edit, .btn-delete {
+
+    .btn-edit,
+    .btn-delete {
       padding: 6px 12px;
       border: none;
       border-radius: 6px;
@@ -214,45 +216,45 @@
       font-size: 0.85rem;
       transition: all 0.3s ease;
     }
-    
+
     .btn-edit {
       background: #007bff;
       color: white;
     }
-    
+
     .btn-edit:hover {
       background: #0056b3;
     }
-    
+
     .btn-delete {
       background: #dc3545;
       color: white;
     }
-    
+
     .btn-delete:hover {
       background: #c82333;
     }
-    
+
     /* 上传表单 */
     .upload-form {
       display: none;
     }
-    
+
     .upload-form.active {
       display: block;
     }
-    
+
     .form-group {
       margin-bottom: 20px;
     }
-    
+
     .form-label {
       display: block;
       margin-bottom: 8px;
       font-weight: 500;
       color: #333;
     }
-    
+
     .form-input {
       width: 100%;
       padding: 12px;
@@ -261,12 +263,12 @@
       font-size: 1rem;
       transition: border-color 0.3s ease;
     }
-    
+
     .form-input:focus {
       outline: none;
       border-color: #667eea;
     }
-    
+
     .form-textarea {
       width: 100%;
       min-height: 300px;
@@ -278,20 +280,21 @@
       transition: border-color 0.3s ease;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
+
     .form-textarea:focus {
       outline: none;
       border-color: #667eea;
     }
-    
+
     .form-buttons {
       display: flex;
       gap: 15px;
       justify-content: flex-end;
       margin-top: 25px;
     }
-    
-    .btn-submit, .btn-cancel {
+
+    .btn-submit,
+    .btn-cancel {
       padding: 12px 25px;
       border: none;
       border-radius: 8px;
@@ -300,26 +303,26 @@
       cursor: pointer;
       transition: all 0.3s ease;
     }
-    
+
     .btn-submit {
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
     }
-    
+
     .btn-submit:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(102,126,234,0.3);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
     }
-    
+
     .btn-cancel {
       background: #6c757d;
       color: white;
     }
-    
+
     .btn-cancel:hover {
       background: #5a6268;
     }
-    
+
     /* 对话框样式 */
     .dialog-overlay {
       display: none;
@@ -328,96 +331,98 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       z-index: 1000;
       align-items: center;
       justify-content: center;
     }
-    
+
     .dialog {
       background: white;
       border-radius: 15px;
       padding: 25px;
       max-width: 500px;
       width: 90%;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     }
-    
+
     .dialog h3 {
       margin-bottom: 15px;
       color: #333;
     }
-    
+
     .dialog-buttons {
       display: flex;
       gap: 10px;
       justify-content: flex-end;
       margin-top: 20px;
     }
-    
-    .btn-primary, .btn-secondary {
+
+    .btn-primary,
+    .btn-secondary {
       padding: 10px 20px;
       border: none;
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.9rem;
     }
-    
+
     .btn-primary {
       background: #007bff;
       color: white;
     }
-    
+
     .btn-secondary {
       background: #6c757d;
       color: white;
     }
-    
+
     /* 空状态 */
     .empty-state {
       text-align: center;
       padding: 40px 20px;
       color: #666;
     }
-    
+
     .empty-icon {
       font-size: 3rem;
       margin-bottom: 15px;
     }
-    
+
     /* 响应式设计 */
     @media (max-width: 768px) {
       .container {
         padding: 20px;
         margin: 10px;
       }
-      
+
       .main-content {
         grid-template-columns: 1fr;
         gap: 20px;
         height: auto;
       }
-      
+
       .header h1 {
         font-size: 2rem;
       }
-      
-      .left-panel, .right-panel {
+
+      .left-panel,
+      .right-panel {
         padding: 20px;
       }
-      
+
       .chapter-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
       }
-      
+
       .chapter-actions {
         width: 100%;
         justify-content: flex-end;
       }
     }
-    
+
     /* 导航标签样式 */
     .nav-tabs {
       display: flex;
@@ -425,7 +430,7 @@
       margin-bottom: 30px;
       border-bottom: 1px solid #e0e0e0;
     }
-    
+
     .nav-tab {
       padding: 15px 25px;
       background: none;
@@ -438,12 +443,12 @@
       transition: all 0.3s ease;
       text-decoration: none;
     }
-    
+
     .nav-tab:hover {
       color: #667eea;
       border-bottom-color: #667eea;
     }
-    
+
     .nav-tab.active {
       color: #667eea;
       border-bottom-color: #667eea;
@@ -451,18 +456,20 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="header">
       <h1>📚 小说章节管理</h1>
       <p>上传、编辑和管理您的小说章节</p>
     </div>
-    
+
     <!-- 导航标签 -->
     <div class="nav-tabs">
       <a href="/novel-upload" class="nav-tab active">📖 章节管理</a>
       <a href="/novel-translation" class="nav-tab">🌍 语言转换</a>
-    </div>    <div class="main-content">
+    </div>
+    <div class="main-content">
       <!-- 左侧面板 - 小说选择和章节列表 -->
       <div class="left-panel">
         <!-- 小说选择 -->
@@ -475,7 +482,7 @@
             <!-- 小说列表将在这里动态生成 -->
           </div>
         </div>
-        
+
         <!-- 章节列表 -->
         <div class="chapter-list">
           <h3 class="section-title">章节列表</h3>
@@ -487,20 +494,21 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 右侧面板 - 上传/编辑表单 -->
       <div class="right-panel">
         <h3 class="section-title">章节管理</h3>
-        
+
         <!-- 默认提示 -->
         <div id="defaultHint" class="empty-state">
           <div class="empty-icon">✍️</div>
           <p>选择小说后，点击"新增章节"开始上传</p>
-          <button class="add-novel-btn" onclick="showUploadForm()" style="margin-top: 20px; display: none;" id="addChapterBtn">
+          <button class="add-novel-btn" onclick="showUploadForm()" style="margin-top: 20px; display: none;"
+            id="addChapterBtn">
             ➕ 新增章节
           </button>
         </div>
-        
+
         <!-- 上传表单 -->
         <div id="uploadForm" class="upload-form">
           <form onsubmit="submitChapter(event)">
@@ -508,12 +516,16 @@
               <label class="form-label" for="chapterTitle">章节标题</label>
               <input type="text" id="chapterTitle" class="form-input" placeholder="请输入章节标题" required>
             </div>
-            
+            <div class="form-group">
+              <label class="form-label" for="chapterID">章节ID</label>
+              <input type="number" id="chapterID" class="form-input" placeholder="请输入章节ID" required>
+            </div>
+
             <div class="form-group">
               <label class="form-label" for="chapterContent">章节内容</label>
               <textarea id="chapterContent" class="form-textarea" placeholder="请输入章节内容..." required></textarea>
             </div>
-            
+
             <div class="form-buttons">
               <button type="button" class="btn-cancel" onclick="hideUploadForm()">取消</button>
               <button type="submit" class="btn-submit">保存章节</button>
@@ -523,7 +535,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- 新增小说对话框 -->
   <div id="addNovelDialog" class="dialog-overlay">
     <div class="dialog">
@@ -538,7 +550,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- 确认删除对话框 -->
   <div id="confirmDialog" class="dialog-overlay">
     <div class="dialog">
@@ -558,7 +570,8 @@
     let currentChapter = null;
     let isEditing = false;
     let confirmCallback = null;
-    
+    let name_chapters_map = {};
+
     // 语言配置
     const LANGUAGES = {
       'zh': { flag: '🇨🇳', name: '中文', extension: '.txt' },
@@ -566,107 +579,66 @@
       'se': { flag: '🇸🇪', name: '瑞典语', extension: '.se.json' },
       'fr': { flag: '🇫🇷', name: '法语', extension: '.fr.json' }
     };
-    
+
     // 检查章节的语言支持
     function getChapterLanguageSupport(chapter) {
       const support = {};
-      
-      // 检查中文支持 (原始 .txt 文件)
-      if (chapter.filename && chapter.filename.endsWith('.txt')) {
-        support.zh = true;
-      }
-      
+
+      // 中文默认支持（原始 .txt 文件）
+      support.zh = true;
+
       // 检查其他语言支持
-      if (chapter.languages) {
-        Object.keys(chapter.languages).forEach(lang => {
+      if (chapter.available_languages) {
+        chapter.available_languages.forEach(lang => {
           if (LANGUAGES[lang]) {
             support[lang] = true;
           }
         });
       }
-      
+
       return support;
     }
-    
+
     // 渲染语言标识
     function renderLanguageFlags(chapter) {
       const support = getChapterLanguageSupport(chapter);
-      
+
       return Object.keys(LANGUAGES).map(lang => {
         const langConfig = LANGUAGES[lang];
         const isAvailable = support[lang] || false;
         return `<span class="flag ${isAvailable ? 'available' : ''}" 
                       title="${langConfig.name}${isAvailable ? ' (已支持)' : ' (未支持)'}"
-                      data-lang="${lang}" data-chapter-id="${chapter.id}"
-                      onclick="toggleLanguageSupport('${lang}', ${chapter.id})">
+                      data-lang="${lang}" data-chapter-id="${chapter.cid}">
                   ${langConfig.flag}
                 </span>`;
       }).join('');
     }
-    
-    // 切换语言支持
-    async function toggleLanguageSupport(lang, chapterId) {
-      const chapter = currentNovel.chapters.find(c => c.id === chapterId);
-      if (!chapter) return;
-      
-      const support = getChapterLanguageSupport(chapter);
-      const isCurrentlySupported = support[lang] || false;
-      
-      if (isCurrentlySupported) {
-        // 移除语言支持
-        if (lang === 'zh') {
-          alert('不能删除中文版本，这是原始版本');
-          return;
-        }
-        
-        showConfirmDialog(
-          `确定要删除"${chapter.title}"的${LANGUAGES[lang].name}版本吗？`,
-          async () => {
-            try {
-              const response = await fetch(`/api/novels/${currentNovel.name}/chapters/${chapterId}/languages/${lang}`, {
-                method: 'DELETE'
-              });
-              
-              if (response.ok) {
-                await loadChapters();
-                alert(`${LANGUAGES[lang].name}版本删除成功`);
-              } else {
-                const result = await response.json();
-                alert(`删除失败: ${result.error || '未知错误'}`);
-              }
-            } catch (error) {
-              console.error('删除语言版本失败:', error);
-              alert('删除失败，请重试');
-            }
-          }
-        );
-      } else {
-        // 添加语言支持
-        showLanguageEditor(lang, chapterId);
-      }
-    }
-    
+
     // 显示语言版本编辑器
     function showLanguageEditor(lang, chapterId) {
-      const chapter = currentNovel.chapters.find(c => c.id === chapterId);
+      const chapter = currentNovel.chapters.find(c => c.cid === chapterId);
       if (!chapter) return;
-      
+
       const content = prompt(`请输入"${chapter.title}"的${LANGUAGES[lang].name}版本内容:`);
       if (content === null) return; // 用户取消
-      
+
       if (content.trim() === '') {
         alert('内容不能为空');
         return;
       }
-      
+
       // 保存语言版本
       saveLanguageVersion(lang, chapterId, content.trim());
     }
-    
+
     // 保存语言版本
     async function saveLanguageVersion(lang, chapterId, content) {
       try {
-        const response = await fetch(`/api/novels/${currentNovel.name}/chapters/${chapterId}/languages/${lang}`, {
+        // 新的API结构暂时不支持语言版本创建，需要后续实现
+        alert('语言版本功能暂未完全实现，请稍后再试');
+        return;
+
+        const response = await fetch(`/${currentNovel.name}/chapters/${chapterId}/languages/${lang}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -675,7 +647,7 @@
             content: content
           })
         });
-        
+
         if (response.ok) {
           await loadChapters();
           alert(`${LANGUAGES[lang].name}版本保存成功`);
@@ -687,17 +659,15 @@
         console.error('保存语言版本失败:', error);
         alert('保存失败，请重试');
       }
-    }
-
-    // 页面加载时初始化
-    document.addEventListener('DOMContentLoaded', function() {
+    }    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function () {
       loadNovels();
     });
 
     // 加载小说列表
     async function loadNovels() {
       try {
-        const response = await fetch('/api/novels');
+        const response = await fetch('/novel/list');
         if (response.ok) {
           novels = await response.json();
         } else {
@@ -715,7 +685,7 @@
     // 渲染小说列表
     function renderNovelList() {
       const novelList = document.getElementById('novelList');
-      
+
       if (novels.length === 0) {
         novelList.innerHTML = `
           <div class="empty-state">
@@ -725,32 +695,34 @@
         `;
         return;
       }
-      
+
       novelList.innerHTML = novels.map(novel => `
-        <div class="novel-item ${currentNovel?.id === novel.id ? 'active' : ''}" 
-             onclick="selectNovel(${novel.id})">
-          <div class="novel-name">${novel.displayName || novel.name}</div>
-          <div class="chapter-count">${novel.chapterCount || 0} 章节</div>
+        <div class="novel-item ${currentNovel?.name === novel.name ? 'active' : ''}" 
+             onclick="selectNovel('${novel.name}')">
+          <div class="novel-name">${novel.display_name || novel.name}</div>
+          <div class="chapter-count">${novel.chapter_count || 0} 章节</div>
         </div>
       `).join('');
     }
 
     // 选择小说
-    async function selectNovel(novelId) {
-      currentNovel = novels.find(n => n.id === novelId);
+    async function selectNovel(novelName) {
+      currentNovel = novels.find(n => n.name === novelName);
       renderNovelList();
+
       await loadChapters();
-      
+
       // 显示新增章节按钮
       document.getElementById('addChapterBtn').style.display = 'block';
-      document.getElementById('defaultHint').querySelector('p').textContent = 
-        `已选择：${currentNovel.displayName || currentNovel.name}`;
+      document.getElementById('defaultHint').querySelector('p').textContent =
+        `已选择：${currentNovel.display_name || currentNovel.name}`;
     }
 
     // 加载章节列表
     async function loadChapters() {
+      console.log("加载章节列表");
       const chapterList = document.getElementById('chapterList');
-      
+
       if (!currentNovel) {
         chapterList.innerHTML = `
           <div class="empty-state">
@@ -762,9 +734,11 @@
       }
 
       try {
-        const response = await fetch(`/api/novels/${currentNovel.name}/chapters`);
+        const response = await fetch(`/novel/${currentNovel.name}/chapters`);
         if (response.ok) {
-          currentNovel.chapters = await response.json();
+          const chapters = await response.json();
+          console.log("章节数据:", chapters);
+          currentNovel.chapters = chapters;
         } else {
           console.error('加载章节失败:', response.statusText);
           currentNovel.chapters = [];
@@ -773,7 +747,7 @@
         console.error('加载章节失败:', error);
         currentNovel.chapters = [];
       }
-      
+
       if (!currentNovel.chapters || currentNovel.chapters.length === 0) {
         chapterList.innerHTML = `
           <div class="empty-state">
@@ -783,7 +757,7 @@
         `;
         return;
       }
-      
+
       chapterList.innerHTML = currentNovel.chapters.map(chapter => `
         <div class="chapter-item">
           <div class="chapter-info">
@@ -793,8 +767,8 @@
             </div>
           </div>
           <div class="chapter-actions">
-            <button class="btn-edit" onclick="editChapter(${chapter.id})">编辑</button>
-            <button class="btn-delete" onclick="deleteChapter(${chapter.id})">删除</button>
+            <button class="btn-edit" onclick="editChapter(${chapter.cid})">编辑</button>
+            <button class="btn-delete" onclick="deleteChapter(${chapter.cid})">删除</button>
           </div>
         </div>
       `).join('');
@@ -806,14 +780,16 @@
         alert('请先选择一个小说');
         return;
       }
-      
+
       document.getElementById('defaultHint').style.display = 'none';
       document.getElementById('uploadForm').classList.add('active');
-      
+
       // 清空表单
       document.getElementById('chapterTitle').value = '';
       document.getElementById('chapterContent').value = '';
-      
+      document.getElementById('chapterID').value = '';
+      document.getElementById('chapterID').disabled = false; // 允许编辑ID
+
       isEditing = false;
       currentChapter = null;
     }
@@ -822,56 +798,90 @@
     function hideUploadForm() {
       document.getElementById('uploadForm').classList.remove('active');
       document.getElementById('defaultHint').style.display = 'block';
-      
+
       // 清空表单
       document.getElementById('chapterTitle').value = '';
       document.getElementById('chapterContent').value = '';
-      
+      document.getElementById('chapterID').value = '';
+      document.getElementById('chapterID').disabled = false; // 允许编辑ID
+
       isEditing = false;
       currentChapter = null;
     }
 
     // 编辑章节
-    function editChapter(chapterId) {
-      const chapter = currentNovel.chapters.find(c => c.id === chapterId);
-      if (!chapter) return;
-      
-      currentChapter = chapter;
-      isEditing = true;
-      
-      document.getElementById('chapterTitle').value = chapter.title;
-      document.getElementById('chapterContent').value = chapter.content;
-      
-      document.getElementById('defaultHint').style.display = 'none';
-      document.getElementById('uploadForm').classList.add('active');
+    async function editChapter(chapterId) {
+      const chapter = currentNovel.chapters.find(c => c.cid === chapterId);
+      if (!chapter) {
+        console.log("chapter not found:", chapterId);
+        console.log(currentNovel.chapters);
+        return;
+      }
+
+      try {
+        // 通过raw API获取章节内容
+        const response = await fetch(`/novel/${currentNovel.name}/chapters/raw/${chapterId}`);
+        if (!response.ok) {
+          alert('加载章节内容失败');
+          return;
+        }
+
+        const chapterData = await response.json();
+
+        currentChapter = chapter;
+        isEditing = true;
+
+        document.getElementById('chapterTitle').value = chapterData.title;
+        document.getElementById('chapterID').value = chapterData.cid;
+        document.getElementById('chapterID').disabled = true; // 禁止编辑ID
+        document.getElementById('chapterContent').value = chapterData.content;
+
+        document.getElementById('defaultHint').style.display = 'none';
+        document.getElementById('uploadForm').classList.add('active');
+      } catch (error) {
+        console.error('加载章节内容失败:', error);
+        alert('加载章节内容失败');
+      }
     }
 
     // 删除章节
     async function deleteChapter(chapterId) {
-      const chapter = currentNovel.chapters.find(c => c.id === chapterId);
-      if (!chapter) return;
-      
+      const chapter = currentNovel.chapters.find(c => c.cid === chapterId);
+      if (!chapter) {
+        console.log("chapter not found:", chapterId);
+        console.log(currentNovel.chapters);
+        return;
+      }
+
       showConfirmDialog(
         `确定要删除章节"${chapter.title}"吗？此操作不可撤销。`,
         async () => {
           try {
-            const response = await fetch(`/api/novels/${currentNovel.name}/chapters/${chapterId}`, {
-              method: 'DELETE'
+            const url = `/novel/${currentNovel.name}/chapters/update`;
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                action: 'delete',
+                cid: chapterId
+              })
             });
-            
+
             if (response.ok) {
               // 重新加载章节列表
               await loadChapters();
-              
+
               // 更新小说章节计数
               await loadNovels();
               renderNovelList();
-              
+
               // 如果正在编辑这个章节，关闭编辑表单
-              if (currentChapter && currentChapter.id === chapterId) {
+              if (currentChapter && currentChapter.cid === chapterId) {
                 hideUploadForm();
               }
-              
+
               alert('章节删除成功');
             } else {
               const result = await response.json();
@@ -888,29 +898,32 @@
     // 提交章节
     async function submitChapter(event) {
       event.preventDefault();
-      
+
       const title = document.getElementById('chapterTitle').value.trim();
       const content = document.getElementById('chapterContent').value.trim();
-      
-      if (!title || !content) {
+      const chapterID = document.getElementById('chapterID').value.trim();
+
+      if (!title || !content || !chapterID) {
         alert('请填写完整的章节信息');
         return;
       }
-      
+      const url = `/novel/${currentNovel.name}/chapters/update`;
       try {
         if (isEditing && currentChapter) {
           // 更新现有章节
-          const response = await fetch(`/api/novels/${currentNovel.name}/chapters/${currentChapter.id}`, {
-            method: 'PUT',
+          const response = await fetch(url, {
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+              action: 'update',
+              cid: parseInt(chapterID),
               title: title,
               content: content
             })
           });
-          
+
           if (response.ok) {
             alert('章节更新成功');
           } else {
@@ -920,17 +933,21 @@
           }
         } else {
           // 添加新章节
-          const response = await fetch(`/api/novels/${currentNovel.name}/chapters`, {
+          console.log('Adding new chapter:', title);
+
+          const response = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+              action: 'create',
+              cid: parseInt(chapterID),
               title: title,
               content: content
             })
           });
-          
+
           if (response.ok) {
             alert('章节添加成功');
           } else {
@@ -939,16 +956,16 @@
             return;
           }
         }
-        
+
         // 重新加载章节列表
         await loadChapters();
-        
+
         // 更新小说章节计数
         await loadNovels();
         renderNovelList();
-        
+
         hideUploadForm();
-        
+
       } catch (error) {
         console.error('提交章节失败:', error);
         alert('操作失败，请重试');
@@ -974,24 +991,24 @@
         alert('请输入小说名称');
         return;
       }
-      
+
       // 检查是否重复
-      if (novels.find(n => n.name === name || n.displayName === name)) {
+      if (novels.find(n => n.name === name || n.display_name === name)) {
         alert('小说名称已存在');
         return;
       }
-      
+
       try {
-        const response = await fetch('/api/novels', {
+        const response = await fetch('/novels/create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            name: name.toLowerCase().replace(/\s+/g, '_')
+            name: name
           })
         });
-        
+
         if (response.ok) {
           alert('小说添加成功');
           hideAddNovelDialog();
@@ -1028,7 +1045,7 @@
     }
 
     // ESC键关闭对话框
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') {
         hideAddNovelDialog();
         hideConfirmDialog();
@@ -1036,17 +1053,18 @@
     });
 
     // 点击对话框外部关闭
-    document.getElementById('addNovelDialog').addEventListener('click', function(event) {
+    document.getElementById('addNovelDialog').addEventListener('click', function (event) {
       if (event.target === this) {
         hideAddNovelDialog();
       }
     });
 
-    document.getElementById('confirmDialog').addEventListener('click', function(event) {
+    document.getElementById('confirmDialog').addEventListener('click', function (event) {
       if (event.target === this) {
         hideConfirmDialog();
       }
     });
   </script>
 </body>
+
 </html>

@@ -451,6 +451,43 @@
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.8rem;
+    }
+    
+    .btn-remove {
+      padding: 4px 8px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    
+    .btn-remove:hover {
+      background: #5a6268;
+    }
+    
+    .processing-indicator {
+      font-size: 0.8rem;
+      color: #ffc107;
+      font-weight: 500;
+      font-style: italic;
+    }
+    
+    .completed-indicator {
+      font-size: 0.8rem;
+      color: #28a745;
+      font-weight: 500;
+    }
+    
+    .btn-stop {
+      padding: 4px 8px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
       margin-top: 5px;
       transition: background-color 0.3s ease;
     }
@@ -767,7 +804,7 @@
     async function loadNovels() {
       console.log('开始加载小说列表...');
       try {
-        const response = await fetch('/api/novels');
+        const response = await fetch('/novel/list');
         if (response.ok) {
           novels = await response.json();
           console.log('小说列表:', novels);
@@ -798,27 +835,32 @@
       }
       
       novelList.innerHTML = novels.map(novel => `
-        <div class="novel-item ${currentNovel?.id === novel.id ? 'active' : ''}" 
-             onclick="selectNovel(${novel.id})">
-          <div class="novel-name">${novel.displayName || novel.name}</div>
-          <div class="chapter-count">${novel.chapterCount || 0} 章节</div>
+        <div class="novel-item ${currentNovel?.name === novel.name ? 'active' : ''}" 
+             onclick="selectNovel('${novel.name}')">
+          <div class="novel-name">${novel.display_name || novel.name}</div>
+          <div class="chapter-count">${novel.chapter_count || 0} 章节</div>
         </div>
       `).join('');
     }
 
     // 选择小说
-    async function selectNovel(novelId) {
-      console.log('选择小说:', novelId);
-      currentNovel = novels.find(n => n.id === novelId);
-      selectedChapters.clear();
+    async function selectNovel(novelName) {
+      currentNovel = novels.find(n => n.name === novelName);
       renderNovelList();
+
       await loadChapters();
+
+      // 显示新增章节按钮
+      document.getElementById('addChapterBtn').style.display = 'block';
+      document.getElementById('defaultHint').querySelector('p').textContent =
+        `已选择：${currentNovel.display_name || currentNovel.name}`;
     }
 
     // 加载章节列表
     async function loadChapters() {
+      console.log("加载章节列表");
       const chapterList = document.getElementById('chapterList');
-      
+
       if (!currentNovel) {
         chapterList.innerHTML = `
           <div class="empty-state">
@@ -829,12 +871,12 @@
         return;
       }
 
-      console.log('加载章节列表:', currentNovel.name);
       try {
-        const response = await fetch(`/api/novels/${currentNovel.name}/chapters`);
+        const response = await fetch(`/novel/${currentNovel.name}/chapters`);
         if (response.ok) {
-          currentNovel.chapters = await response.json();
-          console.log('章节列表:', currentNovel.chapters);
+          const chapters = await response.json();
+          console.log("章节数据:", chapters);
+          currentNovel.chapters = chapters;
         } else {
           console.error('加载章节失败:', response.statusText);
           currentNovel.chapters = [];
@@ -843,7 +885,7 @@
         console.error('加载章节失败:', error);
         currentNovel.chapters = [];
       }
-      
+
       if (!currentNovel.chapters || currentNovel.chapters.length === 0) {
         chapterList.innerHTML = `
           <div class="empty-state">
@@ -855,12 +897,12 @@
       }
       
       chapterList.innerHTML = currentNovel.chapters.map(chapter => `
-        <div class="chapter-item ${selectedChapters.has(chapter.id) ? 'selected' : ''}" 
-             data-chapter-id="${chapter.id}"
-             onclick="toggleChapterSelection(${chapter.id})">
+        <div class="chapter-item ${selectedChapters.has(chapter.cid) ? 'selected' : ''}" 
+             data-chapter-id="${chapter.cid}"
+             onclick="toggleChapterSelection(${chapter.cid})">
           <input type="checkbox" class="chapter-checkbox" 
-                 ${selectedChapters.has(chapter.id) ? 'checked' : ''}
-                 onchange="event.stopPropagation(); toggleChapterSelection(${chapter.id})">
+                 ${selectedChapters.has(chapter.cid) ? 'checked' : ''}
+                 onchange="event.stopPropagation(); toggleChapterSelection(${chapter.cid})">
           <div class="chapter-info">
             <div class="chapter-title">${chapter.title}</div>
             <div class="language-flags">
@@ -876,33 +918,32 @@
     // 检查章节的语言支持
     function getChapterLanguageSupport(chapter) {
       const support = {};
-      
-      // 检查中文支持 (原始 .txt 文件)
-      if (chapter.filename && chapter.filename.endsWith('.txt')) {
-        support.zh = true;
-      }
-      
+
+      // 中文默认支持（原始 .txt 文件）
+      support.zh = true;
+
       // 检查其他语言支持
-      if (chapter.languages) {
-        Object.keys(chapter.languages).forEach(lang => {
+      if (chapter.available_languages) {
+        chapter.available_languages.forEach(lang => {
           if (LANGUAGES[lang]) {
             support[lang] = true;
           }
         });
       }
-      
+
       return support;
     }
 
     // 渲染语言标识
     function renderLanguageFlags(chapter) {
       const support = getChapterLanguageSupport(chapter);
-      
+
       return Object.keys(LANGUAGES).map(lang => {
         const langConfig = LANGUAGES[lang];
         const isAvailable = support[lang] || false;
         return `<span class="flag ${isAvailable ? 'available' : ''}" 
-                      title="${langConfig.name}${isAvailable ? ' (已支持)' : ' (未支持)'}">
+                      title="${langConfig.name}${isAvailable ? ' (已支持)' : ' (未支持)'}"
+                      data-lang="${lang}" data-chapter-id="${chapter.cid}">
                   ${langConfig.flag}
                 </span>`;
       }).join('');
@@ -925,25 +966,21 @@
       );
       
       if (existingTaskIndex !== -1) {
-        // 如果已在队列中，则移除
+        // 如果已在队列中，则移除（只能移除pending状态的任务）
         const task = conversionQueue[existingTaskIndex];
         
-        // 检查任务状态，只允许移除未开始的任务
+        // 只允许移除未开始的任务（waiting状态）
         if (task.status === 'processing' || task.status === 'queued') {
           alert('该章节正在处理中，无法移除');
           return;
         }
         
-        if (confirm(`确定要从队列中移除"${task.chapterTitle}"吗？`)) {
-          conversionQueue.splice(existingTaskIndex, 1);
-          selectedChapters.delete(chapterId);
-          console.log('从队列移除任务:', task);
-        } else {
-          return; // 用户取消，不执行任何操作
-        }
+        conversionQueue.splice(existingTaskIndex, 1);
+        selectedChapters.delete(chapterId);
+        console.log('从队列移除任务:', task);
       } else {
         // 如果不在队列中，则添加
-        const chapter = currentNovel.chapters.find(c => c.id === chapterId);
+        const chapter = currentNovel.chapters.find(c => c.cid === chapterId);
         if (chapter) {
           const task = {
             id: Date.now() + Math.random(),
@@ -978,25 +1015,25 @@
       if (!currentNovel || !currentNovel.chapters) return;
       
       currentNovel.chapters.forEach(chapter => {
-        const chapterItem = document.querySelector(`[data-chapter-id="${chapter.id}"]`);
+        const chapterItem = document.querySelector(`[data-chapter-id="${chapter.cid}"]`);
         const checkbox = chapterItem?.querySelector('.chapter-checkbox');
         
         if (chapterItem && checkbox) {
           // 检查该章节是否在队列中
           const isInQueue = conversionQueue.some(
             task => task.novelName === currentNovel.name && 
-                   task.chapterId === chapter.id && 
+                   task.chapterId === chapter.cid && 
                    task.targetLanguage === targetLanguage
           );
           
           if (isInQueue) {
             chapterItem.classList.add('selected');
             checkbox.checked = true;
-            selectedChapters.add(chapter.id);
+            selectedChapters.add(chapter.cid);
           } else {
             chapterItem.classList.remove('selected');
             checkbox.checked = false;
-            selectedChapters.delete(chapter.id);
+            selectedChapters.delete(chapter.cid);
           }
         }
       });
@@ -1006,20 +1043,13 @@
     function toggleSelectAll() {
       const selectAllCheckbox = document.getElementById('selectAll');
       const isSelectAll = selectAllCheckbox.checked;
-      const targetLanguage = document.getElementById('targetLanguage').value;
-      
-      if (!targetLanguage) {
-        alert('请先选择目标语言');
-        selectAllCheckbox.checked = false;
-        return;
-      }
-      
+    
       if (isSelectAll) {
         // 全选 - 将所有章节添加到队列
         currentNovel.chapters.forEach(chapter => {
           const existingTask = conversionQueue.find(
             task => task.novelName === currentNovel.name && 
-                   task.chapterId === chapter.id && 
+                   task.chapterId === chapter.cid && 
                    task.targetLanguage === targetLanguage
           );
           
@@ -1027,7 +1057,7 @@
             const task = {
               id: Date.now() + Math.random(),
               novelName: currentNovel.name,
-              chapterId: chapter.id,
+              chapterId: chapter.cid,
               chapterTitle: chapter.title,
               targetLanguage: targetLanguage,
               targetLanguageName: supportedLanguages[targetLanguage].name,
@@ -1039,7 +1069,7 @@
             };
             conversionQueue.push(task);
           }
-          selectedChapters.add(chapter.id);
+          selectedChapters.add(chapter.cid);
         });
       } else {
         // 取消全选 - 从队列中移除当前语言的所有章节
@@ -1145,11 +1175,15 @@
           timeInfo = `<div class="duration-time">耗时: ${minutes}分${seconds}秒</div>`;
         }
         
-        // 停止按钮
+        // 操作按钮：只有pending状态的任务可以移除，完成的任务显示完成状态
         let actionButton = '';
-        if (task.status === 'queued' || task.status === 'processing') {
-          actionButton = `<button class="btn-stop" onclick="stopTask('${task.serverTaskId || task.id}')">停止</button>`;
-        } else if (task.status === 'stopped' || task.status === 'failed') {
+        if (task.status === 'waiting') {
+          actionButton = `<button class="btn-remove" onclick="removeTask('${task.id}')">移除</button>`;
+        } else if (task.status === 'processing' || task.status === 'queued') {
+          actionButton = `<span class="processing-indicator">处理中...</span>`;
+        } else if (task.status === 'completed') {
+          actionButton = `<span class="completed-indicator">✅ 完成</span>`;
+        } else if (task.status === 'failed') {
           actionButton = `<button class="btn-remove" onclick="removeTask('${task.id}')">移除</button>`;
         }
         
@@ -1211,7 +1245,7 @@
       document.getElementById('stoppedCount').textContent = stats.stopped;
     }
 
-    // 开始批量转换
+    // 开始批量转换 - 简单队列，一个一个执行
     async function startBatchConversion() {
       if (conversionQueue.length === 0) {
         alert('队列为空，请先添加要转换的章节');
@@ -1230,33 +1264,43 @@
       document.getElementById('startBtn').disabled = true;
       document.getElementById('startBtn').textContent = '转换中...';
       
-      // 逐个处理队列中的任务
-      for (let i = 0; i < conversionQueue.length; i++) {
-        const task = conversionQueue[i];
-        
-        if (task.status === 'waiting') {
-          await processTask(task);
-        }
+      // 开始处理队列中的第一个等待任务
+      await processNextTask();
+      
+      // 如果所有任务都完成了，恢复按钮状态
+      if (!conversionQueue.some(t => t.status === 'waiting' || t.status === 'processing')) {
+        isProcessing = false;
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('startBtn').textContent = '🚀 开始批量转换';
+        console.log('批量转换完成');
+        alert('批量转换完成！');
       }
-      
-      isProcessing = false;
-      
-      // 恢复按钮状态
-      document.getElementById('startBtn').disabled = false;
-      document.getElementById('startBtn').textContent = '🚀 开始批量转换';
-      
-      console.log('批量转换完成');
-      alert('批量转换完成！');
     }
 
-    // 处理单个转换任务
-    async function processTask(task) {
-      console.log('开始处理任务:', task);
+    // 处理队列中的下一个任务
+    async function processNextTask() {
+      // 查找下一个等待中的任务
+      const nextTask = conversionQueue.find(t => t.status === 'waiting');
+      
+      if (!nextTask) {
+        // 没有等待中的任务了，检查是否所有任务都完成
+        if (!conversionQueue.some(t => t.status === 'processing')) {
+          // 所有任务都完成了，恢复UI状态
+          isProcessing = false;
+          document.getElementById('startBtn').disabled = false;
+          document.getElementById('startBtn').textContent = '🚀 开始批量转换';
+          console.log('批量转换完成');
+          alert('批量转换完成！');
+        }
+        return;
+      }
+      
+      console.log('开始处理下一个任务:', nextTask);
       
       // 更新任务状态为处理中
-      task.status = 'processing';
-      task.progress = 0;
-      task.startTime = new Date();
+      nextTask.status = 'processing';
+      nextTask.progress = 0;
+      nextTask.startTime = new Date();
       
       renderConversionQueue();
       updateStats();
@@ -1264,38 +1308,45 @@
       try {
         // 检查覆盖模式
         const overwriteMode = document.getElementById('overwriteMode').value;
-        const chapter = currentNovel?.chapters?.find(c => c.id === task.chapterId);
+        const chapter = currentNovel?.chapters?.find(c => c.cid === nextTask.chapterId);
         
         if (chapter) {
           const support = getChapterLanguageSupport(chapter);
-          const hasExistingVersion = support[task.targetLanguage];
+          const hasExistingVersion = support[nextTask.targetLanguage];
           
           if (hasExistingVersion && overwriteMode === 'skip') {
-            task.status = 'completed';
-            task.progress = 100;
-            task.endTime = new Date();
-            console.log('跳过已存在的版本:', task);
+            nextTask.status = 'completed';
+            nextTask.progress = 100;
+            nextTask.endTime = new Date();
+            console.log('跳过已存在的版本:', nextTask);
             renderConversionQueue();
             updateStats();
+            
+            // 继续处理下一个任务
+            setTimeout(() => processNextTask(), 500);
             return;
           }
           
           if (hasExistingVersion && overwriteMode === 'ask') {
-            const confirmed = confirm(`章节"${task.chapterTitle}"已存在${task.targetLanguageName}版本，是否覆盖？`);
+            const confirmed = confirm(`章节"${nextTask.chapterTitle}"已存在${nextTask.targetLanguageName}版本，是否覆盖？`);
             if (!confirmed) {
-              task.status = 'completed';
-              task.progress = 100;
-              task.endTime = new Date();
-              console.log('用户选择不覆盖:', task);
+              nextTask.status = 'completed';
+              nextTask.progress = 100;
+              nextTask.endTime = new Date();
+              console.log('用户选择不覆盖:', nextTask);
               renderConversionQueue();
               updateStats();
+              
+              // 继续处理下一个任务
+              setTimeout(() => processNextTask(), 500);
               return;
             }
           }
         }
         
-        // 启动异步翻译任务
-        const response = await fetch(`/api/novels/${task.novelName}/chapters/${task.chapterId}/translate/${task.targetLanguage}`, {
+        // 启动翻译任务
+        const url = `/api/novels/${nextTask.novelName}/chapters/${nextTask.chapterId}/translate/${nextTask.targetLanguage}`;
+        const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -1308,9 +1359,12 @@
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.task_id) {
-            // 开始轮询任务状态
-            task.serverTaskId = result.task_id;
-            await pollTaskProgress(task);
+            // 开始轮询任务状态，完成后自动处理下一个
+            nextTask.serverTaskId = result.task_id;
+            await pollTaskProgressWithCallback(nextTask, () => {
+              // 当前任务完成，处理下一个
+              setTimeout(() => processNextTask(), 1000);
+            });
           } else {
             throw new Error(result.error || '启动翻译任务失败');
           }
@@ -1320,19 +1374,22 @@
         }
         
       } catch (error) {
-        console.error('任务处理失败:', task, error);
-        task.status = 'failed';
-        task.progress = 0;
-        task.error = error.message;
-        task.endTime = new Date();
+        console.error('任务处理失败:', nextTask, error);
+        nextTask.status = 'failed';
+        nextTask.progress = 0;
+        nextTask.error = error.message;
+        nextTask.endTime = new Date();
         renderConversionQueue();
         updateStats();
+        
+        // 即使失败也继续处理下一个任务
+        setTimeout(() => processNextTask(), 1000);
       }
     }
 
-    // 轮询任务进度
-    async function pollTaskProgress(task) {
-      const maxAttempts = 300; // 最多轮询5分钟
+    // 轮询任务进度（带完成回调）
+    async function pollTaskProgressWithCallback(task, onComplete) {
+      const maxAttempts = 60; // 最多轮询60次（1分钟）
       let attempts = 0;
       
       const poll = async () => {
@@ -1352,6 +1409,11 @@
               console.log('任务完成:', task);
               renderConversionQueue();
               updateStats();
+              
+              // 调用完成回调
+              if (onComplete) {
+                onComplete();
+              }
               return;
             } else if (status.status === 'failed') {
               task.status = 'failed';
@@ -1361,16 +1423,23 @@
               renderConversionQueue();
               updateStats();
               
-              // 显示错误提示
-              alert(`翻译失败 - ${task.chapterTitle}: ${task.error}`);
+              // 即使失败也调用回调继续下一个
+              if (onComplete) {
+                onComplete();
+              }
               return;
             } else if (status.status === 'stopped') {
-              task.status = 'stopped';
-              task.error = status.error || '任务已停止';
+              task.status = 'failed';
+              task.error = '任务已停止';
               task.endTime = new Date();
               console.log('任务已停止:', task);
               renderConversionQueue();
               updateStats();
+              
+              // 即使停止也调用回调继续下一个
+              if (onComplete) {
+                onComplete();
+              }
               return;
             } else if (status.status === 'processing' || status.status === 'queued') {
               // 继续轮询
@@ -1381,12 +1450,18 @@
               if (attempts < maxAttempts) {
                 setTimeout(poll, 1000); // 每秒轮询一次
               } else {
+                // 超时，标记为失败
                 task.status = 'failed';
                 task.error = '任务超时';
                 task.endTime = new Date();
                 renderConversionQueue();
                 updateStats();
-                alert(`翻译超时 - ${task.chapterTitle}: 任务执行时间过长`);
+                console.log('任务超时:', task);
+                
+                // 超时也调用回调继续下一个
+                if (onComplete) {
+                  onComplete();
+                }
               }
             }
           } else {
@@ -1395,15 +1470,22 @@
         } catch (error) {
           console.error('轮询任务状态失败:', error);
           attempts++;
-          if (attempts < maxAttempts) {
-            setTimeout(poll, 2000); // 出错时延长轮询间隔
-          } else {
+          if (attempts >= 3) {
+            // 连续3次失败，标记为失败
             task.status = 'failed';
             task.error = '无法获取任务状态';
             task.endTime = new Date();
             renderConversionQueue();
             updateStats();
-            alert(`翻译失败 - ${task.chapterTitle}: 无法连接到服务器`);
+            console.log('任务状态查询失败:', task);
+            
+            // 查询失败也调用回调继续下一个
+            if (onComplete) {
+              onComplete();
+            }
+          } else {
+            // 重试，延长轮询间隔
+            setTimeout(poll, 2000);
           }
         }
       };
@@ -1424,11 +1506,23 @@
         return;
       }
       
-      const confirmed = confirm(`确定要清空转换队列吗？这将删除 ${conversionQueue.length} 个待转换任务。`);
+      // 只清空waiting和failed状态的任务
+      const removableTasks = conversionQueue.filter(t => t.status === 'waiting' || t.status === 'failed' || t.status === 'completed');
+      if (removableTasks.length === 0) {
+        alert('没有可清空的任务');
+        return;
+      }
+      
+      const confirmed = confirm(`确定要清空 ${removableTasks.length} 个任务吗？`);
       if (confirmed) {
-        conversionQueue = [];
+        // 保留正在处理的任务
+        conversionQueue = conversionQueue.filter(t => t.status === 'processing' || t.status === 'queued');
+        selectedChapters.clear();
+        
         renderConversionQueue();
         updateStats();
+        updateChapterSelection();
+        updateSelectAllCheckbox();
         console.log('队列已清空');
       }
     }
@@ -1519,18 +1613,21 @@
       if (taskIndex !== -1) {
         const task = conversionQueue[taskIndex];
         
-        // 只允许移除已完成、失败或停止的任务
+        // 只允许移除waiting或failed状态的任务
         if (task.status === 'processing' || task.status === 'queued') {
-          alert('无法移除正在执行的任务，请先停止任务');
+          alert('无法移除正在执行的任务');
           return;
         }
         
-        if (confirm(`确定要从队列中移除"${task.chapterTitle}"吗？`)) {
-          conversionQueue.splice(taskIndex, 1);
-          renderConversionQueue();
-          updateStats();
-          console.log('任务已移除:', taskId);
-        }
+        conversionQueue.splice(taskIndex, 1);
+        // 同时从选中章节中移除
+        selectedChapters.delete(task.chapterId);
+        
+        renderConversionQueue();
+        updateStats();
+        updateChapterSelection();
+        updateSelectAllCheckbox();
+        console.log('任务已移除:', taskId);
       }
     }
     
