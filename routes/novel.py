@@ -203,7 +203,7 @@ def update_chapter_api(novel_name):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@novel_bp.route('/novels/create', methods=['POST'])
+@novel_bp.route('/create', methods=['POST'])
 def create_novel():
     """创建新小说"""
     try:
