@@ -58,8 +58,6 @@
 
   <!-- Tag panel -->
 
-  <!-- YouGlish Widget API 脚本 -->
-  <script src="/static/js/vocb_util.js"></script>
   <script src="/static/js/youglishModule.js"></script>
   <script src="/static/js/wordModule.js"></script>
   <script src="/static/js/toolbarModule.js"></script>
@@ -650,11 +648,7 @@
         ccb: () => {
           clearWordSelection();
           ToolBarModule.close()
-        },
-        getTagList: getTagList,
-        getWordTags: getWordTags,
-        addTag: addTag,
-        addTagToWord: addTagToWord
+        }
       });
 
       //

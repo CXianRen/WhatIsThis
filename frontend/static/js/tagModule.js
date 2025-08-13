@@ -10,13 +10,6 @@ const TagModule = (function () {
   let tempTagList = [];
   let allowTagList = []; // 可选标签列表
 
-  // callback
-  let _getTaglist = null;
-  let _getWordTags = null;
-  let _addTag = null;
-  let _addTagToWord = null;
-
-
 
   // ===== 动态插入 HTML =====
   function injectHTML() {
@@ -79,30 +72,109 @@ const TagModule = (function () {
 
   // ===== 初始化模块 =====
   async function init({ cssUrl = null,
-    ccb = null,
-    getTaglist = null,
-    getWordTags = null,
-    addTag = null,
-    addTagToWord = null
-  }) {
-    if (isInitialized) return;
+    ccb = null, }) {
 
+    if (isInitialized) {
+      console.log("already init.")
+      return;
+    }
     closeCallback = ccb;
-    _getTaglist = getTaglist;
-    _getWordTags = getWordTags;
-    _addTag = addTag;
-    _addTagToWord = addTagToWord;
 
     injectHTML();
 
     if (cssUrl) await loadCSS(cssUrl);
-    if (_getTaglist) getTaglist((tags) => {
+
+    getTagList((tags) => {
+      console.log("get tag list");
       allowTagList = tags;
     }
     );
 
     isInitialized = true;
   }
+
+  // 
+
+  // get the tag list of current user
+  async function getTagList(callback) {
+    const response = await fetch('/api/vocb/tags', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await response.json();
+    const tags = data.tags || [];
+    if (typeof callback === 'function') {
+      callback(tags);
+    }
+    return tags;
+  }
+
+  // add a new tag
+  async function addTag(tag, callback) {
+    const response = await fetch('/api/vocb/tags', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ "tags": tag })
+    });
+    const data = await response.json();
+    if (typeof callback === 'function') {
+      callback(data.tag || null);
+    }
+    return data.tag || null;
+  }
+
+  // delete a tag
+  async function deleteTag(tag, callback) {
+    const response = await fetch('/api/vocb/tags', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tag })
+    });
+    const data = await response.json();
+    if (typeof callback === 'function') {
+      callback(data.success);
+    }
+    return data.success;
+  }
+
+  // get tags of a specific word
+  async function getWordTags(word, callback) {
+    const response = await fetch(`/api/vocb/word/tags/${encodeURIComponent(word)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await response.json();
+    const tags = data.tags || [];
+    if (typeof callback === 'function') {
+      callback(tags);
+    }
+    return tags;
+  }
+
+  // add a tag to a word
+  async function addTagToWord(word, tag, callback) {
+    const response = await fetch(`/api/vocb/word/tags/${encodeURIComponent(word)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tag })
+    });
+    const data = await response.json();
+    if (typeof callback === 'function') {
+      callback(data.success);
+    }
+    return data.success;
+  }
+
 
   // ===== 显示面板 =====
   function show(word) {
@@ -116,7 +188,7 @@ const TagModule = (function () {
     addTagOverlay.style.display = 'flex';
     addTagOverlay.querySelector('#addTagText').textContent = `Add: ${word}`;
 
-    if (_getWordTags) _getWordTags(
+    getWordTags(
       word, (tags) => {
         wordTags = tags;
         tempTagList = [...wordTags];
@@ -185,7 +257,7 @@ const TagModule = (function () {
       return;
     }
 
-    if (_addTag) _addTag(
+    addTag(
       newTags, (tags) => {
         allowTagList = tags;
         renderTags();
@@ -203,7 +275,7 @@ const TagModule = (function () {
       tempTagList.every(tag => wordTags.includes(tag))) {
       return;
     }
-    _addTagToWord(selectedWord, tempTagList,
+    addTagToWord(selectedWord, tempTagList,
       (response) => {
         alert("save tags!");
       }, (error) => {

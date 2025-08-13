@@ -6,6 +6,7 @@ import os
 # 导入配置和数据库模块
 from config import config
 from models.database import init_db, load_img_cache, load_phonetic_cache, load_en_dict_cache
+from models.tag.tag import init_tags
 
 # 导入所有路由蓝图
 from routes.app import app_bp
@@ -25,6 +26,7 @@ def create_app():
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1年缓存
     
     # 初始化数据库和缓存
+    init_tags()
     init_db()
     load_img_cache()
     load_phonetic_cache()
