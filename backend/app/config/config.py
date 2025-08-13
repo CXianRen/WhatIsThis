@@ -2,8 +2,12 @@
 import os
 
 # 基础路径配置
-BASE_DIR = os.path.dirname(__file__)
-DATA_DIR = os.path.join(BASE_DIR, 'data')
+# BASE_DIR = os.path.dirname(__file__+"/../")
+DATA_DIR = os.path.join("/home/g/WhatIsThis/", 'data')
+
+TEMPLATE_PATH = os.path.join('/home/g/WhatIsThis/frontend', 'templates')
+STATIC_PATH = os.path.join('/home/g/WhatIsThis/frontend', 'static')
+
 IMAGE_DIR = os.path.join(DATA_DIR, 'images')
 RESULT_JSON = os.path.join(DATA_DIR, 'result.json')
 IMG_CACHE_DB = os.path.join(DATA_DIR, 'img_cache.db')

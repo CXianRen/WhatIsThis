@@ -4,7 +4,7 @@ import os
 import json
 import uuid
 from werkzeug.utils import secure_filename
-from config import ANNOTATION_DIR, ANNOTATION_IMAGES_DIR, ANNOTATION_DATA_FILE
+from config.config import ANNOTATION_DIR, ANNOTATION_IMAGES_DIR, ANNOTATION_DATA_FILE
 
 # 创建蓝图
 annotation_bp = Blueprint('annotation', __name__, url_prefix='/annotations')

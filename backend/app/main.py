@@ -4,19 +4,22 @@ import json
 import os
 
 # 导入配置和数据库模块
-import config
-from database import init_db, load_img_cache, load_phonetic_cache, load_en_dict_cache
+from config import config
+from models.database import init_db, load_img_cache, load_phonetic_cache, load_en_dict_cache
 
 # 导入所有路由蓝图
-from routes.main import main_bp
+from routes.app import app_bp
 from routes.group import group_bp
 from routes.novel import novel_bp
 from routes.translation import translation_bp
 from routes.annotation import annotation_bp
+from routes.vocb import vocb_bp
 
 def create_app():
     """应用工厂函数"""
-    app = Flask(__name__)
+    app = Flask(__name__, 
+                template_folder=config.TEMPLATE_PATH, 
+                static_folder=config.STATIC_PATH)
     
     # 设置 MIME 类型
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1年缓存
@@ -28,11 +31,12 @@ def create_app():
     load_en_dict_cache()
     
     # 注册蓝图
-    app.register_blueprint(main_bp)
+    app.register_blueprint(app_bp)
     app.register_blueprint(group_bp)
     app.register_blueprint(novel_bp)
     app.register_blueprint(translation_bp)
     app.register_blueprint(annotation_bp)
+    app.register_blueprint(vocb_bp)
     
     # 设置静态文件的 MIME 类型
     @app.after_request

@@ -4,8 +4,17 @@ import time
 import json
 import requests
 import threading
-from config import TRANSLATION_API_KEY, TRANSLATION_API_URL, SUPPORTED_LANGUAGES
+from config.config import (
+    TRANSLATION_API_KEY, 
+    TRANSLATION_API_URL, 
+    SUPPORTED_LANGUAGES,
+    NOVEL_DIR)
 
+from routes.novel import __parse_novel_raw_name
+import os
+import json
+    
+    
 # 简化的翻译管理
 translation_results = {}  # 存储翻译结果和进度
 current_task = None  # 当前正在处理的任务
@@ -164,10 +173,7 @@ def translate_chapter_content_with_progress(content: str, target_language: str, 
 
 def process_translation_task(task):
     """处理单个翻译任务（同步处理，不使用队列）"""
-    from config import NOVEL_DIR
-    from routes.novel import __parse_novel_raw_name
-    import os
-    import json
+
     
     task_id = task['task_id']
     

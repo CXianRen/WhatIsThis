@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 import os
 import json
 import re
-from config import NOVEL_DIR
+from config.config import NOVEL_DIR
 
 # ================= 重构后的小说API =================
 novel_bp = Blueprint('novel', __name__, url_prefix='/novel')

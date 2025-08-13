@@ -1,8 +1,8 @@
 # ================= 工具函数模块 =================
 import requests
 from duckduckgo_search import DDGS
-from database import *
-from config import TRANSLATION_API_KEY, TRANSLATION_API_URL
+from models.database import *
+from config.config import TRANSLATION_API_KEY, TRANSLATION_API_URL
 import json
 
 def search_images(query, max_results=5):

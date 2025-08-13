@@ -44,7 +44,7 @@ async function loadWordDetails(word,
     // 显示加载状态
     showLoadingState(word, skip_title, skip_pronunciation);
 
-    const response = await fetch(`/loadWordDetails/${encodeURIComponent(word)}`);
+    const response = await fetch(`/api/vocb/word/${encodeURIComponent(word)}`);
     if (!response.ok) throw new Error('网络请求失败');
 
     const data = await response.json();

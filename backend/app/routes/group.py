@@ -2,7 +2,7 @@
 from flask import Blueprint, jsonify, request
 import os
 import json
-from config import GROUP_DIR
+from config.config import GROUP_DIR
 
 # 创建蓝图
 group_bp = Blueprint('group', __name__, url_prefix='/group')

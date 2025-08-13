@@ -1,13 +1,15 @@
 # ================= 翻译API路由模块 =================
-from flask import Blueprint, jsonify, request
 import time
-from translation_service import (
+import os
+from flask import Blueprint, jsonify, request
+from service.translation_service import (
     add_translation_task, 
     get_translation_status, 
     stop_translation_task,
     stop_all_translation_tasks,
     clear_stopped_tasks,
-    SUPPORTED_LANGUAGES
+    SUPPORTED_LANGUAGES,
+    NOVEL_DIR
 )
 
 
@@ -22,10 +24,7 @@ def translate_chapter(novel_name, chapter_id, lang_code):
     try:
         if lang_code not in SUPPORTED_LANGUAGES:
             return jsonify({'error': '不支持的语言代码'}), 400
-        
-        from config import NOVEL_DIR
-        import os
-        
+                
         novel_dir = os.path.join(NOVEL_DIR, novel_name)
         if not os.path.exists(novel_dir):
             return jsonify({'error': '小说不存在'}), 404

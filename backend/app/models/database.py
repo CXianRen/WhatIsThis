@@ -2,12 +2,11 @@
 import os
 import json
 import sqlite3
-from config import IMG_CACHE_DB, EN_PHONETIC_DB, DATA_DIR, EN_DB
+from config.config import IMG_CACHE_DB, EN_PHONETIC_DB, DATA_DIR, EN_DB
 
 # 内存缓存
 img_cache_map = {}
 en_phonetic_map = {}
-
 en_dict_cache = {} 
 
 def init_db():
@@ -94,3 +93,5 @@ def set_en_dict_cache(word, definition):
     en_dict_cache[word] = {'definition': definition}
     save_en_dict_cache(word, definition)
  
+ 
+# 查询频率, 今日新增, 今日查询, 上次复习时间， 总复习次数
