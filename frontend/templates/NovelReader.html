@@ -21,6 +21,11 @@
   <link rel="stylesheet" href="/static/sidebar-component.css">
   <link rel="stylesheet" href="/static/word_detail_panel.css">
   <link rel="stylesheet" href="/static/css/novel_rd.css">
+  <link rel="stylesheet" href="/static/css/tag_panel.css">
+  <link rel="stylesheet" href="/static/css/word_panel.css">
+  <link rel="stylesheet" href="/static/css/yoglish_panel.css">
+  <link rel="stylesheet" href="/static/css/tool_bar.css">
+  
 </head>
 
 <body>
@@ -106,14 +111,14 @@
         <div id="tagListContainer" class="tag-list-container">
         </div>
         <div>
-          <input type="text" class="add-word-input" placeholder="输入标签，逗号分隔" />
+          <input type="text" class="add-tag-input" placeholder="输入标签，逗号分隔" />
           <button class="add-tag-button" onclick="addNewTags()">New tags</button>
         </div>
 
       </div>
       <span class="selected-tags-title">Selected Tags:</span>
       <div class="add-tag-content">
-        
+
         <div id="SelectedTags" class="tag-list-container">
         </div>
         <button class="add-tag-button" onclick="saveTags()">SAVE</button>
@@ -718,7 +723,7 @@
       }
 
       function addNewTags() {
-        const input = document.querySelector('.add-word-input');
+        const input = document.querySelector('.add-tag-input');
         if (!input || !input.value.trim()) {
           alert('请输入标签');
           return;
@@ -748,15 +753,10 @@
         input.value = ''; // 清空输入框
       }
 
-      function saveTags(){
-        if (tempTagList.length === 0) {
-          alert('没有选择任何标签');
-          return;
-        }
-
+      function saveTags() {
         // check if the tags update or not
         if (tempTagList.length === wordTags.length &&
-            tempTagList.every(tag => wordTags.includes(tag))) {
+          tempTagList.every(tag => wordTags.includes(tag))) {
           // alert('没有修改标签');
           return;
         }
@@ -770,6 +770,7 @@
           alert('保存标签失败，请稍后重试');
         });
       }
+      
       // ===== YouGlish 相关函数 =====
 
       // YouGlish API 准备就绪回调（必需的全局函数）
@@ -1123,7 +1124,6 @@
         ); // 获取标签列表
         console.log('Novel Reader 页面加载完成');
       });
-
 
       // 窗口大小变化处理
       window.addEventListener('resize', () => {

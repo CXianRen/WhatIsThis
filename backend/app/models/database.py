@@ -93,5 +93,4 @@ def set_en_dict_cache(word, definition):
     en_dict_cache[word] = {'definition': definition}
     save_en_dict_cache(word, definition)
  
- 
-# 查询频率, 今日新增, 今日查询, 上次复习时间， 总复习次数
+

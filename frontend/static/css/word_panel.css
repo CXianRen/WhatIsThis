@@ -1,0 +1,192 @@
+/* ===== 单词详情面板 ===== */
+.word-detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.word-detail-panel {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  margin: 20px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.word-detail-header {
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+}
+
+.word-detail-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.word-detail-close:hover {
+  background: #f5f5f5;
+}
+
+.word-detail-content {
+  padding: 20px;
+}
+
+.word-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.word-pronunciation {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+/* processing  */
+.word-loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.word-error {
+  color: #f44336;
+  background: #ffebee;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.word-error {
+  text-align: center;
+  padding: 20px;
+}
+
+/* 夜间模式 - 单词面板 */
+.night-mode .word-detail-panel {
+  background: #1e1e1e !important;
+  color: #e0e0e0 !important;
+}
+
+.night-mode .word-detail-header {
+  border-bottom-color: #333 !important;
+  background: #1e1e1e !important;
+}
+
+.night-mode .word-detail-close {
+  color: #bbb !important;
+}
+
+.night-mode .word-detail-close:hover {
+  background: #333 !important;
+}
+
+.night-mode .word-title {
+  color: #e0e0e0 !important;
+}
+
+.night-mode .word-pronunciation {
+  color: #bbb !important;
+}
+
+.night-mode .definition-section {
+  background: #2a2a2a !important;
+  border-left-color: #4fc3f7 !important;
+}
+
+.night-mode .definition-section h4 {
+  color: #4fc3f7 !important;
+}
+
+.night-mode .definition-section li {
+  color: #e0e0e0 !important;
+}
+
+.night-mode .definition-section li:before {
+  color: #4fc3f7 !important;
+}
+
+.night-mode .example-sentence {
+  background: #2a2a2a !important;
+  border-color: #333 !important;
+}
+
+.night-mode .scenario {
+  background: #1a2332 !important;
+  color: #4fc3f7 !important;
+  border-left-color: #4fc3f7 !important;
+}
+
+.night-mode .en-sentence {
+  background: #1a2e1a !important;
+  color: #66bb6a !important;
+  border-left-color: #66bb6a !important;
+}
+
+.night-mode .zh-sentence {
+  background: #2e1a0f !important;
+  color: #ffab40 !important;
+  border-left-color: #ffab40 !important;
+}
+
+.night-mode .synonym {
+  background: #1a2e1a !important;
+  color: #66bb6a !important;
+  border-color: #66bb6a !important;
+}
+
+.night-mode .synonym:hover {
+  background: #2e4a2e !important;
+}
+
+  /* 夜间模式 - 状态样式 */
+.night-mode .word-loading {
+  color: #bbb !important;
+}
+
+.night-mode .word-error {
+  background: #3d1a1a !important;
+  color: #ff7043 !important;
+}

@@ -1,31 +1,30 @@
-# vocb 模块， 管理 单词相关 API 路由
+# vocb module, manage API routers of vocabulary 
 from flask import Blueprint, request, jsonify, render_template
 import os
 import json 
 import re
 
 from service.dictionary import *
+from models.tag import tag
 
 vocb_bp = Blueprint('vocb', __name__, url_prefix='/api/vocb')
 
-
-all_tags = ["mispronounciation","misunderstanding"]
 
 ### vocabulary api ###
 
 #### TAGS of a word ####
 
-# 获取用户单词tag列表
+# get all user defined tags
 @vocb_bp.route('/tags', methods=['GET'])
 def get_tags():
     # demo tags
     return jsonify({
-        "tags": all_tags
+        "tags": tag.get_tags()
     })
     
-# 新增tag
+# add a new user defined tag
 @vocb_bp.route('/tags', methods=['POST'])
-def add_tag():
+def add_tags():
     data = request.get_json()
     tags = data.get('tags')
     print(f"Received tags: {tags}")
@@ -33,54 +32,44 @@ def add_tag():
     if not tags:
         return jsonify({"error": "Tag is required"}), 400
     
-    # update to global tags list
-    global all_tags
-    for tag in tags:
-        if tag not in all_tags:
-            all_tags.append(tag)    
+    tag.add_tags(tags)
     
-    return jsonify({"message": "Tag added successfully", "tag": all_tags}), 201
+    return jsonify({"message": "Tag added successfully", 
+                    "tag": tag.get_tags()}), 201
 
-# 删除tag
+# delete a user defined tag
 @vocb_bp.route('/tags/<tag>', methods=['DELETE'])
 def delete_tag(tag):
-    # 在这里可以添加逻辑来删除tag
-    # 例如，从数据库或文件中删除
-    
+    if not tag:
+        return jsonify({"error": "Tag is required"}), 400
+    if tag not in tag.get_tags():
+        return jsonify({"error": "Tag not found"}), 404
+    tag.delete_tag(tag)
     return jsonify({"message": "Tag deleted successfully", "tag": tag}), 200
   
-# 获取单词得tag
+# get all tags of a word
 @vocb_bp.route('/word/tags/<word>', methods=['GET'])
 def get_word_tags(word):
     # demo tags for the word
-    tags = ["mispronounciation", "misunderstanding"]
+    tags = tag.get_word_tags(word)
     
     return jsonify({
         "word": word,
         "tags": tags
     })
 
-# 添加单词tag
+# update tags to a word
 @vocb_bp.route('/word/tags/<word>', methods=['POST'])
 def add_word_tag(word):
     data = request.get_json()
-    tag = data.get('tag')
+    tags = data.get('tag')
     
-    if not tag:
+    if not tags:
         return jsonify({"error": "Tag is required"}), 400
     
-    # 在这里可以添加逻辑来保存tag
-    # 例如，保存到数据库或文件中
+    tag.update_word_tags(word, tags)
     
-    return jsonify({"message": "Tag added successfully", "word": word, "tag": tag}), 201
-
-# 删除单词tag
-@vocb_bp.route('/word/tags/<word>/<tag>', methods=['DELETE'])
-def delete_word_tag(word, tag):
-    # 在这里可以添加逻辑来删除tag
-    # 例如，从数据库或文件中删除
-    
-    return jsonify({"message": "Tag deleted successfully", "word": word, "tag": tag}), 200
+    return jsonify({"message": "Tag added successfully", "word": word, "tag": tags}), 201
 
 #### DICTIONARY of a word ####
 # get the word details from AI
