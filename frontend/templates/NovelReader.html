@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="/static/css/word_panel.css">
   <link rel="stylesheet" href="/static/css/yoglish_panel.css">
   <link rel="stylesheet" href="/static/css/tool_bar.css">
-  
+
 </head>
 
 <body>
@@ -72,7 +72,7 @@
   <div id="youglishOverlay" class="youglish-overlay">
     <div class="youglish-panel">
       <div class="youglish-header">
-        <button class="youglish-close" onclick="closeYouglishPanel()">&times;</button>
+        <button class="youglish-close" onclick="YouglishModule.close()">&times;</button>
         <h3 class="youglish-title">🎵 单词发音</h3>
         <span class="youglish-word" id="youglishWord">word</span>
       </div>
@@ -127,7 +127,7 @@
 
 
     <!-- YouGlish Widget API 脚本 -->
-    <script src="https://youglish.com/public/emb/widget.js" async></script>
+    <script src="/static/js/youglishModule.js"></script>
     <script src="/static/sidebar-component.js"></script>
     <script src="/static/js/vocb_util.js"></script>
     <script>
@@ -644,7 +644,7 @@
           console.log('工具2 - YouGlish发音:', selectedWord);
           hideWordToolbar();
           clearWordSelection();
-          showYouglishPanel(selectedWord);
+          YouglishModule.show(selectedWord);
         }
       }
 
@@ -770,143 +770,8 @@
           alert('保存标签失败，请稍后重试');
         });
       }
+
       
-      // ===== YouGlish 相关函数 =====
-
-      // YouGlish API 准备就绪回调（必需的全局函数）
-      function onYouglishAPIReady() {
-        youglishAPIReady = true;
-        updateYouglishStatus('YouGlish API 已加载，正在初始化...');
-
-        // 创建 widget
-        try {
-          youglishWidget = new YG.Widget('youglish-widget-container', {
-            width: 640,
-            height: 400,
-            components: 88, // 只显示必要组件
-            events: {
-              onFetchDone: onYouglishFetchDone,
-              onCaptionConsumed: onYouglishCaptionChange,
-              onVideoReady: onYouglishVideoReady,
-              onError: onYouglishError
-            }
-          });
-
-          updateYouglishStatus('Widget 已创建，可以开始搜索');
-        } catch (error) {
-          console.error('YouGlish Widget 创建失败:', error);
-          updateYouglishStatus('Widget 创建失败: ' + error.message);
-        }
-      }
-
-      // YouGlish 搜索完成事件
-      function onYouglishFetchDone(event) {
-        if (event.totalResult === 0) {
-          updateYouglishStatus('没有找到结果');
-        } else {
-          updateYouglishStatus(`找到 ${event.totalResult} 个发音示例`);
-        }
-      }
-
-      // YouGlish 字幕变化事件
-      function onYouglishCaptionChange(event) {
-        if (youglishWidget) {
-          youglishWidget.pause(); // 暂停视频以便查看字幕
-          // 2秒后自动重播
-          youglishTimer = setTimeout(() => {
-            if (youglishWidget) {
-              youglishWidget.replay();
-            }
-          }, 2000);
-        }
-      }
-
-      // YouGlish 播放器准备就绪事件
-      function onYouglishVideoReady(event) {
-        updateYouglishStatus('播放器已准备就绪');
-      }
-
-      // YouGlish 错误处理事件
-      function onYouglishError(event) {
-        updateYouglishStatus('发生错误：' + event.code);
-      }
-
-      // 更新 YouGlish 状态显示
-      function updateYouglishStatus(message) {
-        if (youglishStatus) {
-          youglishStatus.textContent = message;
-        }
-      }
-
-      // 显示 YouGlish 面板
-      function showYouglishPanel(word) {
-        if (!word) return;
-
-        youglishWord.textContent = word;
-        youglishOverlay.style.display = 'flex';
-
-        if (!youglishAPIReady) {
-          updateYouglishStatus('等待 YouGlish API 加载...');
-          // 检查 API 是否已加载
-          const checkAPI = setInterval(() => {
-            if (typeof YG !== 'undefined' && YG.Widget && youglishAPIReady) {
-              clearInterval(checkAPI);
-              searchWordInYouglish(word);
-            }
-          }, 500);
-
-          // 超时检查
-          setTimeout(() => {
-            if (!youglishAPIReady) {
-              clearInterval(checkAPI);
-              updateYouglishStatus('YouGlish API 加载超时，请刷新页面重试');
-            }
-          }, 10000);
-        } else {
-          searchWordInYouglish(word);
-        }
-      }
-
-      // 在 YouGlish 中搜索单词
-      function searchWordInYouglish(word) {
-        if (!youglishWidget) {
-          updateYouglishStatus('Widget 未初始化');
-          return;
-        }
-
-        updateYouglishStatus('正在搜索: ' + word);
-
-        try {
-          // 调用 YouGlish API 搜索
-          youglishWidget.fetch(word, 'english');
-        } catch (error) {
-          console.error('YouGlish 搜索失败:', error);
-          updateYouglishStatus('搜索失败: ' + error.message);
-        }
-      }
-
-      // 关闭 YouGlish 面板
-      function closeYouglishPanel() {
-        youglishOverlay.style.display = 'none';
-        // 停止播放
-        if (youglishWidget) {
-          try {
-            console.log("stop the YouGlish widget");
-            youglishWidget.pause();
-          } catch (error) {
-            console.log('停止播放失败:', error);
-          }
-          if (youglishTimer) {
-            // stop the timer
-            console.log("clear the YouGlish timer");
-            clearTimeout(youglishTimer);
-            youglishTimer = null;
-          }
-        }
-        clearWordSelection();
-        hideWordToolbar(); // 隐藏工具栏
-      }
-
       function openTool3() {
         if (selectedWord) {
           console.log('工具3 - 处理单词:', selectedWord);
@@ -1005,13 +870,6 @@
       wordDetailOverlay.addEventListener('click', (event) => {
         if (event.target === wordDetailOverlay) {
           closeWordDetail();
-        }
-      });
-
-      // 点击遮罩层关闭 YouGlish 面板
-      youglishOverlay.addEventListener('click', (event) => {
-        if (event.target === youglishOverlay) {
-          closeYouglishPanel();
         }
       });
 
@@ -1114,7 +972,17 @@
         loadNightModeSettings();
         loadFontSizeSettings();
         initSidebar();
-        onYouglishAPIReady(); // 确保YouGlish API准备就绪
+
+        YouglishModule.init({
+          statusEl: document.getElementById("youglishStatus"),
+          wordEl: document.getElementById("youglishWord"),
+          overlayEl: document.getElementById("youglishOverlay"),
+          ccb: () => {
+            clearWordSelection();
+            hideWordToolbar()
+          }
+        });
+
 
         getTagList(
           (tags) => {
