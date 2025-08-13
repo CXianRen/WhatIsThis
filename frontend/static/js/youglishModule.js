@@ -1,5 +1,8 @@
 // youglishModule.js
 const YouglishModule = (function () {
+
+  let isInitialized = false;
+
   let youglishWidget = null;
   let youglishAPIReady = false;
   let youglishTimer = null;
@@ -8,9 +11,52 @@ const YouglishModule = (function () {
   // callback 函数
   closeCallback = null;
 
+  // ===== 动态插入 HTML =====
+  function injectHTML() {
+    if (document.getElementById('youglishOverlay')) return;
+
+    const html = `
+    <div id="youglishOverlay" class="youglish-overlay" style="display:none">
+      <div class="youglish-panel">
+        <div class="youglish-header">
+          <button class="youglish-close">&times;</button>
+          <h3 class="youglish-title">🎵 单词发音</h3>
+          <span class="youglish-word" id="youglishWord">word</span>
+        </div>
+        <div class="youglish-content">
+          <div class="youglish-status" id="youglishStatus">正在初始化...</div>
+          <div id="youglish-widget-container"></div>
+        </div>
+      </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    youglishOverlay = document.getElementById('youglishOverlay');
+    youglishWord = document.getElementById('youglishWord');
+    youglishStatus = document.getElementById('youglishStatus');
+
+    // 关闭按钮
+    const closeBtn = youglishOverlay.querySelector('.youglish-close');
+    closeBtn.addEventListener('click', () => close());
+  }
+
+  // ===== 加载 CSS =====
+  function loadCSS(url) {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`link[href="${url}"]`)) return resolve();
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = url;
+      link.onload = resolve;
+      link.onerror = () => reject(new Error(`CSS 加载失败: ${url}`));
+      document.head.appendChild(link);
+    });
+  }
+
   // ===== 外部脚本加载 =====
   function loadScript(src) {
     return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) return resolve();
       const s = document.createElement('script');
       s.src = src;
       s.async = true;
@@ -21,25 +67,22 @@ const YouglishModule = (function () {
   }
 
   // ===== 初始化模块 =====
-  async function init({ statusEl, wordEl, overlayEl, ccb = null
-  }) {
-    youglishStatus = statusEl;
-    youglishWord = wordEl;
-    youglishOverlay = overlayEl;
+  async function init({ cssUrl,
+    scriptUrl = "https://youglish.com/public/emb/widget.js",
+    ccb = null }) {
+    if (isInitialized) return;
+
     closeCallback = ccb;
+
+    injectHTML();
+    if (cssUrl) await loadCSS(cssUrl);
+    
 
     // 挂载全局回调（YouGlish 必须用全局的）
     window.onYouglishAPIReady = onYouglishAPIReady;
 
-    youglishOverlay.addEventListener('click', (event) => {
-      if (event.target === youglishOverlay) {
-        close();
-      }
-    });
-
-
-    // 加载 YouGlish API
-    await loadScript("https://youglish.com/public/emb/widget.js");
+    isInitialized = true;
+    await loadScript(scriptUrl);
   }
 
   // ===== YouGlish API 准备就绪 =====
@@ -119,7 +162,7 @@ const YouglishModule = (function () {
           clearInterval(checkAPI);
           updateStatus("YouGlish API 加载超时，请刷新页面重试");
         }
-      }, 5000);
+      }, 10000);
     } else {
       search(word);
     }
