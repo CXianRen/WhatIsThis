@@ -98,3 +98,22 @@ def update_word_tags(word, tags):
     word_tags_map[word] = tags
     __save_word_tags()
   
+# select word by tags
+def select_words_by_tags(tags):
+    """
+        select words by tags
+        return a list of words
+    """
+    global word_tags_map
+    selected_words = []
+    tid= 0  # Initialize tid to 0, assuming it is used for some ID generation later
+    for word, word_tags in word_tags_map.items():
+        if any(tag in word_tags for tag in tags):
+            selected_words.append({
+                'word': word,
+                'tags': word_tags,
+                'id': tid 
+            })
+            tid += 1
+    print(f"Selected words: {selected_words}")
+    return selected_words

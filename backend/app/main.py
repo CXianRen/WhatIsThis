@@ -1,38 +1,39 @@
-# ================= 新的主应用入口 =================
+# ================= Main Application Entry =================
 from flask import Flask
 import json
 import os
 
-# 导入配置和数据库模块
+# Import config and database modules
 from config import config
 from models.database import init_db, load_img_cache, load_phonetic_cache, load_en_dict_cache
 from models.tag.tag import init_tags
 
-# 导入所有路由蓝图
+# Import all route blueprints
 from routes.app import app_bp
 from routes.group import group_bp
 from routes.novel import novel_bp
 from routes.translation import translation_bp
 from routes.annotation import annotation_bp
 from routes.vocb import vocb_bp
+import sys
 
 def create_app():
-    """应用工厂函数"""
+    """Application factory function"""
     app = Flask(__name__, 
                 template_folder=config.TEMPLATE_PATH, 
                 static_folder=config.STATIC_PATH)
     
-    # 设置 MIME 类型
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1年缓存
+    # Set MIME type
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 year cache
     
-    # 初始化数据库和缓存
+    # Initialize database and cache
     init_tags()
     init_db()
     load_img_cache()
     load_phonetic_cache()
     load_en_dict_cache()
     
-    # 注册蓝图
+    # Register blueprints
     app.register_blueprint(app_bp)
     app.register_blueprint(group_bp)
     app.register_blueprint(novel_bp)
@@ -40,14 +41,14 @@ def create_app():
     app.register_blueprint(annotation_bp)
     app.register_blueprint(vocb_bp)
     
-    # 设置静态文件的 MIME 类型
+    # Set static file MIME type
     @app.after_request
     def after_request(response):
-        # 设置Service Worker的正确MIME类型
+        # Set correct MIME type for Service Worker
         if response.headers.get('Content-Type') == 'text/html; charset=utf-8' and '/sw.js' in str(response.location or ''):
             response.headers['Content-Type'] = 'application/javascript'
         
-        # 设置安全头
+        # Set security headers
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-XSS-Protection'] = '1; mode=block'
@@ -56,36 +57,44 @@ def create_app():
     
     return app
 
-# 创建应用实例
+# Create app instance
 app = create_app()
 
-# 打印启动信息
+# Print startup info
 print("=" * 60)
-print("🚀 WhatIsThis 应用启动")
+print("🚀 WhatIsThis Application Started")
 print("=" * 60)
-print("📁 数据目录:", config.DATA_DIR)
-print("📚 小说目录:", config.NOVEL_DIR)
-print("🖼️  图片目录:", config.IMAGE_DIR)
-print("📝 标注目录:", config.ANNOTATION_DIR)
+print("📁 Data Directory:", config.DATA_DIR)
+print("📚 Novel Directory:", config.NOVEL_DIR)
+print("🖼️ Image Directory:", config.IMAGE_DIR)
+print("📝 Annotation Directory:", config.ANNOTATION_DIR)
 print("=" * 60)
 
-# 加载基础数据
+# Load base data
 try:
     with open(config.RESULT_JSON, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
-    print(f"✅ 成功加载 {len(raw_data)} 条图片数据")
+    print(f"✅ Successfully loaded {len(raw_data)} image data entries")
 except Exception as e:
-    print(f"❌ 加载数据失败: {e}")
+    print(f"❌ Failed to load data: {e}")
 
 print("=" * 60)
-print("🌐 可用路由:")
-print("  📖 章节管理: /novel-upload")
-print("  🌍 语言转换: /novel-translation") 
-print("  📚 小说阅读: /app3")
-print("  🖼️  看图识词: /app1")
-print("  📚 分组学习: /app2")
-print("  📝 标注模式: /app4")
+print("🌐 Available Routes:")
+print("  📖 Chapter Management: /novel-upload")
+print("  🌍 Language Translation: /novel-translation") 
+print("  📚 Novel Reader: /app3")
+print("  🖼️ Image Learning: /app1")
+print("  📚 Group Learning: /app2")
+print("  📝 Annotation Mode: /app4")
 print("=" * 60)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+    port = 5000
+    if len(sys.argv) > 1:
+        try:
+            port = int(sys.argv[1])
+        except ValueError:
+            print(f"Invalid port '{sys.argv[1]}', using default port 5000.")
+
+    app.run(host='0.0.0.0', port=port, debug=True)

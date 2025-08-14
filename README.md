@@ -1,5 +1,5 @@
-# WhatIsThis
+# how to run
 
-https://zhuanlan.zhihu.com/p/424568797
-
-
+```sh
+cd backend
+```

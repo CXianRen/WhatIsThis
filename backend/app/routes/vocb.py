@@ -111,3 +111,16 @@ def search_images_as_endpoint(word, key):
         return jsonify({'success': True, 'images': urls, 'word': word, 'key': key})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# select word by tags
+@vocb_bp.route('/word/filter', methods=['POST'])
+def filter_words_by_tags():
+    data = request.get_json()
+    tags = data.get('tags', [])
+    
+    if not tags:
+        return jsonify({"error": "Tags are required"}), 400
+    
+    words = tag.select_words_by_tags(tags)
+    
+    return jsonify(words), 200
