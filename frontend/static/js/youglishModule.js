@@ -93,7 +93,7 @@ const YouglishModule = (function () {
     try {
       youglishWidget = new YG.Widget("youglish-widget-container", {
         width: 640,
-        height: 400,
+        height: 550,
         components: 88,
         events: {
           onFetchDone,
