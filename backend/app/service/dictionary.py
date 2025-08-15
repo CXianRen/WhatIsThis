@@ -119,7 +119,7 @@ def AI_Dictionary(words, target_lang="en", native_lang="zh"):
       "synonyms": ["synonym 1", "synonym 2"]
     }}
 
-    Please make sure the response is valid JSON."""
+    Please make sure the response is valid JSON and not including other text."""
 
         payload = {
             "model": "deepseek-chat",
