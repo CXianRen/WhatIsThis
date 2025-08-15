@@ -1,44 +1,44 @@
-# ================= 标注模式路由模块 =================
+# ================= Annotation Mode Routes Module =================
 from flask import Blueprint, jsonify, request, send_from_directory
 import os
 import json
 import uuid
 from werkzeug.utils import secure_filename
-from config.config import ANNOTATION_DIR, ANNOTATION_IMAGES_DIR, ANNOTATION_DATA_FILE
+from config.config import ANNOTATION_IMAGES_DIR, ANNOTATION_DATA_FILE
 
-# 创建蓝图
+# Create blueprint
 annotation_bp = Blueprint('annotation', __name__, url_prefix='/annotations')
 
 def load_annotation_data():
-    """加载标注数据"""
+    """Load annotation data"""
     if os.path.exists(ANNOTATION_DATA_FILE):
         with open(ANNOTATION_DATA_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
     return []
 
 def save_annotation_data(data):
-    """保存标注数据"""
+    """Save annotation data"""
     with open(ANNOTATION_DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 @annotation_bp.route('', methods=['GET'])
 def get_annotations():
-    """获取所有标注项目列表"""
+    """Get all annotation project list"""
     return jsonify(load_annotation_data())
 
 @annotation_bp.route('', methods=['POST'])
 def add_annotation():
-    """添加新的标注项目"""
+    """Add new annotation project"""
     try:
         data = request.get_json()
         if not data or 'name' not in data:
-            return jsonify({'error': '缺少必要的参数'}), 400
+            return jsonify({'error': 'Missing required parameter'}), 400
         
         annotations = load_annotation_data()
         
-        # 检查名称是否已存在
+        # Check if name already exists
         if any(ann['name'] == data['name'] for ann in annotations):
-            return jsonify({'error': '项目名称已存在'}), 400
+            return jsonify({'error': 'Project name already exists'}), 400
         
         new_annotation = {
             'id': len(annotations) + 1,
@@ -59,27 +59,27 @@ def add_annotation():
 
 @annotation_bp.route('/<int:annotation_id>', methods=['GET'])
 def get_annotation(annotation_id):
-    """获取特定标注项目的详情"""
+    """Get details of a specific annotation project"""
     annotations = load_annotation_data()
     annotation = next((ann for ann in annotations if ann['id'] == annotation_id), None)
     
     if not annotation:
-        return jsonify({'error': '标注项目不存在'}), 404
+        return jsonify({'error': 'Annotation project does not exist'}), 404
     
     return jsonify(annotation)
 
 @annotation_bp.route('/<int:annotation_id>', methods=['PUT'])
 def update_annotation(annotation_id):
-    """更新标注项目"""
+    """Update annotation project"""
     try:
         data = request.get_json()
         annotations = load_annotation_data()
         
         annotation_index = next((i for i, ann in enumerate(annotations) if ann['id'] == annotation_id), None)
         if annotation_index is None:
-            return jsonify({'error': '标注项目不存在'}), 404
+            return jsonify({'error': 'Annotation project does not exist'}), 404
         
-        # 更新数据
+        # Update data
         annotations[annotation_index].update(data)
         annotations[annotation_index]['updated_at'] = data.get('updated_at')
         
@@ -92,15 +92,15 @@ def update_annotation(annotation_id):
 
 @annotation_bp.route('/<int:annotation_id>', methods=['DELETE'])
 def delete_annotation(annotation_id):
-    """删除标注项目"""
+    """Delete annotation project"""
     try:
         annotations = load_annotation_data()
         annotation_index = next((i for i, ann in enumerate(annotations) if ann['id'] == annotation_id), None)
         
         if annotation_index is None:
-            return jsonify({'error': '标注项目不存在'}), 404
+            return jsonify({'error': 'Annotation project does not exist'}), 404
         
-        # 删除图片文件
+        # Delete image file
         removed_annotation = annotations.pop(annotation_index)
         if removed_annotation.get('image_path'):
             image_file_path = os.path.join(ANNOTATION_IMAGES_DIR, removed_annotation['image_path'])
@@ -116,16 +116,16 @@ def delete_annotation(annotation_id):
 
 @annotation_bp.route('/upload', methods=['POST'])
 def upload_annotation_image():
-    """上传标注图片"""
+    """Upload annotation image"""
     try:
         if 'image' not in request.files:
-            return jsonify({'error': '没有上传图片'}), 400
+            return jsonify({'error': 'No image uploaded'}), 400
         
         file = request.files['image']
         if file.filename == '':
-            return jsonify({'error': '没有选择文件'}), 400
+            return jsonify({'error': 'No file selected'}), 400
         
-        # 生成唯一文件名
+        # Generate unique filename
         file_ext = os.path.splitext(secure_filename(file.filename))[1]
         filename = f"{uuid.uuid4().hex}{file_ext}"
         file_path = os.path.join(ANNOTATION_IMAGES_DIR, filename)
@@ -139,5 +139,5 @@ def upload_annotation_image():
 
 @annotation_bp.route('/images/<filename>')
 def serve_annotation_image(filename):
-    """提供标注图片"""
+    """Serve annotation image"""
     return send_from_directory(ANNOTATION_IMAGES_DIR, filename)

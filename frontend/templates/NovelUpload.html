@@ -4,82 +4,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>小说章节管理</title>
+  <title>Novel Chapter Management</title>
   <link rel="stylesheet" href="/static/css/novel_ul.css" />
 </head>
 
 <body>
   <div class="container">
     <div class="header">
-      <h1>📚 小说章节管理</h1>
-      <p>上传、编辑和管理您的小说章节</p>
+      <h1>📚 Novel Chapter Management</h1>
+      <p>Upload, edit, and manage your novel chapters</p>
     </div>
 
-    <!-- 导航标签 -->
+    <!-- Navigation Tabs -->
     <div class="nav-tabs">
-      <a href="/novel-upload" class="nav-tab active">📖 章节管理</a>
-      <a href="/novel-translation" class="nav-tab">🌍 语言转换</a>
+      <a href="/novel-upload" class="nav-tab active">📖 Chapter Management</a>
+      <a href="/novel-translation" class="nav-tab">🌍 Language Translation</a>
     </div>
     <div class="main-content">
-      <!-- 左侧面板 - 小说选择和章节列表 -->
+      <!-- Left Panel - Novel Selection and Chapter List -->
       <div class="left-panel">
-        <!-- 小说选择 -->
+        <!-- Novel Selector -->
         <div class="novel-selector">
-          <h3 class="section-title">选择小说</h3>
+          <h3 class="section-title">Select Novel</h3>
           <button class="add-novel-btn" onclick="showAddNovelDialog()">
-            ➕ 新增小说
+            ➕ Add Novel
           </button>
           <div id="novelList">
-            <!-- 小说列表将在这里动态生成 -->
+            <!-- Novel list will be dynamically generated here -->
           </div>
         </div>
 
-        <!-- 章节列表 -->
+        <!-- Chapter List -->
         <div class="chapter-list">
-          <h3 class="section-title">章节列表</h3>
+          <h3 class="section-title">Chapter List</h3>
           <div id="chapterList">
             <div class="empty-state">
               <div class="empty-icon">📖</div>
-              <p>请先选择一个小说</p>
+              <p>Please select a novel first</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 右侧面板 - 上传/编辑表单 -->
+      <!-- Right Panel - Upload/Edit Form -->
       <div class="right-panel">
-        <h3 class="section-title">章节管理</h3>
+        <h3 class="section-title">Chapter Management</h3>
 
-        <!-- 默认提示 -->
+        <!-- Default Hint -->
         <div id="defaultHint" class="empty-state">
           <div class="empty-icon">✍️</div>
-          <p>选择小说后，点击"新增章节"开始上传</p>
+          <p>After selecting a novel, click "Add Chapter" to start uploading</p>
           <button class="add-novel-btn" onclick="showUploadForm()" style="margin-top: 20px; display: none;"
             id="addChapterBtn">
-            ➕ 新增章节
+            ➕ Add Chapter
           </button>
         </div>
 
-        <!-- 上传表单 -->
+        <!-- Upload Form -->
         <div id="uploadForm" class="upload-form">
           <form onsubmit="submitChapter(event)">
             <div class="form-group">
-              <label class="form-label" for="chapterTitle">章节标题</label>
-              <input type="text" id="chapterTitle" class="form-input" placeholder="请输入章节标题" required>
+              <label class="form-label" for="chapterTitle">Chapter Title</label>
+              <input type="text" id="chapterTitle" class="form-input" placeholder="Enter chapter title" required>
             </div>
             <div class="form-group">
-              <label class="form-label" for="chapterID">章节ID</label>
-              <input type="number" id="chapterID" class="form-input" placeholder="请输入章节ID" required>
+              <label class="form-label" for="chapterID">Chapter ID</label>
+              <input type="number" id="chapterID" class="form-input" placeholder="Enter chapter ID" required>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="chapterContent">章节内容</label>
-              <textarea id="chapterContent" class="form-textarea" placeholder="请输入章节内容..." required></textarea>
+              <label class="form-label" for="chapterContent">Chapter Content</label>
+              <textarea id="chapterContent" class="form-textarea" placeholder="Enter chapter content..."
+                required></textarea>
             </div>
 
             <div class="form-buttons">
-              <button type="button" class="btn-cancel" onclick="hideUploadForm()">取消</button>
-              <button type="submit" class="btn-submit">保存章节</button>
+              <button type="button" class="btn-cancel" onclick="hideUploadForm()">Cancel</button>
+              <button type="submit" class="btn-submit">Save Chapter</button>
             </div>
           </form>
         </div>
@@ -87,36 +88,36 @@
     </div>
   </div>
 
-  <!-- 新增小说对话框 -->
+  <!-- Add Novel Dialog -->
   <div id="addNovelDialog" class="dialog-overlay">
     <div class="dialog">
-      <h3>新增小说</h3>
+      <h3>Add Novel</h3>
       <div class="form-group">
-        <label class="form-label" for="novelName">小说名称</label>
-        <input type="text" id="novelName" class="form-input" placeholder="请输入小说名称">
+        <label class="form-label" for="novelName">Novel Name</label>
+        <input type="text" id="novelName" class="form-input" placeholder="Enter novel name">
       </div>
       <div class="dialog-buttons">
-        <button class="btn-secondary" onclick="hideAddNovelDialog()">取消</button>
-        <button class="btn-primary" onclick="addNewNovel()">确定</button>
+        <button class="btn-secondary" onclick="hideAddNovelDialog()">Cancel</button>
+        <button class="btn-primary" onclick="addNewNovel()">Confirm</button>
       </div>
     </div>
   </div>
 
-  <!-- 确认删除对话框 -->
+  <!-- Confirm Delete Dialog -->
   <div id="confirmDialog" class="dialog-overlay">
     <div class="dialog">
-      <h3>确认删除</h3>
-      <p id="confirmMessage">确定要删除吗？此操作不可撤销。</p>
+      <h3>Confirm Delete</h3>
+      <p id="confirmMessage">Are you sure you want to delete? This action cannot be undone.</p>
       <div class="dialog-buttons">
-        <button class="btn-secondary" onclick="hideConfirmDialog()">取消</button>
-        <button class="btn-primary" onclick="confirmAction()">确定</button>
+        <button class="btn-secondary" onclick="hideConfirmDialog()">Cancel</button>
+        <button class="btn-primary" onclick="confirmAction()">Confirm</button>
       </div>
     </div>
   </div>
 
   <script src="/static/js/novel_util.js"></script>
   <script>
-    // 全局变量
+    // Global variables
     let novels = [];
     let currentNovel = null;
     let currentChapter = null;
@@ -124,12 +125,12 @@
     let confirmCallback = null;
     let name_chapters_map = {};
 
-    // 页面加载时初始化
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', function () {
       loadNovels();
     });
 
-    // 加载小说列表
+    // Load novel list
     async function loadNovels() {
       novels = [];
       try {
@@ -137,15 +138,15 @@
         if (response.ok) {
           novels = await response.json();
         } else {
-          console.error('加载小说列表失败:', response.statusText);
+          console.error('Failed to load novel list:', response.statusText);
         }
       } catch (error) {
-        console.error('加载小说列表失败:', error);
+        console.error('Failed to load novel list:', error);
       }
       renderNovelList();
     }
 
-    // 渲染小说列表
+    // Render novel list
     function renderNovelList() {
       const novelList = document.getElementById('novelList');
 
@@ -153,7 +154,7 @@
         novelList.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">📚</div>
-            <p>还没有小说，点击上方按钮新增</p>
+            <p>No novels yet, click the button above to add</p>
           </div>
         `;
         return;
@@ -163,34 +164,34 @@
         <div class="novel-item ${currentNovel?.name === novel.name ? 'active' : ''}" 
              onclick="selectNovel('${novel.name}')">
           <div class="novel-name">${novel.display_name || novel.name}</div>
-          <div class="chapter-count">${novel.chapter_count || 0} 章节</div>
+          <div class="chapter-count">${novel.chapter_count || 0} chapters</div>
         </div>
       `).join('');
     }
 
-    // 选择小说
+    // Select novel
     async function selectNovel(novelName) {
       currentNovel = novels.find(n => n.name === novelName);
       renderNovelList();
 
       await loadChapters();
 
-      // 显示新增章节按钮
+      // Show add chapter button
       document.getElementById('addChapterBtn').style.display = 'block';
       document.getElementById('defaultHint').querySelector('p').textContent =
-        `已选择：${currentNovel.display_name || currentNovel.name}`;
+        `Selected: ${currentNovel.display_name || currentNovel.name}`;
     }
 
-    // 加载章节列表
+    // Load chapter list
     async function loadChapters() {
-      console.log("加载章节列表");
+      console.log("Loading chapter list");
       const chapterList = document.getElementById('chapterList');
 
       if (!currentNovel) {
         chapterList.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">📖</div>
-            <p>请先选择一个小说</p>
+            <p>Please select a novel first</p>
           </div>
         `;
         return;
@@ -200,14 +201,14 @@
         const response = await fetch(`/novel/${currentNovel.name}/chapters`);
         if (response.ok) {
           const chapters = await response.json();
-          console.log("章节数据:", chapters);
+          console.log("Chapter data:", chapters);
           currentNovel.chapters = chapters;
         } else {
-          console.error('加载章节失败:', response.statusText);
+          console.error('Failed to load chapters:', response.statusText);
           currentNovel.chapters = [];
         }
       } catch (error) {
-        console.error('加载章节失败:', error);
+        console.error('Failed to load chapters:', error);
         currentNovel.chapters = [];
       }
 
@@ -215,7 +216,7 @@
         chapterList.innerHTML = `
           <div class="empty-state">
             <div class="empty-icon">📖</div>
-            <p>该小说还没有章节</p>
+            <p>This novel has no chapters yet</p>
           </div>
         `;
         return;
@@ -230,49 +231,49 @@
             </div>
           </div>
           <div class="chapter-actions">
-            <button class="btn-edit" onclick="editChapter(${chapter.cid})">编辑</button>
-            <button class="btn-delete" onclick="deleteChapter(${chapter.cid})">删除</button>
+            <button class="btn-edit" onclick="editChapter(${chapter.cid})">Edit</button>
+            <button class="btn-delete" onclick="deleteChapter(${chapter.cid})">Delete</button>
           </div>
         </div>
       `).join('');
     }
 
-    // 显示上传表单
+    // Show upload form
     function showUploadForm() {
       if (!currentNovel) {
-        alert('请先选择一个小说');
+        alert('Please select a novel first');
         return;
       }
 
       document.getElementById('defaultHint').style.display = 'none';
       document.getElementById('uploadForm').classList.add('active');
 
-      // 清空表单
+      // Clear form
       document.getElementById('chapterTitle').value = '';
       document.getElementById('chapterContent').value = '';
       document.getElementById('chapterID').value = '';
-      document.getElementById('chapterID').disabled = false; // 允许编辑ID
+      document.getElementById('chapterID').disabled = false; // Allow editing ID
 
       isEditing = false;
       currentChapter = null;
     }
 
-    // 隐藏上传表单
+    // Hide upload form
     function hideUploadForm() {
       document.getElementById('uploadForm').classList.remove('active');
       document.getElementById('defaultHint').style.display = 'block';
 
-      // 清空表单
+      // Clear form
       document.getElementById('chapterTitle').value = '';
       document.getElementById('chapterContent').value = '';
       document.getElementById('chapterID').value = '';
-      document.getElementById('chapterID').disabled = false; // 允许编辑ID
+      document.getElementById('chapterID').disabled = false; // Allow editing ID
 
       isEditing = false;
       currentChapter = null;
     }
 
-    // 编辑章节
+    // Edit chapter
     async function editChapter(chapterId) {
       const chapter = currentNovel.chapters.find(c => c.cid === chapterId);
       if (!chapter) {
@@ -282,10 +283,10 @@
       }
 
       try {
-        // 通过raw API获取章节内容
+        // Get chapter content via raw API
         const response = await fetch(`/novel/${currentNovel.name}/chapters/raw/${chapterId}`);
         if (!response.ok) {
-          alert('加载章节内容失败');
+          alert('Failed to load chapter content');
           return;
         }
 
@@ -296,18 +297,18 @@
 
         document.getElementById('chapterTitle').value = chapterData.title;
         document.getElementById('chapterID').value = chapterData.cid;
-        document.getElementById('chapterID').disabled = true; // 禁止编辑ID
+        document.getElementById('chapterID').disabled = true; // Disable editing ID
         document.getElementById('chapterContent').value = chapterData.content;
 
         document.getElementById('defaultHint').style.display = 'none';
         document.getElementById('uploadForm').classList.add('active');
       } catch (error) {
-        console.error('加载章节内容失败:', error);
-        alert('加载章节内容失败');
+        console.error('Failed to load chapter content:', error);
+        alert('Failed to load chapter content');
       }
     }
 
-    // 删除章节
+    // Delete chapter
     async function deleteChapter(chapterId) {
       const chapter = currentNovel.chapters.find(c => c.cid === chapterId);
       if (!chapter) {
@@ -317,7 +318,7 @@
       }
 
       showConfirmDialog(
-        `确定要删除章节"${chapter.title}"吗？此操作不可撤销。`,
+        `Are you sure you want to delete chapter "${chapter.title}"? This action cannot be undone.`,
         async () => {
           try {
             const url = `/novel/${currentNovel.name}/chapters/update`;
@@ -333,32 +334,32 @@
             });
 
             if (response.ok) {
-              // 重新加载章节列表
+              // Reload chapter list
               await loadChapters();
 
-              // 更新小说章节计数
+              // Update novel chapter count
               await loadNovels();
               renderNovelList();
 
-              // 如果正在编辑这个章节，关闭编辑表单
+              // If editing this chapter, close the edit form
               if (currentChapter && currentChapter.cid === chapterId) {
                 hideUploadForm();
               }
 
-              alert('章节删除成功');
+              alert('Chapter deleted successfully');
             } else {
               const result = await response.json();
-              alert(`删除失败: ${result.error || '未知错误'}`);
+              alert(`Delete failed: ${result.error || 'Unknown error'}`);
             }
           } catch (error) {
-            console.error('删除章节失败:', error);
-            alert('删除失败，请重试');
+            console.error('Failed to delete chapter:', error);
+            alert('Delete failed, please try again');
           }
         }
       );
     }
 
-    // 提交章节
+    // Submit chapter
     async function submitChapter(event) {
       event.preventDefault();
 
@@ -367,13 +368,13 @@
       const chapterID = document.getElementById('chapterID').value.trim();
 
       if (!title || !content || !chapterID) {
-        alert('请填写完整的章节信息');
+        alert('Please fill in all chapter information');
         return;
       }
       const url = `/novel/${currentNovel.name}/chapters/update`;
       try {
         if (isEditing && currentChapter) {
-          // 更新现有章节
+          // Update existing chapter
           const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -388,14 +389,14 @@
           });
 
           if (response.ok) {
-            alert('章节更新成功');
+            alert('Chapter updated successfully');
           } else {
             const result = await response.json();
-            alert(`更新失败: ${result.error || '未知错误'}`);
+            alert(`Update failed: ${result.error || 'Unknown error'}`);
             return;
           }
         } else {
-          // 添加新章节
+          // Add new chapter
           console.log('Adding new chapter:', title);
 
           const response = await fetch(url, {
@@ -412,52 +413,52 @@
           });
 
           if (response.ok) {
-            alert('章节添加成功');
+            alert('Chapter added successfully');
           } else {
             const result = await response.json();
-            alert(`添加失败: ${result.error || '未知错误'}`);
+            alert(`Add failed: ${result.error || 'Unknown error'}`);
             return;
           }
         }
 
-        // 重新加载章节列表
+        // Reload chapter list
         await loadChapters();
 
-        // 更新小说章节计数
+        // Update novel chapter count
         await loadNovels();
         renderNovelList();
 
         hideUploadForm();
 
       } catch (error) {
-        console.error('提交章节失败:', error);
-        alert('操作失败，请重试');
+        console.error('Failed to submit chapter:', error);
+        alert('Operation failed, please try again');
       }
     }
 
-    // 显示新增小说对话框
+    // Show add novel dialog
     function showAddNovelDialog() {
       document.getElementById('addNovelDialog').style.display = 'flex';
       document.getElementById('novelName').value = '';
       document.getElementById('novelName').focus();
     }
 
-    // 隐藏新增小说对话框
+    // Hide add novel dialog
     function hideAddNovelDialog() {
       document.getElementById('addNovelDialog').style.display = 'none';
     }
 
-    // 添加新小说
+    // Add new novel
     async function addNewNovel() {
       const name = document.getElementById('novelName').value.trim();
       if (!name) {
-        alert('请输入小说名称');
+        alert('Please enter novel name');
         return;
       }
 
-      // 检查是否重复
+      // Check for duplicates
       if (novels.find(n => n.name === name || n.display_name === name)) {
-        alert('小说名称已存在');
+        alert('Novel name already exists');
         return;
       }
 
@@ -473,33 +474,33 @@
         });
 
         if (response.ok) {
-          alert('小说添加成功');
+          alert('Novel added successfully');
           hideAddNovelDialog();
           await loadNovels();
         } else {
           const result = await response.json();
-          alert(`添加失败: ${result.error || '未知错误'}`);
+          alert(`Add failed: ${result.error || 'Unknown error'}`);
         }
       } catch (error) {
-        console.error('添加小说失败:', error);
-        alert('添加失败，请重试');
+        console.error('Failed to add novel:', error);
+        alert('Add failed, please try again');
       }
     }
 
-    // 显示确认对话框
+    // Show confirm dialog
     function showConfirmDialog(message, callback) {
       document.getElementById('confirmMessage').textContent = message;
       document.getElementById('confirmDialog').style.display = 'flex';
       confirmCallback = callback;
     }
 
-    // 隐藏确认对话框
+    // Hide confirm dialog
     function hideConfirmDialog() {
       document.getElementById('confirmDialog').style.display = 'none';
       confirmCallback = null;
     }
 
-    // 确认操作
+    // Confirm action
     function confirmAction() {
       if (confirmCallback) {
         confirmCallback();
@@ -507,7 +508,7 @@
       hideConfirmDialog();
     }
 
-    // ESC键关闭对话框
+    // ESC key closes dialogs
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') {
         hideAddNovelDialog();
@@ -515,7 +516,7 @@
       }
     });
 
-    // 点击对话框外部关闭
+    // Click outside dialog to close
     document.getElementById('addNovelDialog').addEventListener('click', function (event) {
       if (event.target === this) {
         hideAddNovelDialog();

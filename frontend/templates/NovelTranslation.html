@@ -1,141 +1,143 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>小说语言转换 - WhatIsThis</title>
-  
+
   <!-- Favicon and Icons -->
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.svg">
   <link rel="manifest" href="/site.webmanifest">
-  
+
   <link rel="stylesheet" href="/static/css/novel_ts.css">
   <meta name="theme-color" content="#667eea">
-  
+
   <!-- PWA Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="语言转换">
   <meta name="mobile-web-app-capable" content="yes">
-  
+
 </head>
+
 <body>
   <div class="container">
     <div class="header">
-      <h1>🌍 小说语言转换</h1>
+      <h1>🌍 Novel Language Translation</h1>
     </div>
-    
-    <!-- 导航标签 -->
+
+    <!-- Navigation Tabs -->
     <div class="nav-tabs">
-      <a href="/novel-upload" class="nav-tab">📖 章节管理</a>
-      <a href="/novel-translation" class="nav-tab active">🌍 语言转换</a>
+      <a href="/novel-upload" class="nav-tab">📖 Chapter Management</a>
+      <a href="/novel-translation" class="nav-tab active">🌍 Language Translation</a>
     </div>
-    
+
     <div class="main-content">
-      <!-- 左侧面板 - 小说和章节选择 -->
+      <!-- Left Panel - Novel and Chapter Selection -->
       <div class="left-panel">
-        <!-- 小说选择 -->
+        <!-- Novel Selection -->
         <div class="novel-selector">
-          <h3 class="section-title">选择小说</h3>
+          <h3 class="section-title">Select Novel</h3>
           <div id="novelList">
-            <!-- 小说列表将在这里动态生成 -->
+            <!-- Novel list will be generated here dynamically -->
           </div>
         </div>
-        
-        <!-- 章节选择 -->
+
+        <!-- Chapter Selection -->
         <div class="chapter-selector">
-          <h3 class="section-title">选择章节</h3>
+          <h3 class="section-title">Select Chapters</h3>
           <div style="margin-bottom: 15px;">
             <label>
               <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-              全选/取消全选
+              Select All / Deselect All
             </label>
           </div>
           <div id="chapterList">
             <div class="empty-state">
               <div class="empty-icon">📖</div>
-              <p>请先选择一个小说</p>
+              <p>Please select a novel first</p>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- 右侧面板 - 转换控制和队列 -->
+
+      <!-- Right Panel - Conversion Controls and Queue -->
       <div class="right-panel">
-        <!-- 转换控制 -->
+        <!-- Conversion Controls -->
         <div class="conversion-controls">
-          <h3 class="section-title">转换设置</h3>
-          
+          <h3 class="section-title">Conversion Settings</h3>
+
           <div class="control-row">
             <div class="control-group">
-              <label class="control-label">目标语言</label>
+              <label class="control-label">Target Language</label>
               <select id="targetLanguage" class="language-select">
-                <option value="">选择目标语言</option>
+                <option value="">Select Target Language</option>
               </select>
             </div>
-            
+
             <div class="control-group">
-              <label class="control-label">覆盖设置</label>
+              <label class="control-label">Overwrite Setting</label>
               <select id="overwriteMode" class="language-select" style="min-width: 150px;">
-                <option value="ask">询问是否覆盖</option>
-                <option value="skip">跳过已存在</option>
-                <option value="overwrite">直接覆盖</option>
+                <option value="ask">Ask to Overwrite</option>
+                <option value="skip">Skip Existing</option>
+                <option value="overwrite">Overwrite Directly</option>
               </select>
             </div>
           </div>
-          
+
           <div class="batch-actions">
             <button class="btn btn-primary" onclick="startBatchConversion()" id="startBtn">
-              🚀 开始批量转换
+              🚀 Start Batch Conversion
             </button>
             <button class="btn btn-secondary" onclick="clearQueue()" id="clearBtn">
-              🗑️ 清空队列
+              🗑️ Clear Queue
             </button>
             <button class="btn btn-success" onclick="clearStoppedTasks()" id="clearStoppedBtn">
-              🧹 清理已停止
+              🧹 Clear Stopped
             </button>
             <button class="btn btn-danger" onclick="stopAllTasks()" id="stopAllBtn">
-              ⏹️ 停止全部
+              ⏹️ Stop All
             </button>
           </div>
         </div>
-        
-        <!-- 统计信息 -->
+
+        <!-- Statistics -->
         <div class="stats-container">
           <div class="stat-card">
             <div class="stat-number" id="totalCount">0</div>
-            <div class="stat-label">总计</div>
+            <div class="stat-label">Total</div>
           </div>
           <div class="stat-card">
             <div class="stat-number" id="waitingCount">0</div>
-            <div class="stat-label">等待中</div>
+            <div class="stat-label">Waiting</div>
           </div>
           <div class="stat-card">
             <div class="stat-number" id="processingCount">0</div>
-            <div class="stat-label">处理中</div>
+            <div class="stat-label">Processing</div>
           </div>
           <div class="stat-card">
             <div class="stat-number" id="completedCount">0</div>
-            <div class="stat-label">已完成</div>
+            <div class="stat-label">Completed</div>
           </div>
           <div class="stat-card">
             <div class="stat-number" id="failedCount">0</div>
-            <div class="stat-label">失败</div>
+            <div class="stat-label">Failed</div>
           </div>
           <div class="stat-card">
             <div class="stat-number" id="stoppedCount">0</div>
-            <div class="stat-label">已停止</div>
+            <div class="stat-label">Stopped</div>
           </div>
         </div>
-        
-        <!-- 转换队列 -->
+
+        <!-- Conversion Queue -->
         <div class="conversion-queue-section">
-          <h3 class="section-title">转换队列</h3>
+          <h3 class="section-title">Conversion Queue</h3>
           <div id="conversionQueue" class="conversion-queue">
             <div class="empty-state">
               <div class="empty-icon">📋</div>
-              <p>队列为空，请添加要转换的章节</p>
+              <p>The queue is empty, please add chapters to convert</p>
             </div>
           </div>
         </div>
@@ -145,62 +147,54 @@
 
   <script src="/static/js/novel_util.js"></script>
   <script>
-    // 全局变量
     let novels = [];
     let currentNovel = null;
     let selectedChapters = new Set();
     let conversionQueue = [];
     let isProcessing = false;
     let supportedLanguages = {};
-    
-    // 语言配置
-    // const LANGUAGES = {
-    //   'zh': { flag: '🇨🇳', name: '中文', extension: '.txt' },
-    //   'en': { flag: '🇺🇸', name: '英文', extension: '.en.json' },
-    //   'se': { flag: '🇸🇪', name: '瑞典语', extension: '.se.json' },
-    //   'fr': { flag: '🇫🇷', name: '法语', extension: '.fr.json' }
-    // };
-    
-    // 页面加载时初始化
-    document.addEventListener('DOMContentLoaded', function() {
+
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
       loadSupportedLanguages();
       loadNovels();
     });
 
-    // 加载支持的语言
+    // Load supported languages
     async function loadSupportedLanguages() {
-      console.log('开始加载支持的语言...');
+      console.log('Start loading supported languages...');
       try {
         const response = await fetch('/api/supported-languages');
         if (response.ok) {
           supportedLanguages = await response.json();
-          console.log('支持的语言:', supportedLanguages);
+          console.log('Supported languages:', supportedLanguages);
           initializeLanguageSelect();
         } else {
-          console.error('加载支持语言失败:', response.statusText);
+          console.error('Failed to load supported languages:', response.statusText);
         }
       } catch (error) {
-        console.error('加载支持语言失败:', error);
+        console.error('Failed to load supported languages:', error);
       }
     }
 
-    // 初始化语言选择下拉框
+    // Initialize language select dropdown
     function initializeLanguageSelect() {
       const select = document.getElementById('targetLanguage');
-      select.innerHTML = '<option value="">选择目标语言</option>';
-      
+      select.innerHTML = '<option value="">Select Target Language</option>';
+
       Object.keys(supportedLanguages).forEach(langCode => {
-        if (langCode !== 'zh') { // 排除中文，因为中文是源语言
+        if (langCode !== 'zh') { // Exclude Chinese as it is the source language
           const option = document.createElement('option');
           option.value = langCode;
           option.textContent = `${supportedLanguages[langCode].flag} ${supportedLanguages[langCode].name}`;
           select.appendChild(option);
         }
       });
-      
-      // 添加语言选择变化监听器
-      select.addEventListener('change', function() {
-        // 当语言改变时，更新章节选择状态
+
+      // Add language change listener
+      select.addEventListener('change', function () {
+        // When language changes, update chapter selection state
         if (currentNovel && currentNovel.chapters) {
           selectedChapters.clear();
           updateChapterSelection();
@@ -209,74 +203,74 @@
       });
     }
 
-    // 加载小说列表
+    // Load novel list
     async function loadNovels() {
-      console.log('开始加载小说列表...');
+      console.log('Start loading novel list...');
       try {
         const response = await fetch('/novel/list');
         if (response.ok) {
           novels = await response.json();
-          console.log('小说列表:', novels);
+          console.log('Novel list:', novels);
         } else {
-          console.error('加载小说列表失败:', response.statusText);
+          console.error('Failed to load novel list:', response.statusText);
           novels = [];
         }
         renderNovelList();
       } catch (error) {
-        console.error('加载小说列表失败:', error);
+        console.error('Failed to load novel list:', error);
         novels = [];
         renderNovelList();
       }
     }
 
-    // 渲染小说列表
+    // Render novel list
     function renderNovelList() {
       const novelList = document.getElementById('novelList');
-      
+
       if (novels.length === 0) {
         novelList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📚</div>
-            <p>还没有小说</p>
-          </div>
-        `;
+        <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <p>No novels yet</p>
+        </div>
+      `;
         return;
       }
-      
+
       novelList.innerHTML = novels.map(novel => `
-        <div class="novel-item ${currentNovel?.name === novel.name ? 'active' : ''}" 
-             onclick="selectNovel('${novel.name}')">
-          <div class="novel-name">${novel.display_name || novel.name}</div>
-          <div class="chapter-count">${novel.chapter_count || 0} 章节</div>
-        </div>
+      <div class="novel-item ${currentNovel?.name === novel.name ? 'active' : ''}" 
+         onclick="selectNovel('${novel.name}')">
+        <div class="novel-name">${novel.display_name || novel.name}</div>
+        <div class="chapter-count">${novel.chapter_count || 0} chapters</div>
+      </div>
       `).join('');
     }
 
-    // 选择小说
+    // Select novel
     async function selectNovel(novelName) {
       currentNovel = novels.find(n => n.name === novelName);
       renderNovelList();
 
       await loadChapters();
 
-      // 显示新增章节按钮
+      // Show add chapter button
       document.getElementById('addChapterBtn').style.display = 'block';
       document.getElementById('defaultHint').querySelector('p').textContent =
-        `已选择：${currentNovel.display_name || currentNovel.name}`;
+        `Selected: ${currentNovel.display_name || currentNovel.name}`;
     }
 
-    // 加载章节列表
+    // Load chapter list
     async function loadChapters() {
-      console.log("加载章节列表");
+      console.log("Loading chapter list");
       const chapterList = document.getElementById('chapterList');
 
       if (!currentNovel) {
         chapterList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📖</div>
-            <p>请先选择一个小说</p>
-          </div>
-        `;
+        <div class="empty-state">
+        <div class="empty-icon">📖</div>
+        <p>Please select a novel first</p>
+        </div>
+      `;
         return;
       }
 
@@ -284,43 +278,43 @@
         const response = await fetch(`/novel/${currentNovel.name}/chapters`);
         if (response.ok) {
           const chapters = await response.json();
-          console.log("章节数据:", chapters);
+          console.log("Chapter data:", chapters);
           currentNovel.chapters = chapters;
         } else {
-          console.error('加载章节失败:', response.statusText);
+          console.error('Failed to load chapters:', response.statusText);
           currentNovel.chapters = [];
         }
       } catch (error) {
-        console.error('加载章节失败:', error);
+        console.error('Failed to load chapters:', error);
         currentNovel.chapters = [];
       }
 
       if (!currentNovel.chapters || currentNovel.chapters.length === 0) {
         chapterList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📖</div>
-            <p>该小说还没有章节</p>
-          </div>
-        `;
+        <div class="empty-state">
+        <div class="empty-icon">📖</div>
+        <p>This novel has no chapters yet</p>
+        </div>
+      `;
         return;
       }
-      
+
       chapterList.innerHTML = currentNovel.chapters.map(chapter => `
-        <div class="chapter-item ${selectedChapters.has(chapter.cid) ? 'selected' : ''}" 
-             data-chapter-id="${chapter.cid}"
-             onclick="toggleChapterSelection(${chapter.cid})">
-          <input type="checkbox" class="chapter-checkbox" 
-                 ${selectedChapters.has(chapter.cid) ? 'checked' : ''}
-                 onchange="event.stopPropagation(); toggleChapterSelection(${chapter.cid})">
-          <div class="chapter-info">
-            <div class="chapter-title">${chapter.title}</div>
-            <div class="language-flags">
-              ${renderLanguageFlags(chapter)}
-            </div>
-          </div>
+      <div class="chapter-item ${selectedChapters.has(chapter.cid) ? 'selected' : ''}" 
+         data-chapter-id="${chapter.cid}"
+         onclick="toggleChapterSelection(${chapter.cid})">
+        <input type="checkbox" class="chapter-checkbox" 
+           ${selectedChapters.has(chapter.cid) ? 'checked' : ''}
+           onchange="event.stopPropagation(); toggleChapterSelection(${chapter.cid})">
+        <div class="chapter-info">
+        <div class="chapter-title">${chapter.title}</div>
+        <div class="language-flags">
+          ${renderLanguageFlags(chapter)}
         </div>
+        </div>
+      </div>
       `).join('');
-      
+
       updateSelectAllCheckbox();
     }
 
@@ -328,34 +322,34 @@
     // 切换章节选择
     function toggleChapterSelection(chapterId) {
       const targetLanguage = document.getElementById('targetLanguage').value;
-      
+
       if (!targetLanguage) {
-        alert('请先选择目标语言');
+        alert('Please select a target language first');
         return;
       }
-      
-      // 检查是否已在队列中
+
+      // Check if already in the queue
       const existingTaskIndex = conversionQueue.findIndex(
-        task => task.novelName === currentNovel.name && 
-               task.chapterId === chapterId && 
-               task.targetLanguage === targetLanguage
+        task => task.novelName === currentNovel.name &&
+          task.chapterId === chapterId &&
+          task.targetLanguage === targetLanguage
       );
-      
+
       if (existingTaskIndex !== -1) {
-        // 如果已在队列中，则移除（只能移除pending状态的任务）
+        // If already in the queue, remove (only if status is waiting)
         const task = conversionQueue[existingTaskIndex];
-        
-        // 只允许移除未开始的任务（waiting状态）
+
+        // Only allow removing tasks that are not processing or queued
         if (task.status === 'processing' || task.status === 'queued') {
-          alert('该章节正在处理中，无法移除');
+          alert('This chapter is being processed and cannot be removed');
           return;
         }
-        
+
         conversionQueue.splice(existingTaskIndex, 1);
         selectedChapters.delete(chapterId);
-        console.log('从队列移除任务:', task);
+        console.log('Removed task from queue:', task);
       } else {
-        // 如果不在队列中，则添加
+        // If not in the queue, add it
         const chapter = currentNovel.chapters.find(c => c.cid === chapterId);
         if (chapter) {
           const task = {
@@ -373,35 +367,34 @@
           };
           conversionQueue.push(task);
           selectedChapters.add(chapterId);
-          console.log('添加任务到队列:', task);
+          console.log('Added task to queue:', task);
         }
       }
-      
-      // 更新UI
+
+      // Update UI
       renderConversionQueue();
       updateStats();
       updateChapterSelection();
       updateSelectAllCheckbox();
     }
 
-    // 更新章节选择状态
     function updateChapterSelection() {
       const targetLanguage = document.getElementById('targetLanguage').value;
-      
+
       if (!currentNovel || !currentNovel.chapters) return;
-      
+
       currentNovel.chapters.forEach(chapter => {
         const chapterItem = document.querySelector(`[data-chapter-id="${chapter.cid}"]`);
         const checkbox = chapterItem?.querySelector('.chapter-checkbox');
-        
+
         if (chapterItem && checkbox) {
-          // 检查该章节是否在队列中
+          // check if this chapter is in the conversion queue for the selected language
           const isInQueue = conversionQueue.some(
-            task => task.novelName === currentNovel.name && 
-                   task.chapterId === chapter.cid && 
-                   task.targetLanguage === targetLanguage
+            task => task.novelName === currentNovel.name &&
+              task.chapterId === chapter.cid &&
+              task.targetLanguage === targetLanguage
           );
-          
+
           if (isInQueue) {
             chapterItem.classList.add('selected');
             checkbox.checked = true;
@@ -415,20 +408,18 @@
       });
     }
 
-    // 全选/取消全选
     function toggleSelectAll() {
       const selectAllCheckbox = document.getElementById('selectAll');
       const isSelectAll = selectAllCheckbox.checked;
-    
+
       if (isSelectAll) {
-        // 全选 - 将所有章节添加到队列
         currentNovel.chapters.forEach(chapter => {
           const existingTask = conversionQueue.find(
-            task => task.novelName === currentNovel.name && 
-                   task.chapterId === chapter.cid && 
-                   task.targetLanguage === targetLanguage
+            task => task.novelName === currentNovel.name &&
+              task.chapterId === chapter.cid &&
+              task.targetLanguage === targetLanguage
           );
-          
+
           if (!existingTask) {
             const task = {
               id: Date.now() + Math.random(),
@@ -450,24 +441,24 @@
       } else {
         // 取消全选 - 从队列中移除当前语言的所有章节
         const tasksToRemove = conversionQueue.filter(
-          task => task.novelName === currentNovel.name && 
-                 task.targetLanguage === targetLanguage &&
-                 (task.status === 'waiting' || task.status === 'completed' || task.status === 'failed' || task.status === 'stopped')
+          task => task.novelName === currentNovel.name &&
+            task.targetLanguage === targetLanguage &&
+            (task.status === 'waiting' || task.status === 'completed' || task.status === 'failed' || task.status === 'stopped')
         );
-        
+
         if (tasksToRemove.length > 0) {
           const hasProcessingTasks = conversionQueue.some(
-            task => task.novelName === currentNovel.name && 
-                   task.targetLanguage === targetLanguage &&
-                   (task.status === 'processing' || task.status === 'queued')
+            task => task.novelName === currentNovel.name &&
+              task.targetLanguage === targetLanguage &&
+              (task.status === 'processing' || task.status === 'queued')
           );
-          
+
           if (hasProcessingTasks) {
             alert('有正在处理的任务，无法全部移除');
             selectAllCheckbox.checked = true;
             return;
           }
-          
+
           if (confirm(`确定要从队列中移除所有 ${supportedLanguages[targetLanguage].name} 翻译任务吗？`)) {
             // 移除任务
             tasksToRemove.forEach(task => {
@@ -485,7 +476,7 @@
           selectedChapters.clear();
         }
       }
-      
+
       // 更新UI
       renderConversionQueue();
       updateStats();
@@ -493,25 +484,24 @@
       console.log('全选状态:', isSelectAll, '队列长度:', conversionQueue.length);
     }
 
-    // 更新全选复选框状态
+
     function updateSelectAllCheckbox() {
       const selectAllCheckbox = document.getElementById('selectAll');
       const targetLanguage = document.getElementById('targetLanguage').value;
-      
+
       if (!currentNovel || !currentNovel.chapters || !targetLanguage) {
         selectAllCheckbox.checked = false;
         selectAllCheckbox.indeterminate = false;
         return;
       }
-      
-      // 计算当前语言在队列中的章节数量
+
       const chaptersInQueue = conversionQueue.filter(
-        task => task.novelName === currentNovel.name && 
-               task.targetLanguage === targetLanguage
+        task => task.novelName === currentNovel.name &&
+          task.targetLanguage === targetLanguage
       ).length;
-      
+
       const totalChapters = currentNovel.chapters.length;
-      
+
       if (chaptersInQueue === 0) {
         selectAllCheckbox.checked = false;
         selectAllCheckbox.indeterminate = false;
@@ -524,85 +514,83 @@
       }
     }
 
-    // 渲染转换队列
     function renderConversionQueue() {
       const queueContainer = document.getElementById('conversionQueue');
-      
+
       if (conversionQueue.length === 0) {
         queueContainer.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">📋</div>
-            <p>队列为空，请添加要转换的章节</p>
-          </div>
-        `;
+        <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>The queue is empty, please add chapters to convert</p>
+        </div>
+      `;
         return;
       }
-      
+
       queueContainer.innerHTML = conversionQueue.map(task => {
         let timeInfo = '';
         if (task.estimatedTime && task.estimatedTime > 0) {
           const minutes = Math.floor(task.estimatedTime / 60);
           const seconds = Math.floor(task.estimatedTime % 60);
-          timeInfo = `<div class="estimated-time">预计剩余: ${minutes}分${seconds}秒</div>`;
+          timeInfo = `<div class="estimated-time">Estimated remaining: ${minutes}m ${seconds}s</div>`;
         } else if (task.status === 'completed' && task.startTime && task.endTime) {
           const duration = Math.floor((task.endTime - task.startTime) / 1000);
           const minutes = Math.floor(duration / 60);
           const seconds = duration % 60;
-          timeInfo = `<div class="duration-time">耗时: ${minutes}分${seconds}秒</div>`;
+          timeInfo = `<div class="duration-time">Duration: ${minutes}m ${seconds}s</div>`;
         }
-        
-        // 操作按钮：只有pending状态的任务可以移除，完成的任务显示完成状态
+
+        // Action buttons: only waiting/failed tasks can be removed, completed tasks show status
         let actionButton = '';
         if (task.status === 'waiting') {
-          actionButton = `<button class="btn-remove" onclick="removeTask('${task.id}')">移除</button>`;
+          actionButton = `<button class="btn-remove" onclick="removeTask('${task.id}')">Remove</button>`;
         } else if (task.status === 'processing' || task.status === 'queued') {
-          actionButton = `<span class="processing-indicator">处理中...</span>`;
+          actionButton = `<span class="processing-indicator">Processing...</span>`;
         } else if (task.status === 'completed') {
-          actionButton = `<span class="completed-indicator">✅ 完成</span>`;
+          actionButton = `<span class="completed-indicator">✅ Completed</span>`;
         } else if (task.status === 'failed') {
-          actionButton = `<button class="btn-remove" onclick="removeTask('${task.id}')">移除</button>`;
+          actionButton = `<button class="btn-remove" onclick="removeTask('${task.id}')">Remove</button>`;
         }
-        
+
         return `
-          <div class="queue-item ${task.status}" data-task-id="${task.id}">
-            <div class="queue-info">
-              <div class="queue-title">${task.chapterTitle}</div>
-              <div class="queue-details">
-                ${task.novelName} → ${task.targetLanguageName}
-              </div>
-              ${timeInfo}
-              ${task.error ? `<div class="error-message">错误: ${task.error}</div>` : ''}
-            </div>
-            <div class="queue-status">
-              <div class="status-text ${task.status}">
-                ${getStatusText(task.status)}
-              </div>
-              <div class="progress-container">
-                <div class="progress-bar ${task.status === 'completed' ? 'success' : task.status === 'failed' || task.status === 'stopped' ? 'error' : ''}" 
-                     style="width: ${task.progress}%"></div>
-              </div>
-              <div class="progress-percentage">${task.progress}%</div>
-              ${actionButton}
-            </div>
+        <div class="queue-item ${task.status}" data-task-id="${task.id}">
+        <div class="queue-info">
+          <div class="queue-title">${task.chapterTitle}</div>
+          <div class="queue-details">
+          ${task.novelName} → ${task.targetLanguageName}
           </div>
-        `;
+          ${timeInfo}
+          ${task.error ? `<div class="error-message">Error: ${task.error}</div>` : ''}
+        </div>
+        <div class="queue-status">
+          <div class="status-text ${task.status}">
+          ${getStatusText(task.status)}
+          </div>
+          <div class="progress-container">
+          <div class="progress-bar ${task.status === 'completed' ? 'success' : task.status === 'failed' || task.status === 'stopped' ? 'error' : ''}" 
+             style="width: ${task.progress}%"></div>
+          </div>
+          <div class="progress-percentage">${task.progress}%</div>
+          ${actionButton}
+        </div>
+        </div>
+      `;
       }).join('');
     }
-
-    // 获取状态文本
+    // Get status text
     function getStatusText(status) {
       const statusMap = {
-        'waiting': '等待中',
-        'queued': '排队中',
-        'processing': '处理中',
-        'completed': '已完成',
-        'failed': '失败',
-        'stopped': '已停止'
+        'waiting': 'Waiting',
+        'queued': 'Queued',
+        'processing': 'Processing',
+        'completed': 'Completed',
+        'failed': 'Failed',
+        'stopped': 'Stopped'
       };
       return statusMap[status] || status;
     }
 
-    // 更新统计信息
+    // Update statistics
     function updateStats() {
       const stats = {
         total: conversionQueue.length,
@@ -612,7 +600,7 @@
         failed: conversionQueue.filter(t => t.status === 'failed').length,
         stopped: conversionQueue.filter(t => t.status === 'stopped').length
       };
-      
+
       document.getElementById('totalCount').textContent = stats.total;
       document.getElementById('waitingCount').textContent = stats.waiting;
       document.getElementById('processingCount').textContent = stats.processing;
@@ -621,106 +609,106 @@
       document.getElementById('stoppedCount').textContent = stats.stopped;
     }
 
-    // 开始批量转换 - 简单队列，一个一个执行
+    // Start batch conversion - simple queue, execute one by one
     async function startBatchConversion() {
       if (conversionQueue.length === 0) {
-        alert('队列为空，请先添加要转换的章节');
+        alert('The queue is empty, please add chapters to convert');
         return;
       }
-      
+
       if (isProcessing) {
-        alert('转换正在进行中，请等待当前任务完成');
+        alert('Conversion is in progress, please wait for the current task to finish');
         return;
       }
-      
-      console.log('开始批量转换，队列长度:', conversionQueue.length);
+
+      console.log('Starting batch conversion, queue length:', conversionQueue.length);
       isProcessing = true;
-      
-      // 更新按钮状态
+
+      // Update button state
       document.getElementById('startBtn').disabled = true;
-      document.getElementById('startBtn').textContent = '转换中...';
-      
-      // 开始处理队列中的第一个等待任务
+      document.getElementById('startBtn').textContent = 'Converting...';
+
+      // Start processing the first waiting task in the queue
       await processNextTask();
-      
-      // 如果所有任务都完成了，恢复按钮状态
+
+      // If all tasks are completed, restore button state
       if (!conversionQueue.some(t => t.status === 'waiting' || t.status === 'processing')) {
         isProcessing = false;
         document.getElementById('startBtn').disabled = false;
-        document.getElementById('startBtn').textContent = '🚀 开始批量转换';
-        console.log('批量转换完成');
-        alert('批量转换完成！');
+        document.getElementById('startBtn').textContent = '🚀 Start Batch Conversion';
+        console.log('Batch conversion completed');
+        alert('Batch conversion completed!');
       }
     }
 
-    // 处理队列中的下一个任务
+    // Process the next task in the queue
     async function processNextTask() {
-      // 查找下一个等待中的任务
+      // Find the next waiting task
       const nextTask = conversionQueue.find(t => t.status === 'waiting');
-      
+
       if (!nextTask) {
-        // 没有等待中的任务了，检查是否所有任务都完成
+        // No more waiting tasks, check if all tasks are done
         if (!conversionQueue.some(t => t.status === 'processing')) {
-          // 所有任务都完成了，恢复UI状态
+          // All tasks are done, restore UI state
           isProcessing = false;
           document.getElementById('startBtn').disabled = false;
-          document.getElementById('startBtn').textContent = '🚀 开始批量转换';
-          console.log('批量转换完成');
-          alert('批量转换完成！');
+          document.getElementById('startBtn').textContent = '🚀 Start Batch Conversion';
+          console.log('Batch conversion completed');
+          alert('Batch conversion completed!');
         }
         return;
       }
-      
-      console.log('开始处理下一个任务:', nextTask);
-      
-      // 更新任务状态为处理中
+
+      console.log('Start processing next task:', nextTask);
+
+      // Update task status to processing
       nextTask.status = 'processing';
       nextTask.progress = 0;
       nextTask.startTime = new Date();
-      
+
       renderConversionQueue();
       updateStats();
-      
+
       try {
-        // 检查覆盖模式
+        // Check overwrite mode
         const overwriteMode = document.getElementById('overwriteMode').value;
         const chapter = currentNovel?.chapters?.find(c => c.cid === nextTask.chapterId);
-        
+
         if (chapter) {
           const support = getChapterLanguageSupport(chapter);
           const hasExistingVersion = support[nextTask.targetLanguage];
-          
+
           if (hasExistingVersion && overwriteMode === 'skip') {
             nextTask.status = 'completed';
             nextTask.progress = 100;
             nextTask.endTime = new Date();
-            console.log('跳过已存在的版本:', nextTask);
+            console.log('Skipped existing version:', nextTask);
             renderConversionQueue();
             updateStats();
-            
-            // 继续处理下一个任务
+
+            // Continue to next task
             setTimeout(() => processNextTask(), 500);
             return;
           }
-          
+
           if (hasExistingVersion && overwriteMode === 'ask') {
-            const confirmed = confirm(`章节"${nextTask.chapterTitle}"已存在${nextTask.targetLanguageName}版本，是否覆盖？`);
+            const confirmed = confirm(`Chapter "${nextTask.chapterTitle}" already has a ${nextTask.targetLanguageName} version. Overwrite?`);
             if (!confirmed) {
               nextTask.status = 'completed';
               nextTask.progress = 100;
               nextTask.endTime = new Date();
-              console.log('用户选择不覆盖:', nextTask);
+              console.log('User chose not to overwrite:', nextTask);
               renderConversionQueue();
               updateStats();
-              
-              // 继续处理下一个任务
+
+              // Continue to next task
               setTimeout(() => processNextTask(), 500);
               return;
             }
           }
         }
-        
-        // 启动翻译任务
+
+        // Start translation task
         const url = `/api/novels/${nextTask.novelName}/chapters/${nextTask.chapterId}/translate/${nextTask.targetLanguage}`;
         const response = await fetch(url, {
           method: 'POST',
@@ -731,328 +719,330 @@
             overwrite: overwriteMode === 'overwrite' || overwriteMode === 'ask'
           })
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.task_id) {
-            // 开始轮询任务状态，完成后自动处理下一个
+            // Poll task status, then process next when done
             nextTask.serverTaskId = result.task_id;
             await pollTaskProgressWithCallback(nextTask, () => {
-              // 当前任务完成，处理下一个
+              // After current task, process next
               setTimeout(() => processNextTask(), 1000);
             });
           } else {
-            throw new Error(result.error || '启动翻译任务失败');
+            throw new Error(result.error || 'Failed to start translation task');
           }
         } else {
           const errorResult = await response.json();
-          throw new Error(errorResult.error || `转换失败: ${response.statusText}`);
+          throw new Error(errorResult.error || `Translation failed: ${response.statusText}`);
         }
-        
+
       } catch (error) {
-        console.error('任务处理失败:', nextTask, error);
+        console.error('Task processing failed:', nextTask, error);
         nextTask.status = 'failed';
         nextTask.progress = 0;
         nextTask.error = error.message;
         nextTask.endTime = new Date();
         renderConversionQueue();
         updateStats();
-        
-        // 即使失败也继续处理下一个任务
+
+        // Continue to next task even if failed
         setTimeout(() => processNextTask(), 1000);
       }
     }
 
-    // 轮询任务进度（带完成回调）
+
+    // Poll task progress (with completion callback)
     async function pollTaskProgressWithCallback(task, onComplete) {
-      const maxAttempts = 300; // 最多轮询x次（s)
+      const maxAttempts = 300; // Maximum polling attempts (seconds)
       let attempts = 0;
-      
+
       const poll = async () => {
         try {
           const response = await fetch(`/api/translation/status/${task.serverTaskId}`);
           if (response.ok) {
             const status = await response.json();
-            
-            // 更新任务进度
+
+            // Update task progress
             task.progress = status.progress || 0;
             task.estimatedTime = status.estimated_time;
-            
+
             if (status.status === 'completed') {
               task.status = 'completed';
               task.progress = 100;
               task.endTime = new Date();
-              console.log('任务完成:', task);
+              console.log('Task completed:', task);
               renderConversionQueue();
               updateStats();
-              
-              // 调用完成回调
+
+              // Call completion callback
               if (onComplete) {
                 onComplete();
               }
               return;
             } else if (status.status === 'failed') {
               task.status = 'failed';
-              task.error = status.error || '翻译失败';
+              task.error = status.error || 'Translation failed';
               task.endTime = new Date();
-              console.log('任务失败:', task);
+              console.log('Task failed:', task);
               renderConversionQueue();
               updateStats();
-              
-              // 即使失败也调用回调继续下一个
+
+              // Call callback to continue to next even if failed
               if (onComplete) {
                 onComplete();
               }
               return;
             } else if (status.status === 'stopped') {
               task.status = 'failed';
-              task.error = '任务已停止';
+              task.error = 'Task stopped';
               task.endTime = new Date();
-              console.log('任务已停止:', task);
+              console.log('Task stopped:', task);
               renderConversionQueue();
               updateStats();
-              
-              // 即使停止也调用回调继续下一个
+
+              // Call callback to continue to next even if stopped
               if (onComplete) {
                 onComplete();
               }
               return;
             } else if (status.status === 'processing' || status.status === 'queued') {
-              // 继续轮询
+              // Continue polling
               renderConversionQueue();
               updateStats();
-              
+
               attempts++;
               if (attempts < maxAttempts) {
-                setTimeout(poll, 1000); // 每秒轮询一次
+                setTimeout(poll, 1000); // Poll every second
               } else {
-                // 超时，标记为失败
+                // Timeout, mark as failed
                 task.status = 'failed';
-                task.error = '任务超时';
+                task.error = 'Task timeout';
                 task.endTime = new Date();
                 renderConversionQueue();
                 updateStats();
-                console.log('任务超时:', task);
-                
-                // 超时也调用回调继续下一个
+                console.log('Task timeout:', task);
+
+                // Call callback to continue to next even if timeout
                 if (onComplete) {
                   onComplete();
                 }
               }
             }
           } else {
-            throw new Error('获取任务状态失败');
+            throw new Error('Failed to get task status');
           }
         } catch (error) {
-          console.error('轮询任务状态失败:', error);
+          console.error('Failed to poll task status:', error);
           attempts++;
           if (attempts >= 3) {
-            // 连续3次失败，标记为失败
+            // After 3 consecutive failures, mark as failed
             task.status = 'failed';
-            task.error = '无法获取任务状态';
+            task.error = 'Unable to get task status';
             task.endTime = new Date();
             renderConversionQueue();
             updateStats();
-            console.log('任务状态查询失败:', task);
-            
-            // 查询失败也调用回调继续下一个
+            console.log('Task status query failed:', task);
+
+            // Call callback to continue to next even if failed
             if (onComplete) {
               onComplete();
             }
           } else {
-            // 重试，延长轮询间隔
+            // Retry, increase polling interval
             setTimeout(poll, 2000);
           }
         }
       };
-      
-      // 开始轮询
+
+      // Start polling
       poll();
     }
 
-    // 清空队列
+    // Clear queue
     function clearQueue() {
       if (isProcessing) {
-        alert('转换正在进行中，无法清空队列');
+        alert('Conversion is in progress, cannot clear the queue');
         return;
       }
-      
+
       if (conversionQueue.length === 0) {
-        alert('队列已经为空');
+        alert('The queue is already empty');
         return;
       }
-      
-      // 只清空waiting和failed状态的任务
+
+      // Only clear tasks with status waiting, failed, or completed
       const removableTasks = conversionQueue.filter(t => t.status === 'waiting' || t.status === 'failed' || t.status === 'completed');
       if (removableTasks.length === 0) {
-        alert('没有可清空的任务');
+        alert('No tasks to clear');
         return;
       }
-      
-      const confirmed = confirm(`确定要清空 ${removableTasks.length} 个任务吗？`);
+
+      const confirmed = confirm(`Are you sure you want to clear ${removableTasks.length} tasks?`);
       if (confirmed) {
-        // 保留正在处理的任务
+        // Keep processing/queued tasks
         conversionQueue = conversionQueue.filter(t => t.status === 'processing' || t.status === 'queued');
         selectedChapters.clear();
-        
+
         renderConversionQueue();
         updateStats();
         updateChapterSelection();
         updateSelectAllCheckbox();
-        console.log('队列已清空');
+        console.log('Queue cleared');
       }
     }
 
-    // 停止单个任务
+    // Stop a single task
     async function stopTask(taskId) {
       try {
         const response = await fetch(`/api/translation/stop/${taskId}`, {
           method: 'POST'
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
-            console.log('任务已停止:', taskId);
-            // 更新本地任务状态
+            console.log('Task stopped:', taskId);
+            // Update local task status
             const task = conversionQueue.find(t => t.serverTaskId === taskId || t.id === taskId);
             if (task) {
               task.status = 'stopped';
-              task.error = '任务已被停止';
+              task.error = 'Task has been stopped';
               task.endTime = new Date();
             }
             renderConversionQueue();
             updateStats();
           } else {
-            alert(`停止任务失败: ${result.error}`);
+            alert(`Failed to stop task: ${result.error}`);
           }
         } else {
           const errorResult = await response.json();
-          alert(`停止任务失败: ${errorResult.error}`);
+          alert(`Failed to stop task: ${errorResult.error}`);
         }
       } catch (error) {
-        console.error('停止任务失败:', error);
-        alert('停止任务失败，请重试');
+        console.error('Failed to stop task:', error);
+        alert('Failed to stop task, please try again');
       }
     }
 
-    // 停止所有任务
+    // Stop all tasks
     async function stopAllTasks() {
       const processingTasks = conversionQueue.filter(t => t.status === 'queued' || t.status === 'processing');
-      
+
       if (processingTasks.length === 0) {
-        alert('没有正在运行的任务');
+        alert('No running tasks');
         return;
       }
-      
-      const confirmed = confirm(`确定要停止所有正在运行的任务吗？共 ${processingTasks.length} 个任务。`);
+
+      const confirmed = confirm(`Are you sure you want to stop all running tasks? Total: ${processingTasks.length} tasks.`);
       if (!confirmed) return;
-      
+
       try {
         const response = await fetch('/api/translation/stop-all', {
           method: 'POST'
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
-            console.log('所有任务已停止');
-            
-            // 更新本地任务状态
+            console.log('All tasks stopped');
+
+            // Update local task status
             conversionQueue.forEach(task => {
               if (task.status === 'queued' || task.status === 'processing') {
                 task.status = 'stopped';
-                task.error = '批量停止操作';
+                task.error = 'Batch stop operation';
                 task.endTime = new Date();
               }
             });
-            
+
             renderConversionQueue();
             updateStats();
-            alert(`已停止 ${result.stopped_count} 个任务`);
+            alert(`Stopped ${result.stopped_count} tasks`);
           } else {
-            alert(`停止任务失败: ${result.error}`);
+            alert(`Failed to stop tasks: ${result.error}`);
           }
         } else {
           const errorResult = await response.json();
-          alert(`停止任务失败: ${errorResult.error}`);
+          alert(`Failed to stop tasks: ${errorResult.error}`);
         }
       } catch (error) {
-        console.error('停止所有任务失败:', error);
-        alert('停止任务失败，请重试');
+        console.error('Failed to stop all tasks:', error);
+        alert('Failed to stop tasks, please try again');
       }
     }
 
-    // 移除任务
+    // Remove task
     function removeTask(taskId) {
       const taskIndex = conversionQueue.findIndex(t => t.id === taskId);
       if (taskIndex !== -1) {
         const task = conversionQueue[taskIndex];
-        
-        // 只允许移除waiting或failed状态的任务
+
+        // Only allow removing tasks with status 'waiting' or 'failed'
         if (task.status === 'processing' || task.status === 'queued') {
-          alert('无法移除正在执行的任务');
+          alert('Cannot remove a task that is currently processing');
           return;
         }
-        
+
         conversionQueue.splice(taskIndex, 1);
-        // 同时从选中章节中移除
+        // Also remove from selected chapters
         selectedChapters.delete(task.chapterId);
-        
+
         renderConversionQueue();
         updateStats();
         updateChapterSelection();
         updateSelectAllCheckbox();
-        console.log('任务已移除:', taskId);
+        console.log('Task removed:', taskId);
       }
     }
-    
-    // 清理已停止和失败的任务
+
+    // Clear stopped and failed tasks
     async function clearStoppedTasks() {
-      const stoppedTasks = conversionQueue.filter(t => 
+      const stoppedTasks = conversionQueue.filter(t =>
         t.status === 'stopped' || t.status === 'failed'
       );
-      
+
       if (stoppedTasks.length === 0) {
-        alert('没有需要清理的任务');
+        alert('No stopped or failed tasks to clear');
         return;
       }
-      
-      if (!confirm(`确定要清理 ${stoppedTasks.length} 个已停止/失败的任务吗？`)) {
+
+      if (!confirm(`Are you sure you want to clear ${stoppedTasks.length} stopped/failed tasks?`)) {
         return;
       }
-      
+
       try {
         const response = await fetch('/api/translation/clear-stopped', {
           method: 'POST'
         });
-        
+
         if (response.ok) {
           const result = await response.json();
-          console.log('清理停止任务结果:', result);
-          
-          // 从本地队列中移除已停止和失败的任务
+          console.log('Clear stopped tasks result:', result);
+
+          // Remove stopped and failed tasks from local queue
           const initialCount = conversionQueue.length;
-          conversionQueue = conversionQueue.filter(task => 
+          conversionQueue = conversionQueue.filter(task =>
             task.status !== 'stopped' && task.status !== 'failed'
           );
           const removedCount = initialCount - conversionQueue.length;
-          
+
           renderConversionQueue();
           updateStats();
-          
-          alert(`已清理 ${removedCount} 个已停止/失败的任务`);
+
+          alert(`Cleared ${removedCount} stopped/failed tasks`);
         } else {
-          throw new Error('清理停止任务请求失败');
+          throw new Error('Failed to request clearing stopped tasks');
         }
       } catch (error) {
-        console.error('清理停止任务失败:', error);
-        alert(`清理失败: ${error.message}`);
+        console.error('Failed to clear stopped tasks:', error);
+        alert(`Clear failed: ${error.message}`);
       }
     }
   </script>
-  
+
   <!-- PWA Support Script -->
   <script src="/static/pwa.js"></script>
 </body>
+
 </html>

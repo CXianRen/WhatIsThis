@@ -28,7 +28,7 @@
     <div class="main-content">
       <div class="content-header">
         <div>
-          <h2 id="currentChapter">选择一个章节开始阅读</h2>
+          <h2 id="currentChapter">Select a chapter to start reading</h2>
         </div>
 
         <div class="control-area">
@@ -45,14 +45,14 @@
         </div>
       </div>
       <div id="contentArea">
-        <div class="loading">请从左侧选择章节</div>
+        <div class="loading">Please select a chapter from the left</div>
       </div>
     </div>
   </div>
 
   <!-- Tool bar -->
 
-  <!-- YouGlish 发音面板 -->
+  <!-- YouGlish Panel -->
 
   <!-- Word panel -->
 
@@ -76,16 +76,17 @@
     let selectedWord = '';
     let selectedWordElement = null;
     let isNightMode = false;
-    let currentFontSize = 2; // 0:小, 1:较小, 2:中等, 3:较大, 4:大
+    let currentFontSize = 2;
+    // 0:小, 1:较小, 2:中等, 3:较大, 4:大
     const fontSizes = ['small', 'medium', 'large', 'extra-large', 'huge'];
-    const fontSizeNames = ['小', '较小', '中', '较大', '大'];
+    const fontSizeNames = ['small', 'medium', 'large', 'extra-large', 'huge'];;
 
-    // word tag相关变量
+    // word tag related variables
     let allowTagList = [];
     let wordTags = [];
     let tempTagList = [];
 
-    // DOM元素缓存
+    // DOM elements cached for performance
     const currentChapterElement = document.getElementById('currentChapter');
     const chapterInfoElement = document.getElementById('chapterInfo');
     const contentAreaElement = document.getElementById('contentArea');
@@ -95,13 +96,13 @@
     // const nightModeText = document.getElementById('nightModeText');
     const fontSizeDisplay = document.getElementById('fontSizeDisplay');
 
-    // 初始化侧边栏组件
+    // initialize the sidebar component
     function initSidebar() {
       const isMobile = window.innerWidth <= 768;
       const isLandscape = window.innerWidth > window.innerHeight;
 
       sidebar = new SidebarComponent({
-        title: '小说章节',
+        title: 'Chapter List',
         containerId: 'container',
         position: 'left',
         width: isLandscape ? '50vw' : '80vw',
@@ -115,7 +116,7 @@
       loadNovelList();
     }
 
-    // 加载小说列表
+    // load the novel list from the server
     async function loadNovelList() {
       try {
         const response = await fetch('/novel/list');
@@ -169,7 +170,7 @@
       }
     }
 
-    // 创建小说列表内容
+    // generate the HTML content for the novel list
     function createNovelListContent() {
       if (novelData.length === 0) {
         return '<div class="loading">没有找到小说</div>';
@@ -200,7 +201,7 @@
       return html + '</ul>';
     }
 
-    // 切换小说的展开/收起状态
+    // toggle the visibility of the chapter list
     function toggleNovel(novelIndex, titleElement) {
       const chapterList = titleElement.parentElement.querySelector('.chapter-list');
 
@@ -213,28 +214,28 @@
       }
     }
 
-    // 选择章节
+    // chapter selection handler
     async function selectChapter(novelIndex, chapterIndex, chapterElement, event) {
       event.stopPropagation();
 
       const novel = novelData[novelIndex];
       const chapter = novel.chapters[chapterIndex];
       console.log(novel.chapters)
-      console.log(`选择章节: ${novel.name} - ${chapter.title}`);
+      console.log(`Select chapter: ${novel.name} - ${chapter.title}`);
 
-      // 关闭侧边栏
+      // close the sidebar if it is open
       sidebar?.hide();
 
-      // 更新选中状态
+      // update the active chapter in the sidebar
       sidebar.sidebar.querySelectorAll('.chapter-item').forEach(item => item.classList.remove('active'));
       chapterElement.classList.add('active');
 
-      // 更新当前章节信息
+      // update the current chapter and content area
       currentNovel = novel;
       currentChapter = chapter;
       currentChapterElement.textContent = `${novel.name} - ${chapter.title}`;
-      chapterInfoElement.textContent = '加载中...';
-      contentAreaElement.innerHTML = '<div class="loading">加载章节内容中...</div>';
+      chapterInfoElement.textContent = 'Loading...';
+      contentAreaElement.innerHTML = '<div class="loading">Loading...</div>';
 
       const url = `/novel/${novel.name}/chapters/${chapter.cid}/en`;
       try {
@@ -244,15 +245,15 @@
         }
 
         currentContent = await response.json();
-        console.log('加载章节内容成功:', currentContent);
+        console.log('Chapter content loaded successfully:', currentContent);
 
-        // 初始化该章节的句子状态
+        // Initialize sentence state for this chapter
         const chapterPath = `${novel.name}/${chapter.title}`;
         if (!sentenceStates[chapterPath]) {
           sentenceStates[chapterPath] = {};
         }
 
-        // 初始化每个句子的状态（默认显示翻译）
+        // Initialize each sentence state (default to English)
         if (currentContent.content) {
           currentContent.content.forEach((_, index) => {
             if (!(index in sentenceStates[chapterPath])) {
@@ -264,55 +265,55 @@
         renderChapterContent(currentContent, chapterPath);
 
       } catch (error) {
-        console.error('加载章节内容失败:', error);
-        contentAreaElement.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+        console.error('Failed to load chapter content:', error);
+        contentAreaElement.innerHTML = `<div class="error">Failed to load: ${error.message}</div>`;
       }
     }
 
-    // 渲染章节内容
+    // Render chapter content
     function renderChapterContent(content, chapterPath) {
-      // 处理新格式：content.content 数组
+      // Handle new format: content.content array
       const sentences = content.content || [];
-      chapterInfoElement.textContent = `共 ${sentences.length} 句`;
+      chapterInfoElement.textContent = `Total ${sentences.length} sentences`;
 
       const sentenceHTML = sentences.map((sentence, index) => {
         const currentState = sentenceStates[chapterPath][index] || 'english';
         const isChinese = currentState === 'chinese';
         const cssClass = isChinese ? 'chinese-text' : 'english-text';
 
-        // 新格式：text是中文，translation是翻译
+        // New format: text is Chinese, translation is English
         const text = isChinese ? sentence.src : sentence.target;
 
-        // 语言切换图标
-        const toggleIcon = isChinese ? '中' : 'EN';
-        const toggleTitle = isChinese ? '切换到英文' : '切换到中文';
+        // Language toggle icon
+        const toggleIcon = isChinese ? 'CN' : 'EN';
+        const toggleTitle = isChinese ? 'Switch to English' : 'Switch to Chinese';
 
         return `
-          <div class="sentence ${isChinese ? 'chinese' : ''}">
-            <div class="language-toggle" 
-                 onclick="toggleSentence(${index}, '${chapterPath}')" 
-                 title="${toggleTitle}">
-              ${toggleIcon}
-            </div>
-            <div class="sentence-text"
-                 onmousedown="handleMouseDown(event)"
-                 onmouseup="handleMouseUp(event)"
-                 ontouchstart="handleTouchStart(event)"
-                 ontouchend="handleTouchEnd(event)"
-                 ontouchmove="handleTouchMove(event)"
-                 oncontextmenu="handleContextMenu(event)">
-              <div class="${cssClass}">${text}</div>
-            </div>
-          </div>
-        `;
+        <div class="sentence ${isChinese ? 'chinese' : ''}">
+        <div class="language-toggle" 
+           onclick="toggleSentence(${index}, '${chapterPath}')" 
+           title="${toggleTitle}">
+          ${toggleIcon}
+        </div>
+        <div class="sentence-text"
+           onmousedown="handleMouseDown(event)"
+           onmouseup="handleMouseUp(event)"
+           ontouchstart="handleTouchStart(event)"
+           ontouchend="handleTouchEnd(event)"
+           ontouchmove="handleTouchMove(event)"
+           oncontextmenu="handleContextMenu(event)">
+          <div class="${cssClass}">${text}</div>
+        </div>
+        </div>
+      `;
       }).join('');
 
       contentAreaElement.innerHTML = `<div class="sentence-container font-size-${fontSizes[currentFontSize]}">${sentenceHTML}</div>`;
     }
 
-    // 切换句子的中英文显示
+    // Toggle sentence language display
     function toggleSentence(sentenceIndex, chapterPath) {
-      event.stopPropagation(); // 阻止事件冒泡
+      event.stopPropagation(); // Prevent event bubbling
 
       const currentState = sentenceStates[chapterPath][sentenceIndex] || 'english';
       sentenceStates[chapterPath][sentenceIndex] = currentState === 'chinese' ? 'english' : 'chinese';
@@ -322,9 +323,9 @@
       }
     }
 
-    // ----------- UI 事件 ------------//
+    // ----------- UI Events ------------//
 
-    // 处理鼠标按下事件
+    // Handle mouse down event
     function handleMouseDown(event) {
       clearWordSelection();
       clearTimeout(longPressTimer);
@@ -332,7 +333,7 @@
       event.startTime = Date.now();
     }
 
-    // 处理鼠标抬起事件
+    // Handle mouse up event
     function handleMouseUp(event) {
       console.log("release");
       const clickDuration = Date.now() - (event.startTime || 0);
@@ -348,7 +349,7 @@
       event.preventDefault();
     }
 
-    // 处理触摸开始事件
+    // Handle touch start event
     function handleTouchStart(event) {
       console.log("touch start");
 
@@ -356,27 +357,27 @@
       window.getSelection().removeAllRanges();
       clearTimeout(longPressTimer);
 
-      // 保存触摸开始时的坐标和时间
+      // Save the coordinates and time when touch starts
       const touch = event.touches[0];
       event.startX = touch.clientX;
       event.startY = touch.clientY;
 
-      // 初始化拖拽选择标记
+      // Initialize drag selection flag
       isDragSelection = false;
 
       longPressTimer = setTimeout(() => {
         isDragSelection = true;
         console.log("long press detected");
-        window.getSelection().removeAllRanges(); // 清除之前的选择
+        window.getSelection().removeAllRanges(); // Clear previous selection
       }, 600);
     }
 
-    // 处理触摸结束事件
+    // Handle touch end event
     function handleTouchEnd(event) {
       console.log("touch end");
       clearTimeout(longPressTimer);
 
-      // 如果是拖拽选择或长时间触摸，处理文本选择
+      // If it's a drag selection or long press, handle text selection
       if (isDragSelection) {
         setTimeout(() => {
           console.log("drag selection end detected");
@@ -401,7 +402,7 @@
       }
     }
 
-    // 工具函数：将选区扩展到单词边界
+    // Utility function: expand selection range to word boundaries
     function expandRangeToWord(range) {
       if (!range || !range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) {
         return;
@@ -411,12 +412,12 @@
       let start = range.startOffset;
       let end = range.endOffset;
 
-      // 向前扩展
+      // Expand backward
       while (start > 0 && /\w/.test(text[start - 1])) {
         start--;
       }
 
-      // 向后扩展
+      // Expand forward
       while (end < text.length && /\w/.test(text[end])) {
         end++;
       }
@@ -425,7 +426,7 @@
       range.setEnd(range.startContainer, end);
     }
 
-    // 处理触摸移动事件（取消长按如果移动太多）
+    // Handle touch move event (cancel long press if moved too much)
     function handleTouchMove(event) {
       // console.log("touch move");
 
@@ -436,11 +437,11 @@
 
       if (!isDragSelection) {
         if (deltaX > 5 || deltaY > 5) {
-          // 取消长按
+          // Cancel long press
           clearTimeout(longPressTimer);
         }
       } else {
-        // 进入 拖动选择中
+        // Enter drag selection mode
         event.preventDefault();
 
         let range;
@@ -465,14 +466,14 @@
       }
     }
 
-    // 处理文本选择
+    // Handle text selection
     function handleTextSelection(event) {
       const selection = window.getSelection();
       const selectedText = selection.toString().trim();
       console.log("selectedText:", selectedText);
       if (selectedText) {
         selectedWord = selectedText;
-        // 获取选择范围的位置
+        // Get the position of the selection range
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
 
@@ -488,14 +489,14 @@
       }
     }
 
-    // 在内容中高亮指定单词 for the future
+    // Highlight the specified word in the content (for future use)
     function highlightWordInContent(word) {
       const sentenceTexts = document.querySelectorAll('.sentence-text');
 
       sentenceTexts.forEach(sentenceText => {
         const textContent = sentenceText.innerHTML;
 
-        // 使用正则表达式匹配整个单词（不区分大小写）
+        // Use a regular expression to match the whole word (case-insensitive)
         const regex = new RegExp(`\\b(${word})\\b`, 'gi');
         const highlightedContent = textContent.replace(regex,
           '<span class="selected-word-highlight">$1</span>'
@@ -505,18 +506,18 @@
       });
     }
 
-    // 清除单词选择
+    // Clear word selection
     function clearWordSelection() {
-      // 移除所有高亮
+      // Remove all highlights
       const highlightedWords = document.querySelectorAll('.selected-word-highlight');
       highlightedWords.forEach(element => {
         const parent = element.parentNode;
         parent.replaceChild(document.createTextNode(element.textContent), element);
-        parent.normalize(); // 合并相邻的文本节点
+        parent.normalize(); // Merge adjacent text nodes
       });
     }
 
-    // 工具栏按钮事件处理
+    // Toolbar button event handler
     function openAIDictionary() {
       if (selectedWord) {
         console.log('Tool 1 - AI dictionary:', selectedWord)

@@ -394,7 +394,7 @@
       <!-- Word Card Content -->
       <div class="word-card">
         <div class="word-display">
-          <h1 class="word-title" id="wordTitle">apple</h1>
+          <h1 class="word-title" id="wordTitle"></h1>
         </div>
 
         <!-- Image Viewer Component -->
@@ -410,6 +410,8 @@
           </div>
           <div class="toolbar-actions">
             <!-- Toolbar from toolbarModule.js will be inserted here -->
+            <button class="nav-btn" id="youglishBtn">Youglish</button>
+            <button class="nav-btn" id="wordDetailBtn">Word Detail</button>
           </div>
         </div>
       </div>
@@ -418,7 +420,8 @@
 
   <script src="/static/js/toolbarModule.js"></script>
   <script src="/static/js/imageViewerModule.js"></script>
-
+  <script src="/static/js/wordModule.js"></script>
+  <script src="static/js/youglishModule.js"></script>
   <script>
     // WordCard Data and State
     let currentWordIndex = 0;
@@ -426,6 +429,7 @@
     let selectedTags = [];
     let availableTags = [];
     let searchQuery = '';
+    let currentWord = null;
 
     // fetch available tags from the server
     async function fetchTags() {
@@ -469,6 +473,22 @@
       }
     }
 
+
+    async function fetchWordImages(word) {
+      try {
+        const response = await fetch(`/api/vocb/word/imgs/${word}`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log('Fetched images for word:', word, data.images);
+        return data.images || [];
+      } catch (error) {
+        console.error('Failed to fetch word images:', error);
+        return [];
+      }
+    }
+
     function updateAvailableTags() {
       const availableTagsContainer = document.getElementById('availableTags');
       const tagsToShow = availableTags.filter(tag => !selectedTags.includes(tag));
@@ -503,7 +523,6 @@
       updateSelectedTags();
     }
 
-
     function updateWordList() {
       const wordList = document.getElementById('wordList');
       wordList.innerHTML = words.map((word, index) => `
@@ -520,6 +539,7 @@
       const index = words.findIndex(word => word.id === wordId);
       if (index !== -1) {
         currentWordIndex = index;
+        currentWord = words[currentWordIndex];
         updateWordList();
         updateWordCard();
       }
@@ -530,14 +550,22 @@
       if (words.length === 0) return;
 
       console.log('Updating word card with current index:', currentWordIndex);
-      const currentWord = words[currentWordIndex];
+      currentWord = words[currentWordIndex];
       console.log('Updating word card with current word:', currentWord);
 
       document.getElementById('wordTitle').textContent = currentWord.word;
       // 调用模块更新图片
-      if (currentWord.images) {
-        ImageViewerModule.setImages(currentWord.images);
-      }
+
+      fetchWordImages(currentWord.word)
+        .then(images => {
+          console.log('Setting images for word:', currentWord.word, images);
+          ImageViewerModule.setImages(images);
+        })
+        .catch(error => {
+          ImageViewerModule.setImages([]);
+          console.error('Failed to fetch images for word:', currentWord.word, error);
+        });
+
       updateNavigationButtons();
     }
 
@@ -552,6 +580,16 @@
       ImageViewerModule.init({
         cssUrl: '/static/css/image_viewer.css',
         containerId: 'imageViewer',
+      });
+
+      // 
+      YouglishModule.init({
+        cssUrl: '/static/css/youglish_panel.css'
+      });
+
+      // 初始化单词详情面板
+      WordModule.init({
+        cssUrl: '/static/css/word_panel.css'
       });
 
       // 加載標籤和初始化
@@ -604,6 +642,16 @@
           updateWordList();
           updateWordCard();
         }
+      });
+
+      document.getElementById('youglishBtn').addEventListener('click', () => {
+        console.log('Youglish button clicked for word:', currentWord);
+        YouglishModule.show(currentWord.word);
+      });
+
+      document.getElementById('wordDetailBtn').addEventListener('click', () => {
+        console.log('Word detail button clicked for word:', currentWord);
+        WordModule.show(currentWord.word);
       });
     });
 

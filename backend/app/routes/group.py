@@ -1,17 +1,17 @@
-# ================= 分组学习路由模块 =================
+# ================= Group Learning Routes Module =================
 from flask import Blueprint, jsonify, request
 import os
 import json
 from config.config import GROUP_DIR
 
-# 创建蓝图
+# Create blueprint
 group_bp = Blueprint('group', __name__, url_prefix='/group')
 
-# DAG管理
+# DAG management
 dag_map = {}  # {dag_name: dag_dict}
 
 def load_all_dags():
-    """加载所有DAG文件"""
+    """Load all DAG files"""
     dag_map.clear()
     if not os.path.exists(GROUP_DIR):
         os.makedirs(GROUP_DIR, exist_ok=True)
@@ -28,39 +28,39 @@ def load_all_dags():
                 print(f"Failed to load DAG {fname}: {e}")
 
 def save_dag(dag):
-    """保存DAG到文件"""
+    """Save DAG to file"""
     name = dag.get('name')
     if not name:
-        raise ValueError('DAG必须有name字段')
+        raise ValueError('DAG must have a name field')
     fpath = os.path.join(GROUP_DIR, f'{name}.json')
     with open(fpath, 'w', encoding='utf-8') as f:
         json.dump(dag, f, ensure_ascii=False, indent=2)
     dag_map[name] = dag
 
 def delete_dag(name):
-    """删除DAG文件"""
+    """Delete DAG file"""
     fpath = os.path.join(GROUP_DIR, f'{name}.json')
     if os.path.exists(fpath):
         os.remove(fpath)
     dag_map.pop(name, None)
 
-# 初始化加载DAG
+# Initialize and load DAGs
 load_all_dags()
 
 @group_bp.route('', methods=['GET'])
 def get_dag_list():
-    """获取所有DAG列表"""
+    """Get all DAG list"""
     return jsonify(list(dag_map.values()))
 
 @group_bp.route('/add', methods=['POST'])
 def add_dag():
-    """新增DAG"""
+    """Add new DAG"""
     dag = request.get_json()
     name = dag.get('name')
     if not name:
-        return jsonify({'success': False, 'error': 'DAG必须有name字段'}), 400
+        return jsonify({'success': False, 'error': 'DAG must have a name field'}), 400
     if name in dag_map:
-        return jsonify({'success': False, 'error': 'DAG已存在'}), 400
+        return jsonify({'success': False, 'error': 'DAG already exists'}), 400
     try:
         save_dag(dag)
         return jsonify({'success': True, 'dag': dag})
@@ -69,12 +69,12 @@ def add_dag():
 
 @group_bp.route('/update/<dag_name>', methods=['POST'])
 def update_dag(dag_name):
-    """更新DAG"""
+    """Update DAG"""
     dag = request.get_json()
     if not dag.get('name'):
-        return jsonify({'success': False, 'error': 'DAG必须有name字段'}), 400
+        return jsonify({'success': False, 'error': 'DAG must have a name field'}), 400
     if dag_name != dag['name']:
-        # 支持重命名，先删旧的
+        # Support renaming, delete the old one first
         delete_dag(dag_name)
     try:
         save_dag(dag)
@@ -84,9 +84,9 @@ def update_dag(dag_name):
 
 @group_bp.route('/delete/<dag_name>', methods=['POST'])
 def delete_dag_api(dag_name):
-    """删除DAG"""
+    """Delete DAG"""
     if dag_name not in dag_map:
-        return jsonify({'success': False, 'error': 'DAG不存在'}), 404
+        return jsonify({'success': False, 'error': 'DAG does not exist'}), 404
     try:
         delete_dag(dag_name)
         return jsonify({'success': True})

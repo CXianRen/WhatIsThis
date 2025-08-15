@@ -1,7 +1,7 @@
-# vocb module, manage API routers of vocabulary 
+# vocb module, manage API routers of vocabulary
 from flask import Blueprint, request, jsonify, render_template
 import os
-import json 
+import json
 import re
 
 from service.dictionary import *
@@ -14,68 +14,73 @@ vocb_bp = Blueprint('vocb', __name__, url_prefix='/api/vocb')
 
 #### TAGS of a word ####
 
-# get all user defined tags
+
 @vocb_bp.route('/tags', methods=['GET'])
 def get_tags():
-    # demo tags
+    # get all user defined tags
     return jsonify({
         "tags": tag.get_tags()
     })
-    
-# add a new user defined tag
+
+
 @vocb_bp.route('/tags', methods=['POST'])
 def add_tags():
+    # add a new user defined tag
     data = request.get_json()
     tags = data.get('tags')
     print(f"Received tags: {tags}")
-    
+
     if not tags:
         return jsonify({"error": "Tag is required"}), 400
-    
+
     tag.add_tags(tags)
-    
-    return jsonify({"message": "Tag added successfully", 
+
+    return jsonify({"message": "Tag added successfully",
                     "tag": tag.get_tags()}), 201
 
-# delete a user defined tag
+
 @vocb_bp.route('/tags/<tag>', methods=['DELETE'])
 def delete_tag(tag):
+    # delete a user defined tag
     if not tag:
         return jsonify({"error": "Tag is required"}), 400
     if tag not in tag.get_tags():
         return jsonify({"error": "Tag not found"}), 404
     tag.delete_tag(tag)
     return jsonify({"message": "Tag deleted successfully", "tag": tag}), 200
-  
-# get all tags of a word
+
+
 @vocb_bp.route('/word/tags/<word>', methods=['GET'])
 def get_word_tags(word):
-    # demo tags for the word
+    # get all tags of a word
     tags = tag.get_word_tags(word)
-    
+
     return jsonify({
         "word": word,
         "tags": tags
     })
 
-# update tags to a word
+
 @vocb_bp.route('/word/tags/<word>', methods=['POST'])
 def add_word_tag(word):
+    # update tags to a word
     data = request.get_json()
     tags = data.get('tag')
-    
+
     if not tags:
         return jsonify({"error": "Tag is required"}), 400
-    
+
     tag.update_word_tags(word, tags)
-    
+
     return jsonify({"message": "Tag added successfully", "word": word, "tag": tags}), 201
 
 #### DICTIONARY of a word ####
-# get the word details from AI
+
+
 @vocb_bp.route('/word/<word>', methods=['GET'])
 def load_word_details(word):
-    """加载单词详情，包括音标、发音、笔记和图片
+    """ example response:
+    get the word details from AI
     {
         "word": ["hello", "hellos (rare plural)"],
         "pronunciation": ["/həˈləʊ/"],
@@ -101,26 +106,45 @@ def load_word_details(word):
     res = json.loads(res)
     return jsonify(res)
 
-# search images of a word
-@vocb_bp.route('/word/imgs/<word>/<key>', methods=['GET'])
-def search_images_as_endpoint(word, key):
-    """使用自定义关键词强制搜索图片并更新缓存"""
-    max_results = request.args.get('max_results', 5, type=int)
+
+@vocb_bp.route('/word/imgs/<word>', methods=['GET'])
+def search_images(word):
+    """
+    search images of a word
+    """
     try:
-        urls = search_images_as_api(word, key, max_results)
-        return jsonify({'success': True, 'images': urls, 'word': word, 'key': key})
+        urls = search_images_api(word)
+        return jsonify({'success': True, 'images': urls, 'word': word})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# select word by tags
+
+@vocb_bp.route('/word/imgs/<word>/<key>', methods=['GET'])
+def search_images_as_endpoint(word, key):
+    """
+    search images of a word using a custom keyword
+    """
+
+    max_results = request.args.get('max_results', 5, type=int)
+    try:
+        urls = search_images_as_api(word, key, max_results)
+        return jsonify({'success': True,
+                        'images': urls, 'word': word, 'key': key})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @vocb_bp.route('/word/filter', methods=['POST'])
 def filter_words_by_tags():
+    """
+    select word by tags
+    """
     data = request.get_json()
     tags = data.get('tags', [])
-    
+
     if not tags:
         return jsonify({"error": "Tags are required"}), 400
-    
+
     words = tag.select_words_by_tags(tags)
-    
+
     return jsonify(words), 200

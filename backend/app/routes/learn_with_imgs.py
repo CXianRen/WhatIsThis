@@ -1,13 +1,12 @@
-from flask import Blueprint, render_template, jsonify, send_from_directory, request
+from flask import Blueprint, jsonify, send_from_directory
 from service.dictionary import *
-import json
-import os
-from config.config import RESULT_JSON, IMAGE_DIR
+from config.config import IMAGE_DIR
 
-# 创建蓝图
+#### This service is not used now, need to be refactored later ####
+
+# gen
 lwi_bp = Blueprint('lwi', __name__)
 
-# 图片文件服务
 # get all scenarios
 @lwi_bp.route('/list')
 def list_images():

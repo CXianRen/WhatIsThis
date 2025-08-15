@@ -1,11 +1,10 @@
-# ================= 小说管理和阅读路由模块 =================
+# ================= Novel Management and Reading Routes =================
 from flask import Blueprint, jsonify, request
 import os
 import json
-import re
 from config.config import NOVEL_DIR
 
-# ================= 重构后的小说API =================
+# ================= Refactored Novel API =================
 novel_bp = Blueprint('novel', __name__, url_prefix='/novel')
 
 
@@ -23,10 +22,10 @@ def __gen_novel_raw_name(cid: int, title: str):
     return safe_title
 
 
-# 获取所有小说
+# Get all novels
 @novel_bp.route('/list', methods=['GET'])
 def get_novels():
-    """获取所有小说名字，不包含章节信息"""
+    """Get all novel names, without chapter info"""
     novels = []
     
     if not os.path.exists(NOVEL_DIR):
@@ -36,7 +35,7 @@ def get_novels():
     for novel_name in os.listdir(NOVEL_DIR):
         novel_path = os.path.join(NOVEL_DIR, novel_name)
         if os.path.isdir(novel_path):
-            # 统计章节数量（txt文件）
+            # Count chapter files (.txt)
             txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
             chapter_count = len(txt_files)
             
@@ -48,24 +47,24 @@ def get_novels():
     
     return jsonify(novels)
 
-# 获取所有章节
+# Get all chapters
 @novel_bp.route('/<novel_name>/chapters', methods=['GET'])
 def get_chapters(novel_name):
-    """获取指定小说的所有章节名字"""
+    """Get all chapter names of the specified novel"""
     chapters = []
     
     novel_path = os.path.join(NOVEL_DIR, novel_name)
     if not os.path.exists(novel_path):
-        return jsonify({'error': '小说不存在'}), 404
+        return jsonify({'error': 'Novel does not exist'}), 404
     
-    # 扫描txt文件（中文原版）
+    # Scan txt files (original Chinese)
     txt_files = sorted([f for f in os.listdir(novel_path) if f.endswith('.txt')])
     print("len of texts", len(txt_files))
 
     for txt_file in txt_files:
         info = __parse_novel_raw_name(txt_file)
 
-        # 检查多语言版本的可用性
+        # Check available language versions
         available_languages = []
         for lang_code in ['en', 'sw', 'fr']:
             lang_file = f"{info['basename']}.{lang_code}.json"
@@ -79,7 +78,7 @@ def get_chapters(novel_name):
             'available_languages': available_languages
         })
     
-    # 按cid排序
+    # Sort by cid
     chapters.sort(key=lambda x: x['cid'])
     print("len of chapters:", len(chapters))
     
@@ -88,12 +87,12 @@ def get_chapters(novel_name):
 
 @novel_bp.route('/<novel_name>/chapters/raw/<int:cid>', methods=['GET'])
 def get_raw_chapter(novel_name, cid):
-    """获取指定章节的原始文本"""
+    """Get the raw text of the specified chapter"""
     novel_path = os.path.join(NOVEL_DIR, novel_name)
     if not os.path.exists(novel_path):
-        return jsonify({'error': '小说不存在'}), 404
+        return jsonify({'error': 'Novel does not exist'}), 404
     
-    # 查找对应cid的txt文件
+    # Find the txt file with the corresponding cid
     txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
     target_file = None
     info = None
@@ -105,7 +104,7 @@ def get_raw_chapter(novel_name, cid):
             break
     
     if not target_file:
-        return jsonify({'error': '章节不存在'}), 404
+        return jsonify({'error': 'Chapter does not exist'}), 404
     
     txt_path = os.path.join(novel_path, target_file)
     try:
@@ -118,19 +117,19 @@ def get_raw_chapter(novel_name, cid):
             'content': content
         })
     except Exception as e:
-        return jsonify({'error': f'读取文件失败: {str(e)}'}), 500
+        return jsonify({'error': f'Failed to read file: {str(e)}'}), 500
 
 @novel_bp.route('/<novel_name>/chapters/<int:cid>/<language>', methods=['GET'])
 def get_translated_chapter(novel_name, cid, language):
-    """获取指定章节的翻译版本 (en|sw|fr)"""
+    """Get the translated version of the specified chapter (en|sw|fr)"""
     if language not in ['en', 'sw', 'fr']:
-        return jsonify({'error': '不支持的语言代码'}), 400
+        return jsonify({'error': 'Unsupported language code'}), 400
     
     novel_path = os.path.join(NOVEL_DIR, novel_name)
     if not os.path.exists(novel_path):
-        return jsonify({'error': '小说不存在'}), 404
+        return jsonify({'error': 'Novel does not exist'}), 404
     
-    # 查找对应cid的文件
+    # Find the file with the corresponding cid
     txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
     target_base_name = None
     
@@ -141,14 +140,14 @@ def get_translated_chapter(novel_name, cid, language):
             break
 
     if not target_base_name:
-        return jsonify({'error': '章节不存在'}), 404
+        return jsonify({'error': 'Chapter does not exist'}), 404
     
-    # 查找对应的翻译文件
+    # Find the corresponding translation file
     lang_file = f"{target_base_name}.{language}.json"
     lang_path = os.path.join(novel_path, lang_file)
     
     if not os.path.exists(lang_path):
-        return jsonify({'error': f'{language}语言版本不存在'}), 404
+        return jsonify({'error': f'{language} version does not exist'}), 404
 
     try:
         print("load ", lang_path)
@@ -157,18 +156,18 @@ def get_translated_chapter(novel_name, cid, language):
 
         return jsonify(data)
     except Exception as e:
-        return jsonify({'error': f'读取翻译文件失败: {str(e)}'}), 500
+        return jsonify({'error': f'Failed to read translation file: {str(e)}'}), 500
 
-# ================= 章节管理API (增删查改) =================
+# ================= Chapter Management API (CRUD) =================
 @novel_bp.route('/<novel_name>/chapters/update', methods=['POST'])
 def update_chapter_api(novel_name):
     """
-    更新章节API - 支持增删查改
-    数据结构: {
+    Update Chapter API - supports create, update, delete
+    Data structure: {
         "action": "create|update|delete",
-        "cid": 章节ID,
-        "title": 章节标题,
-        "content": 章节内容
+        "cid": Chapter ID,
+        "title": Chapter title,
+        "content": Chapter content
     }
     """
     try:
@@ -179,25 +178,25 @@ def update_chapter_api(novel_name):
         content = data.get('content', '').strip()
         
         if action not in ['create', 'update', 'delete']:
-            return jsonify({'error': '无效的操作类型'}), 400
+            return jsonify({'error': 'Invalid action type'}), 400
         
         if not cid or not isinstance(cid, int):
-            return jsonify({'error': 'cid必须是整数'}), 400
+            return jsonify({'error': 'cid must be an integer'}), 400
         
         novel_path = os.path.join(NOVEL_DIR, novel_name)
         if not os.path.exists(novel_path):
-            return jsonify({'error': '小说不存在'}), 404
+            return jsonify({'error': 'Novel does not exist'}), 404
 
         print("Op: ", action)
         if action == 'delete':
             return _delete_chapter(novel_path, novel_name, cid)
         elif action == 'create':
             if not title or not content:
-                return jsonify({'error': '创建章节时标题和内容不能为空'}), 400
+                return jsonify({'error': 'Title and content cannot be empty when creating a chapter'}), 400
             return _create_chapter(novel_path, novel_name, cid, title, content)
         elif action == 'update':
             if not title or not content:
-                return jsonify({'error': '更新章节时标题和内容不能为空'}), 400
+                return jsonify({'error': 'Title and content cannot be empty when updating a chapter'}), 400
             return _update_chapter(novel_path, novel_name, cid, title, content)
         
     except Exception as e:
@@ -205,28 +204,28 @@ def update_chapter_api(novel_name):
 
 @novel_bp.route('/create', methods=['POST'])
 def create_novel():
-    """创建新小说"""
+    """Create a new novel"""
     try:
         data = request.get_json()
         novel_name = data.get('name', '').strip()
         
         if not novel_name:
-            return jsonify({'error': '小说名称不能为空'}), 400
+            return jsonify({'error': 'Novel name cannot be empty'}), 400
         
-        # 生成安全的目录名
+        # Generate safe directory name
         safe_name = novel_name.lower().replace(' ', '_')
         safe_name = ''.join(c for c in safe_name if c.isalnum() or c in ('_', '-'))
         
-        # 创建小说目录
+        # Create novel directory
         novel_dir = os.path.join(NOVEL_DIR, safe_name)
         if os.path.exists(novel_dir):
-            return jsonify({'error': '小说已存在'}), 400
+            return jsonify({'error': 'Novel already exists'}), 400
         
         os.makedirs(novel_dir, exist_ok=True)
         
         return jsonify({
             'success': True, 
-            'message': '小说创建成功',
+            'message': 'Novel created successfully',
             'name': safe_name
         })
         
@@ -234,31 +233,31 @@ def create_novel():
         return jsonify({'error': str(e)}), 500
 
 def _create_chapter(novel_path, novel_name, cid, title, content):
-    """创建新章节"""
-    # 检查cid是否已存在
+    """Create a new chapter"""
+    # Check if cid already exists
     txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
     for txt_file in txt_files:
         info = __parse_novel_raw_name(txt_file)
         if info['cid'] == cid:
-            return jsonify({'error': f'章节CID {cid} 已存在'}), 400
+            return jsonify({'error': f'Chapter CID {cid} already exists'}), 400
 
-    # 生成文件名：[novel_name]_[cid]_[title].txt
+    # Generate file name: [novel_name]_[cid]_[title].txt
     safe_title = __gen_novel_raw_name(cid, title)
     file_path = os.path.join(novel_path, safe_title)
 
-    # 保存章节内容
+    # Save chapter content
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(content)
     
     return jsonify({
         'success': True, 
-        'message': f'章节 {cid} 创建成功',
+        'message': f'Chapter {cid} created successfully',
         'filename': file_path
     })
 
 def _update_chapter(novel_path, novel_name, cid, title, content):
-    """更新章节"""
-    # 查找对应cid的文件
+    """Update chapter"""
+    # Find the file with the corresponding cid
     txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
     target_file = None
     
@@ -269,9 +268,9 @@ def _update_chapter(novel_path, novel_name, cid, title, content):
             break
 
     if not target_file:
-        return jsonify({'error': f'章节CID {cid} 不存在'}), 404
+        return jsonify({'error': f'Chapter CID {cid} does not exist'}), 404
     
-    # 更新内容
+    # Update content
     target_file = os.path.join(novel_path, target_file)
     with open(target_file, 'w', encoding='utf-8') as f:
         print("writing to file:", target_file)
@@ -284,8 +283,8 @@ def _update_chapter(novel_path, novel_name, cid, title, content):
     })
 
 def _delete_chapter(novel_path, novel_name, cid):
-    """删除章节"""
-    # 查找对应cid的文件
+    """Delete chapter"""
+    # Find the file with the corresponding cid
     txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
     target_file = None
     
@@ -296,13 +295,13 @@ def _delete_chapter(novel_path, novel_name, cid):
             break
     
     if not target_file:
-        return jsonify({'error': f'章节CID {cid} 不存在'}), 404
+        return jsonify({'error': f'Chapter CID {cid} does not exist'}), 404
     
-    # 删除txt文件
+    # Delete txt file
     file_path = os.path.join(novel_path, target_file)
     os.remove(file_path)
     
-    # 删除相关的翻译文件
+    # Delete related translation files
     base_name = target_file.replace(".txt", "")
     for lang in ['en', 'sw', 'fr']:
         lang_file = f"{base_name}.{lang}.json"
@@ -312,5 +311,5 @@ def _delete_chapter(novel_path, novel_name, cid):
     
     return jsonify({
         'success': True,
-        'message': f'章节 {cid} 删除成功'
+        'message': f'Chapter {cid} deleted successfully'
     })

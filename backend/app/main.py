@@ -66,27 +66,18 @@ print("🚀 WhatIsThis Application Started")
 print("=" * 60)
 print("📁 Data Directory:", config.DATA_DIR)
 print("📚 Novel Directory:", config.NOVEL_DIR)
-print("🖼️ Image Directory:", config.IMAGE_DIR)
+print("🖼️  Image Directory:", config.IMAGE_DIR)
 print("📝 Annotation Directory:", config.ANNOTATION_DIR)
 print("=" * 60)
 
 # Load base data
-try:
-    with open(config.RESULT_JSON, 'r', encoding='utf-8') as f:
-        raw_data = json.load(f)
-    print(f"✅ Successfully loaded {len(raw_data)} image data entries")
-except Exception as e:
-    print(f"❌ Failed to load data: {e}")
+# try:
+#     with open(config.RESULT_JSON, 'r', encoding='utf-8') as f:
+#         raw_data = json.load(f)
+#     print(f"✅ Successfully loaded {len(raw_data)} image data entries")
+# except Exception as e:
+#     print(f"❌ Failed to load data: {e}")
 
-print("=" * 60)
-print("🌐 Available Routes:")
-print("  📖 Chapter Management: /novel-upload")
-print("  🌍 Language Translation: /novel-translation") 
-print("  📚 Novel Reader: /app3")
-print("  🖼️ Image Learning: /app1")
-print("  📚 Group Learning: /app2")
-print("  📝 Annotation Mode: /app4")
-print("=" * 60)
 
 if __name__ == '__main__':
 
