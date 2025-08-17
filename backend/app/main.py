@@ -5,7 +5,7 @@ import os
 
 # Import config and database modules
 from config import config
-from models.database import init_db, load_img_cache, load_phonetic_cache, load_en_dict_cache
+from models.database import init_db
 from models.tag.tag import init_tags
 
 # Import all route blueprints
@@ -29,10 +29,7 @@ def create_app():
     # Initialize database and cache
     init_tags()
     init_db()
-    load_img_cache()
-    load_phonetic_cache()
-    load_en_dict_cache()
-    
+     
     # Register blueprints
     app.register_blueprint(app_bp)
     app.register_blueprint(group_bp)

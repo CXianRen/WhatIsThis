@@ -14,7 +14,6 @@ vocb_bp = Blueprint('vocb', __name__, url_prefix='/api/vocb')
 
 #### TAGS of a word ####
 
-
 @vocb_bp.route('/tags', methods=['GET'])
 def get_tags():
     # get all user defined tags
@@ -74,11 +73,28 @@ def add_word_tag(word):
 
     return jsonify({"message": "Tag added successfully", "word": word, "tag": tags}), 201
 
-#### DICTIONARY of a word ####
+
+@vocb_bp.route('/word/filter', methods=['POST'])
+def filter_words_by_tags():
+    """
+    select word by tags
+    """
+    data = request.get_json()
+    tags = data.get('tags', [])
+
+    if not tags:
+        return jsonify({"error": "Tags are required"}), 400
+
+    words = tag.select_words_by_tags(tags)
+
+    return jsonify(words), 200
+
+
+#### AI explaination of a word/ a pharese/ a sentence ####
 
 
 @vocb_bp.route('/word/<word>', methods=['GET'])
-def load_word_details(word):
+def get_word_detail(word):
     """ example response:
     get the word details from AI
     {
@@ -102,49 +118,38 @@ def load_word_details(word):
         "synonyms": ["hi", "greetings"]
     }
     """
-    res = AI_Dictionary(word)
+    target_lang = request.args.get('lang', 'en')
+    native_lang = request.args.get('native_lang', 'zh')
+
+    res = AI_Dictionary(word, target_lang, native_lang)
     res = json.loads(res)
     return jsonify(res)
 
 
 @vocb_bp.route('/word/imgs/<word>', methods=['GET'])
-def search_images(word):
+def get_word_imgs(word):
     """
     search images of a word
     """
     try:
-        urls = search_images_api(word)
+        lang = request.args.get('lang', 'en')
+        urls = search_images_api(lang, word)
         return jsonify({'success': True, 'images': urls, 'word': word})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @vocb_bp.route('/word/imgs/<word>/<key>', methods=['GET'])
-def search_images_as_endpoint(word, key):
+def get_word_imgs_with_key(word, key):
     """
     search images of a word using a custom keyword
     """
 
     max_results = request.args.get('max_results', 5, type=int)
+    lang = request.args.get('lang', 'en')
     try:
-        urls = search_images_as_api(word, key, max_results)
+        urls = search_images_as_api(lang, word, key, max_results)
         return jsonify({'success': True,
                         'images': urls, 'word': word, 'key': key})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@vocb_bp.route('/word/filter', methods=['POST'])
-def filter_words_by_tags():
-    """
-    select word by tags
-    """
-    data = request.get_json()
-    tags = data.get('tags', [])
-
-    if not tags:
-        return jsonify({"error": "Tags are required"}), 400
-
-    words = tag.select_words_by_tags(tags)
-
-    return jsonify(words), 200

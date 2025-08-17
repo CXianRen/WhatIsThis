@@ -23,7 +23,8 @@ def render_app_page(page_name):
         'annotation': 'Annotation.html',
         'novel-upload': 'NovelUpload.html',
         'novel-translation': 'NovelTranslation.html',
-        'word-cards': 'WordCards.html'
+        'word-cards': 'WordCards.html',
+        'settings': 'Setting.html'
     }
     template = page_templates.get(page_name)
     if template:
