@@ -1,14 +1,13 @@
 // ========== Utility Functions for Books App ==========
 
 // Language handling utilities
-const LanguageUtils = {
-  // Language code mappings
+export const LanguageUtils = {
   LANGUAGE_CODES: {
-    'EN': { name: 'English', flag: '��🇸', color: '#1e40af' },
+    'EN': { name: 'English', flag: '🇺🇸', color: '#1e40af' },
     'SV': { name: 'Svenska', flag: '🇸🇪', color: '#0ea5e9' },
     'FR': { name: 'Français', flag: '🇫🇷', color: '#7c3aed' },
     'DE': { name: 'Deutsch', flag: '🇩🇪', color: '#dc2626' },
-    'ZH': { name: '中文', flag: '🇨��', color: '#ea580c' },
+    'ZH': { name: '中文', flag: '🇨🇳', color: '#ea580c' },
     'ES': { name: 'Español', flag: '🇪🇸', color: '#16a34a' },
     'IT': { name: 'Italiano', flag: '🇮🇹', color: '#059669' },
     'RU': { name: 'Русский', flag: '🇷🇺', color: '#be123c' },
@@ -17,23 +16,23 @@ const LanguageUtils = {
   },
 
   getLanguageInfo(code) {
-    return this.LANGUAGE_CODES[code.toUpperCase()] || { 
-      name: code, 
-      flag: '🌐', 
-      color: '#6b7280' 
+    return this.LANGUAGE_CODES[code.toUpperCase()] || {
+      name: code,
+      flag: '🌐',
+      color: '#6b7280'
     };
   },
 
   formatLanguages(languages) {
-    return languages.map(lang => this.getLanguageInfo(lang)).map(info => ({
+    return languages.map(lang => ({
       code: lang,
-      ...info
+      ...this.getLanguageInfo(lang)
     }));
   }
 };
 
 // Level utilities
-const LevelUtils = {
+export const LevelUtils = {
   LEVELS: {
     'A1': { name: 'Beginner', color: '#10b981', description: 'Basic phrases and vocabulary' },
     'A2': { name: 'Elementary', color: '#0ea5e9', description: 'Simple conversations' },
@@ -44,10 +43,10 @@ const LevelUtils = {
   },
 
   getLevelInfo(level) {
-    return this.LEVELS[level.toUpperCase()] || { 
-      name: level, 
-      color: '#6b7280', 
-      description: 'Unknown level' 
+    return this.LEVELS[level.toUpperCase()] || {
+      name: level,
+      color: '#6b7280',
+      description: 'Unknown level'
     };
   },
 
@@ -61,15 +60,15 @@ const LevelUtils = {
 };
 
 // Date utilities
-const DateUtils = {
+export const DateUtils = {
   formatRelativeDate(dateString) {
     if (!dateString) return 'Never read';
-    
+
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now - date;
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
@@ -80,7 +79,7 @@ const DateUtils = {
 
   formatDate(dateString) {
     if (!dateString) return null;
-    
+
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -91,7 +90,7 @@ const DateUtils = {
 };
 
 // Progress utilities
-const ProgressUtils = {
+export const ProgressUtils = {
   formatProgress(progress, total) {
     const percentage = Math.round((progress / total) * 100);
     return {
@@ -119,7 +118,7 @@ const ProgressUtils = {
 };
 
 // DOM utilities
-const DOMUtils = {
+export const DOMUtils = {
   createElement(tag, className = '', content = '') {
     const element = document.createElement(tag);
     if (className) element.className = className;
@@ -155,11 +154,9 @@ const DOMUtils = {
   animate(element, animations, duration = 300) {
     return new Promise(resolve => {
       element.style.transition = `all ${duration}ms ease-in-out`;
-      
       Object.entries(animations).forEach(([property, value]) => {
         element.style[property] = value;
       });
-      
       setTimeout(() => {
         element.style.transition = '';
         resolve();
@@ -169,10 +166,10 @@ const DOMUtils = {
 };
 
 // Search utilities
-const SearchUtils = {
+export const SearchUtils = {
   highlightMatch(text, searchTerm) {
     if (!searchTerm) return text;
-    
+
     const regex = new RegExp(`(${this.escapeRegex(searchTerm)})`, 'gi');
     return text.replace(regex, '<mark class="search-highlight">$1</mark>');
   },
@@ -183,29 +180,25 @@ const SearchUtils = {
 
   fuzzySearch(items, searchTerm, keys = ['title']) {
     if (!searchTerm) return items;
-    
+
     const searchWords = searchTerm.toLowerCase().split(/\s+/);
-    
+
     return items.filter(item => {
       const searchableText = keys
         .map(key => this.getNestedValue(item, key))
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
-      
+
       return searchWords.every(word => searchableText.includes(word));
     }).sort((a, b) => {
-      // Score based on how early the match appears
       const aText = keys.map(key => this.getNestedValue(a, key)).join(' ').toLowerCase();
       const bText = keys.map(key => this.getNestedValue(b, key)).join(' ').toLowerCase();
-      
       const aIndex = aText.indexOf(searchTerm.toLowerCase());
       const bIndex = bText.indexOf(searchTerm.toLowerCase());
-      
       if (aIndex === -1 && bIndex === -1) return 0;
       if (aIndex === -1) return 1;
       if (bIndex === -1) return -1;
-      
       return aIndex - bIndex;
     });
   },
@@ -216,9 +209,9 @@ const SearchUtils = {
 };
 
 // Theme utilities
-const ThemeUtils = {
+export const ThemeUtils = {
   THEME_KEY: 'wit:theme',
-  
+
   getTheme() {
     return localStorage.getItem(this.THEME_KEY) || 'system';
   },
@@ -230,7 +223,6 @@ const ThemeUtils = {
 
   applyTheme(theme) {
     const html = document.documentElement;
-    
     if (theme === 'system') {
       const mq = window.matchMedia('(prefers-color-scheme: dark)');
       html.setAttribute('data-theme', mq.matches ? 'dark' : 'light');
@@ -243,17 +235,15 @@ const ThemeUtils = {
     const theme = this.getTheme();
     if (theme === 'dark') return true;
     if (theme === 'light') return false;
-    
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   }
 };
 
 // Animation utilities
-const AnimationUtils = {
+export const AnimationUtils = {
   fadeIn(element, duration = 300) {
     element.style.opacity = '0';
     element.style.display = 'block';
-    
     return DOMUtils.animate(element, { opacity: '1' }, duration);
   },
 
@@ -268,7 +258,6 @@ const AnimationUtils = {
     element.style.height = '0';
     element.style.overflow = 'hidden';
     element.style.display = 'block';
-    
     const targetHeight = element.scrollHeight + 'px';
     return DOMUtils.animate(element, { height: targetHeight }, duration)
       .then(() => {
@@ -281,7 +270,6 @@ const AnimationUtils = {
     const currentHeight = element.scrollHeight + 'px';
     element.style.height = currentHeight;
     element.style.overflow = 'hidden';
-    
     return DOMUtils.animate(element, { height: '0' }, duration)
       .then(() => {
         element.style.display = 'none';
@@ -292,7 +280,7 @@ const AnimationUtils = {
 };
 
 // Storage utilities
-const StorageUtils = {
+export const StorageUtils = {
   get(key, defaultValue = null) {
     try {
       const item = localStorage.getItem(`wit:${key}`);
@@ -335,30 +323,15 @@ const StorageUtils = {
   }
 };
 
-// Export utilities
-window.BookUtils = {
-  Language: LanguageUtils,
-  Level: LevelUtils,
-  Date: DateUtils,
-  Progress: ProgressUtils,
-  DOM: DOMUtils,
-  Search: SearchUtils,
-  Theme: ThemeUtils,
-  Animation: AnimationUtils,
-  Storage: StorageUtils
+// ========== Optional: default export if you want "import * as BookUtils" ==========
+export default {
+  LanguageUtils,
+  LevelUtils,
+  DateUtils,
+  ProgressUtils,
+  DOMUtils,
+  SearchUtils,
+  ThemeUtils,
+  AnimationUtils,
+  StorageUtils
 };
-
-// Module export
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    LanguageUtils,
-    LevelUtils,
-    DateUtils,
-    ProgressUtils,
-    DOMUtils,
-    SearchUtils,
-    ThemeUtils,
-    AnimationUtils,
-    StorageUtils
-  };
-}

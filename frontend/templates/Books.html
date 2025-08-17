@@ -385,33 +385,33 @@
     </div>
   </div>
 
-  <!-- JavaScript Modules -->
-  <script src="/static/js/bookPage/utils.js"></script>
-  <script src="/static/js/bookPage/filter.js"></script>
-  <script src="/static/js/bookPage/bookCard.js"></script>
-  <script src="/static/js/bookPage/bookList.js"></script>
-  <script src="/static/js/bookPage/bookDetail.js"></script>
-  <script src="/static/js/bookPage/app.js"></script>
+  <!-- ES Module Scripts -->
+  <script type="module" src="/static/js/bookPage/app.js"></script>
 
-  <script>
-    // Initialize theme based on user preference
-    const theme = localStorage.getItem('wit:theme') || 'system';
-    if (theme === 'system') {
-      const mq = window.matchMedia('(prefers-color-scheme: dark)');
-      document.documentElement.setAttribute('data-theme', mq.matches ? 'dark' : 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', theme);
-    }
+  <script type="module">
+    // Initialize theme based on user preference using ES modules
+    import { ThemeUtils } from '/static/js/bookPage/utils.js';
+    
+    const theme = ThemeUtils.getTheme();
+    ThemeUtils.applyTheme(theme);
+    
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (theme === 'system') {
+        ThemeUtils.applyTheme('system');
+      }
+    });
     
     // Log successful initialization
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
-        console.log('📚 Books page loaded successfully');
+        console.log('📚 Books page loaded successfully with ES modules');
       });
     } else {
-      console.log('📚 Books page loaded successfully');
+      console.log('📚 Books page loaded successfully with ES modules');
     }
   </script>
+
   <!-- PWA Script -->
   <script src="/static/pwa.js"></script>
 </body>
