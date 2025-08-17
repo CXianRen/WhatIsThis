@@ -24,7 +24,8 @@ def render_app_page(page_name):
         'novel-upload': 'NovelUpload.html',
         'novel-translation': 'NovelTranslation.html',
         'word-cards': 'WordCards.html',
-        'settings': 'Setting.html'
+        'settings': 'Setting.html',
+        'books': 'Books.html',
     }
     template = page_templates.get(page_name)
     if template:

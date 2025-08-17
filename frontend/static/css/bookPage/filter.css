@@ -1,0 +1,328 @@
+/* ========== Filter Container ========== */
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-right: 0.5rem;
+}
+
+/* ========== Filter Buttons ========== */
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.filter-btn.active::before {
+  content: "✓";
+  position: absolute;
+  left: 0.5rem;
+  font-weight: 700;
+}
+
+.filter-btn.active {
+  padding-left: 1.75rem;
+}
+
+/* ========== Language Filter Specific ========== */
+.language-filter {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.language-btn {
+  min-width: 3rem;
+  justify-content: center;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.language-btn.en { border-color: #ef4444; }
+.language-btn.en:hover, .language-btn.en.active { background: #ef4444; }
+
+.language-btn.zh { border-color: #f59e0b; }
+.language-btn.zh:hover, .language-btn.zh.active { background: #f59e0b; }
+
+.language-btn.sv { border-color: #10b981; }
+.language-btn.sv:hover, .language-btn.sv.active { background: #10b981; }
+
+.language-btn.fr { border-color: #3b82f6; }
+.language-btn.fr:hover, .language-btn.fr.active { background: #3b82f6; }
+
+/* ========== Level Filter Specific ========== */
+.level-filter {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.level-btn {
+  min-width: 3rem;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.level-btn.a1 { border-color: #84cc16; }
+.level-btn.a1:hover, .level-btn.a1.active { background: #84cc16; }
+
+.level-btn.a2 { border-color: #eab308; }
+.level-btn.a2:hover, .level-btn.a2.active { background: #eab308; }
+
+.level-btn.b1 { border-color: #f97316; }
+.level-btn.b1:hover, .level-btn.b1.active { background: #f97316; }
+
+.level-btn.b2 { border-color: #ef4444; }
+.level-btn.b2:hover, .level-btn.b2.active { background: #ef4444; }
+
+.level-btn.c1 { border-color: #8b5cf6; }
+.level-btn.c1:hover, .level-btn.c1.active { background: #8b5cf6; }
+
+.level-btn.c2 { border-color: #6366f1; }
+.level-btn.c2:hover, .level-btn.c2.active { background: #6366f1; }
+
+/* ========== Search Input ========== */
+.search-container {
+  position: relative;
+  min-width: 240px;
+  flex: 1;
+  max-width: 320px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.search-input:not(:placeholder-shown) + .search-clear {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.search-clear:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+/* ========== Sort Options ========== */
+.sort-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sort-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.sort-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+/* ========== Filter Summary ========== */
+.filter-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+.results-count {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.clear-filters {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.875rem;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.clear-filters:hover {
+  color: var(--text);
+}
+
+/* ========== Responsive Design ========== */
+@media (max-width: 768px) {
+  .filter-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .filter-buttons {
+    justify-content: center;
+  }
+  
+  .search-container {
+    min-width: auto;
+    max-width: none;
+  }
+  
+  .sort-container {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+  }
+  
+  .language-btn,
+  .level-btn {
+    min-width: 2.5rem;
+  }
+  
+  .filter-summary {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.25rem;
+  }
+}
+
+/* ========== Animation for Filter Changes ========== */
+.filter-transition {
+  transition: all 0.3s ease;
+}
+
+.filter-fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== Focus States for Accessibility ========== */
+.filter-btn:focus,
+.search-clear:focus {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.filter-btn:focus:not(:focus-visible),
+.search-clear:focus:not(:focus-visible) {
+  outline: none;
+}

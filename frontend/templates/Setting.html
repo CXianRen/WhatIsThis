@@ -411,6 +411,7 @@
       try {
         const response = await fetch('/static/settings-config.json');
         settingsConfig = await response.json();
+        console.log('Settings configuration loaded:', settingsConfig);
         
         ensureDefaults();
         initializeUI();
