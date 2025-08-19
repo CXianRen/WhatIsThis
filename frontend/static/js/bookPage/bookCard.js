@@ -64,7 +64,6 @@ function createMetaHtml(book) {
         <span class="chapter-count">${chapters} 章節</span>
         ${time ? `<span class="reading-time">約 ${time}</span>` : ""}
       </div>
-      <div class="book-level"><span class="reading-level">${book.level || "N/A"}</span></div>
     </div>
   `;
 }

@@ -19,25 +19,12 @@ function init(containerElement, onFilterChange) {
 function render() {
   if (!container) return;
 
-  container.innerHTML = `
-    <div class="search-container">
-      <input 
-        type="text" 
-        id="book-search" 
-        class="search-input" 
-        placeholder="搜索書籍、作者或語言..."
-        value="${currentFilters.search}"
-      >
-      <button class="search-clear" id="search-clear" style="display: ${currentFilters.search ? 'block' : 'none'}">
-        ×
-      </button>
-    </div>
-    
+  container.innerHTML = `    
     <div class="filter-controls">
       <div class="filter-group">
-        <label for="filter-language">語言:</label>
+        <label class="filter-label" for="filter-language">Lang</label>
         <select id="filter-language" class="filter-select">
-          <option value="">全部語言</option>
+          <option value="">All</option>
           <option value="EN" ${currentFilters.language === 'EN' ? 'selected' : ''}>English</option>
           <option value="SV" ${currentFilters.language === 'SV' ? 'selected' : ''}>Svenska</option>
           <option value="FR" ${currentFilters.language === 'FR' ? 'selected' : ''}>Français</option>
@@ -47,25 +34,25 @@ function render() {
       </div>
       
       <div class="filter-group">
-        <label for="filter-level">等級:</label>
+        <label class="filter-label" for="filter-level">Level</label>
         <select id="filter-level" class="filter-select">
-          <option value="">全部等級</option>
-          <option value="A1" ${currentFilters.level === 'A1' ? 'selected' : ''}>A1 - 初級</option>
-          <option value="A2" ${currentFilters.level === 'A2' ? 'selected' : ''}>A2 - 初中級</option>
-          <option value="B1" ${currentFilters.level === 'B1' ? 'selected' : ''}>B1 - 中級</option>
-          <option value="B2" ${currentFilters.level === 'B2' ? 'selected' : ''}>B2 - 中高級</option>
-          <option value="C1" ${currentFilters.level === 'C1' ? 'selected' : ''}>C1 - 高級</option>
-          <option value="C2" ${currentFilters.level === 'C2' ? 'selected' : ''}>C2 - 精通</option>
+          <option value="">All</option>
+          <option value="A1" ${currentFilters.level === 'A1' ? 'selected' : ''}>A1</option>
+          <option value="A2" ${currentFilters.level === 'A2' ? 'selected' : ''}>A2</option>
+          <option value="B1" ${currentFilters.level === 'B1' ? 'selected' : ''}>B1</option>
+          <option value="B2" ${currentFilters.level === 'B2' ? 'selected' : ''}>B2</option>
+          <option value="C1" ${currentFilters.level === 'C1' ? 'selected' : ''}>C1</option>
+          <option value="C2" ${currentFilters.level === 'C2' ? 'selected' : ''}>C2</option>
         </select>
       </div>
       
       <button class="filter-clear" id="filter-clear" ${hasActiveFilters() ? '' : 'disabled'}>
-        清除篩選
+        Clear Filters
       </button>
     </div>
     
     <div class="filter-summary" id="filter-summary">
-      <span class="result-count">0 本書籍</span>
+      <span class="result-count">0 Book</span>
       <div class="active-filters" id="active-filters"></div>
     </div>
   `;
@@ -73,31 +60,6 @@ function render() {
 
 function setupEventListeners() {
   if (!container) return;
-
-  // Search input with debouncing
-  const searchInput = container.querySelector('#book-search');
-  if (searchInput) {
-    const debouncedSearch = DOMUtils.debounce((value) => {
-      currentFilters.search = value;
-      updateSearchClearButton();
-      notifyFilterChange();
-    }, 300);
-
-    searchInput.addEventListener('input', (e) => {
-      debouncedSearch(e.target.value);
-    });
-  }
-
-  // Search clear button
-  const searchClear = container.querySelector('#search-clear');
-  if (searchClear) {
-    searchClear.addEventListener('click', () => {
-      currentFilters.search = '';
-      searchInput.value = '';
-      updateSearchClearButton();
-      notifyFilterChange();
-    });
-  }
 
   // Language filter
   const languageSelect = container.querySelector('#filter-language');
@@ -124,17 +86,11 @@ function setupEventListeners() {
   }
 }
 
-function updateSearchClearButton() {
-  const clearButton = container?.querySelector('#search-clear');
-  if (clearButton) {
-    clearButton.style.display = currentFilters.search ? 'block' : 'none';
-  }
-}
 
 function hasActiveFilters() {
-  return currentFilters.search || 
-         currentFilters.language || 
-         currentFilters.level;
+  return currentFilters.search ||
+    currentFilters.language ||
+    currentFilters.level;
 }
 
 function clearAllFilters() {
@@ -143,18 +99,15 @@ function clearAllFilters() {
     level: null,
     search: ''
   };
-  
+
   // Update UI elements
-  const searchInput = container?.querySelector('#book-search');
-  if (searchInput) searchInput.value = '';
-  
+
   const languageSelect = container?.querySelector('#filter-language');
   if (languageSelect) languageSelect.value = '';
-  
+
   const levelSelect = container?.querySelector('#filter-level');
   if (levelSelect) levelSelect.value = '';
-  
-  updateSearchClearButton();
+
   updateClearButton();
   notifyFilterChange();
 }
@@ -169,7 +122,7 @@ function updateClearButton() {
 function notifyFilterChange() {
   updateClearButton();
   updateActiveFiltersDisplay();
-  
+
   if (filterCallback) {
     filterCallback(currentFilters);
   }
@@ -180,18 +133,14 @@ function updateActiveFiltersDisplay() {
   if (!activeFiltersContainer) return;
 
   const activeFilters = [];
-  
-  if (currentFilters.search) {
-    activeFilters.push(`搜索: "${currentFilters.search}"`);
-  }
-  
+
   if (currentFilters.language) {
     const languageName = getLanguageName(currentFilters.language);
-    activeFilters.push(`語言: ${languageName}`);
+    activeFilters.push(`Language ${languageName}`);
   }
-  
+
   if (currentFilters.level) {
-    activeFilters.push(`等級: ${currentFilters.level}`);
+    activeFilters.push(`Level ${currentFilters.level}`);
   }
 
   if (activeFilters.length > 0) {
@@ -208,7 +157,7 @@ function updateActiveFiltersDisplay() {
 function getLanguageName(code) {
   const names = {
     'EN': 'English',
-    'SV': 'Svenska', 
+    'SV': 'Svenska',
     'FR': 'Français',
     'DE': 'Deutsch',
     'ZH': '中文'
@@ -220,9 +169,9 @@ function updateSummary(filteredCount, totalCount) {
   const summaryElement = container?.querySelector('.result-count');
   if (summaryElement) {
     if (filteredCount === totalCount) {
-      summaryElement.textContent = `${totalCount} 本書籍`;
+      summaryElement.textContent = `${totalCount} Books`;
     } else {
-      summaryElement.textContent = `${filteredCount} / ${totalCount} 本書籍`;
+      summaryElement.textContent = `${filteredCount} / ${totalCount} Books`;
     }
   }
 }

@@ -1,0 +1,699 @@
+
+import SidebarComponent from '../common/sidebar-component.js';
+import ToolBarModule from './toolbarModule.js';
+import WordModule from './wordModule.js';
+import YouglishModule from './youglishModule.js';
+import TagModule from './tagModule.js';
+
+let novelData = [];
+let currentNovel = null;
+let currentChapter = null;
+let currentContent = null;
+let sentenceStates = {}; // {chapterPath: {sentenceIndex: 'english'|'chinese'}}
+let sidebar = null;
+let longPressTimer = null;
+let isDragSelection = false;
+let selectedWord = '';
+let selectedWordElement = null;
+let isNightMode = false;
+let currentFontSize = 2;
+// 0:小, 1:较小, 2:中等, 3:较大, 4:大
+const fontSizes = ['small', 'medium', 'large', 'extra-large', 'huge'];
+const fontSizeNames = ['small', 'medium', 'large', 'extra-large', 'huge'];;
+
+// word tag related variables
+let allowTagList = [];
+let wordTags = [];
+let tempTagList = [];
+
+// DOM elements cached for performance
+let currentChapterElement = null;
+let chapterInfoElement = null;
+let contentAreaElement = null;
+let wordToolbar = null;
+
+let nightModeIcon = null;
+let fontSizeDisplay = null;
+
+
+
+function renderHTML(container) {
+  const htmlContent = `
+  <div id="container" class="container">
+    <div class="main-content">
+      <div class="content-header">
+        <div>
+          <h2 id="currentChapter">Select a chapter to start reading</h2>
+        </div>
+
+        <div class="control-area">
+          <p id="chapterInfo"></p>
+          <button class="night-mode-toggle">
+            <span id="nightModeIcon">🌙</span>
+          </button>
+          <div class="font-size-control">
+            <button class="font-size-btn" id="fontSizeIncrease" title="减小字体">A-</button>
+            <span class="font-size-display" id="fontSizeDisplay">中</span>
+            <button class="font-size-btn" id="fontSizeDecrease" title="增大字体">A+</button>
+          </div>
+        </div>
+      </div>
+      <div id="contentArea">
+        <div class="loading">Please select a chapter from the left</div>
+      </div>
+    </div>
+  </div>
+  `;
+  container.innerHTML = htmlContent;
+
+  currentChapterElement = document.getElementById('currentChapter');
+  chapterInfoElement = document.getElementById('chapterInfo');
+  contentAreaElement = document.getElementById('contentArea');
+  wordToolbar = document.getElementById('wordToolbar');
+
+  nightModeIcon = document.getElementById('nightModeIcon');
+  fontSizeDisplay = document.getElementById('fontSizeDisplay');
+
+  // register event
+
+  let night_mode_btn = document.querySelector('.night-mode-toggle');
+  night_mode_btn.addEventListener('click', toggleNightMode);
+
+  let font_increase_btn = document.querySelector('#fontSizeIncrease');
+  font_increase_btn.addEventListener('click', decreaseFontSize);
+
+  let font_decrease_btn = document.querySelector('#fontSizeDecrease');
+  font_decrease_btn.addEventListener('click', increaseFontSize);
+
+
+  // init side bar
+  const isLandscape = window.innerWidth > window.innerHeight;
+
+  sidebar = new SidebarComponent({
+    title: 'Chapter List',
+    containerId: 'container',
+    position: 'left',
+    width: isLandscape ? '50vw' : '80vw',
+    height: 'auto',
+    sidebarId: 'dagSidebar',
+    showToggleButton: true,
+    enableOverlay: true,
+    autoHide: true
+  });
+
+}
+
+
+// load the novel list from the server
+async function loadNovelList() {
+  try {
+    const response = await fetch('/novel/list');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const novels = await response.json();
+
+    // 为每个小说加载章节信息
+    novelData = [];
+    for (const novel of novels) {
+      try {
+        const chaptersResponse = await fetch(`/novel/${novel.name}/chapters`);
+        if (chaptersResponse.ok) {
+          const chapters = await chaptersResponse.json();
+          novelData.push({
+            name: novel.name,
+            display_name: novel.display_name,
+            chapters: chapters
+          });
+        } else {
+          // 如果获取章节失败，仍然添加小说，但章节为空
+          novelData.push({
+            name: novel.name,
+            display_name: novel.display_name,
+            chapters: []
+          });
+        }
+      } catch (chapterError) {
+        console.error(`加载小说 ${novel.name} 的章节失败:`, chapterError);
+        novelData.push({
+          name: novel.name,
+          display_name: novel.display_name,
+          chapters: []
+        });
+      }
+    }
+
+    if (sidebar) {
+      sidebar.clearContent();
+      renderNovelList('novelList');
+      sidebar.addContent(renderNovelList(), 'novelList');
+
+    }
+
+  } catch (error) {
+    console.error('加载小说列表失败:', error);
+    if (sidebar) {
+      sidebar.clearContent();
+      sidebar.addContent(`<div class="error">加载失败: ${error.message}</div>`, 'error');
+    }
+  }
+}
+
+// generate the HTML content for the novel list
+function createNovelListContent() {
+  if (novelData.length === 0) {
+    return '<div class="loading">没有找到小说</div>';
+  }
+
+  let html = '<ul class="novel-list">';
+
+  novelData.forEach((novel, novelIndex) => {
+    html += `
+      <li class="novel-item">
+        <div class="novel-title" data-novel-index="${novelIndex}">
+          ${novel.name}
+        </div>
+        <ul class="chapter-list collapsed">
+    `;
+
+    novel.chapters.forEach((chapter, chapterIndex) => {
+      html += `
+        <li class="chapter-item" data-novel-index="${novelIndex}" data-chapter-index="${chapterIndex}">
+          ${chapter.title}
+        </li>
+      `;
+    });
+
+    html += `</ul></li>`;
+  });
+
+  html += '</ul>';
+  return html;
+}
+
+function renderNovelList() {
+  // new container
+  const container = document.createElement('div');
+  container.innerHTML = createNovelListContent();
+
+  // 绑定小说标题点击事件
+  container.querySelectorAll('.novel-title').forEach((titleEl) => {
+    titleEl.addEventListener('click', () => {
+      const novelIndex = parseInt(titleEl.dataset.novelIndex);
+      toggleNovel(novelIndex, titleEl);
+    });
+  });
+
+  // 绑定章节点击事件
+  container.querySelectorAll('.chapter-item').forEach((chapterEl) => {
+    chapterEl.addEventListener('click', (event) => {
+      event.stopPropagation(); // 阻止冒泡到小说标题
+      const novelIndex = parseInt(chapterEl.dataset.novelIndex);
+      const chapterIndex = parseInt(chapterEl.dataset.chapterIndex);
+      selectChapter(novelIndex, chapterIndex, chapterEl, event);
+    });
+  });
+  return container;
+}
+
+// toggle the visibility of the chapter list
+function toggleNovel(novelIndex, titleElement) {
+  const chapterList = titleElement.parentElement.querySelector('.chapter-list');
+
+  if (chapterList.classList.contains('collapsed')) {
+    chapterList.classList.replace('collapsed', 'expanded');
+    titleElement.classList.add('expanded');
+  } else {
+    chapterList.classList.replace('expanded', 'collapsed');
+    titleElement.classList.remove('expanded');
+  }
+}
+
+// chapter selection handler
+async function selectChapter(novelIndex, chapterIndex, chapterElement, event) {
+  event.stopPropagation();
+
+  const novel = novelData[novelIndex];
+  const chapter = novel.chapters[chapterIndex];
+  console.log(novel.chapters)
+  console.log(`Select chapter: ${novel.name} - ${chapter.title}`);
+
+  // close the sidebar if it is open
+  sidebar?.hide();
+
+  // update the active chapter in the sidebar
+  sidebar.sidebar.querySelectorAll('.chapter-item').forEach(item => item.classList.remove('active'));
+  chapterElement.classList.add('active');
+
+  // update the current chapter and content area
+  currentNovel = novel;
+  currentChapter = chapter;
+  currentChapterElement.textContent = `${novel.name} - ${chapter.title}`;
+  chapterInfoElement.textContent = 'Loading...';
+  contentAreaElement.innerHTML = '<div class="loading">Loading...</div>';
+
+  const url = `/novel/${novel.name}/chapters/${chapter.cid}/en`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    currentContent = await response.json();
+    console.log('Chapter content loaded successfully:', currentContent);
+
+    // Initialize sentence state for this chapter
+    const chapterPath = `${novel.name}/${chapter.title}`;
+    if (!sentenceStates[chapterPath]) {
+      sentenceStates[chapterPath] = {};
+    }
+
+    // Initialize each sentence state (default to English)
+    if (currentContent.content) {
+      currentContent.content.forEach((_, index) => {
+        if (!(index in sentenceStates[chapterPath])) {
+          sentenceStates[chapterPath][index] = 'english';
+        }
+      });
+    }
+
+    renderChapterContent(currentContent, chapterPath);
+
+  } catch (error) {
+    console.error('Failed to load chapter content:', error);
+    contentAreaElement.innerHTML = `<div class="error">Failed to load: ${error.message}</div>`;
+  }
+}
+
+// Render chapter content
+function renderChapterContent(content, chapterPath) {
+  const sentences = content.content || [];
+  chapterInfoElement.textContent = `Total ${sentences.length} sentences`;
+
+  const sentenceHTML = sentences.map((sentence, index) => {
+    const currentState = sentenceStates[chapterPath][index] || 'english';
+    const isChinese = currentState === 'chinese';
+    const cssClass = isChinese ? 'chinese-text' : 'english-text';
+    const text = isChinese ? sentence.src : sentence.target;
+
+    const toggleIcon = isChinese ? 'CN' : 'EN';
+    const toggleTitle = isChinese ? 'Switch to English' : 'Switch to Chinese';
+
+    return `
+      <div class="sentence ${isChinese ? 'chinese' : ''}" data-index="${index}" data-chapter-path="${chapterPath}">
+        <div class="language-toggle" title="${toggleTitle}">
+          ${toggleIcon}
+        </div>
+        <div class="sentence-text">
+          <div class="${cssClass}">${text}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  contentAreaElement.innerHTML = `<div class="sentence-container font-size-${fontSizes[currentFontSize]}">${sentenceHTML}</div>`;
+
+  // 绑定事件
+  contentAreaElement.querySelectorAll('.sentence').forEach(sentenceEl => {
+    const index = parseInt(sentenceEl.dataset.index);
+    const path = sentenceEl.dataset.chapterPath;
+
+    // 切换语言
+    const toggleEl = sentenceEl.querySelector('.language-toggle');
+    toggleEl.addEventListener('click', () => toggleSentence(index, path));
+
+    // 鼠标/触摸事件
+    const textEl = sentenceEl.querySelector('.sentence-text');
+    textEl.addEventListener('mousedown', handleMouseDown);
+    textEl.addEventListener('mouseup', handleMouseUp);
+    textEl.addEventListener('touchstart', handleTouchStart);
+    textEl.addEventListener('touchend', handleTouchEnd);
+    textEl.addEventListener('touchmove', handleTouchMove);
+    textEl.addEventListener('contextmenu', handleContextMenu);
+  });
+}
+
+// Toggle sentence language display
+function toggleSentence(sentenceIndex, chapterPath) {
+  event.stopPropagation(); // Prevent event bubbling
+
+  const currentState = sentenceStates[chapterPath][sentenceIndex] || 'english';
+  sentenceStates[chapterPath][sentenceIndex] = currentState === 'chinese' ? 'english' : 'chinese';
+
+  if (currentContent) {
+    renderChapterContent(currentContent, chapterPath);
+  }
+}
+
+// ----------- UI Events ------------//
+
+// Handle mouse down event
+function handleMouseDown(event) {
+  clearWordSelection();
+  clearTimeout(longPressTimer);
+  console.log("press");
+  event.startTime = Date.now();
+}
+
+// Handle mouse up event
+function handleMouseUp(event) {
+  console.log("release");
+  const clickDuration = Date.now() - (event.startTime || 0);
+  if (clickDuration > 1000) {
+    setTimeout(() => {
+      handleTextSelection(event);
+    }, 100);
+  }
+}
+
+// blocking the default context menu
+function handleContextMenu(event) {
+  event.preventDefault();
+}
+
+// Handle touch start event
+function handleTouchStart(event) {
+  console.log("touch start");
+
+  clearWordSelection();
+  window.getSelection().removeAllRanges();
+  clearTimeout(longPressTimer);
+
+  // Save the coordinates and time when touch starts
+  const touch = event.touches[0];
+  event.startX = touch.clientX;
+  event.startY = touch.clientY;
+
+  // Initialize drag selection flag
+  isDragSelection = false;
+
+  longPressTimer = setTimeout(() => {
+    isDragSelection = true;
+    console.log("long press detected");
+    window.getSelection().removeAllRanges(); // Clear previous selection
+  }, 600);
+}
+
+// Handle touch end event
+function handleTouchEnd(event) {
+  console.log("touch end");
+  clearTimeout(longPressTimer);
+
+  // If it's a drag selection or long press, handle text selection
+  if (isDragSelection) {
+    setTimeout(() => {
+      console.log("drag selection end detected");
+      const selection = window.getSelection();
+      const word = selection.toString().trim();
+
+      console.log("drag selection detected word:", word);
+      if (word) {
+
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        console.log("selected word rect:", rect);
+        const x = rect.left + window.scrollX + rect.width / 2;
+        const y = rect.bottom + window.scrollY;
+        console.log("show word toolbar at:", x, y);
+        selectedWord = word;
+        // showWordToolbar(x, y);
+        ToolBarModule.show(x, y);
+        highlightWordInContent(word);
+      }
+    }, 100);
+  }
+}
+
+// Utility function: expand selection range to word boundaries
+function expandRangeToWord(range) {
+  if (!range || !range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) {
+    return;
+  }
+
+  const text = range.startContainer.textContent;
+  let start = range.startOffset;
+  let end = range.endOffset;
+
+  // Expand backward
+  while (start > 0 && /\w/.test(text[start - 1])) {
+    start--;
+  }
+
+  // Expand forward
+  while (end < text.length && /\w/.test(text[end])) {
+    end++;
+  }
+
+  range.setStart(range.startContainer, start);
+  range.setEnd(range.startContainer, end);
+}
+
+// Handle touch move event (cancel long press if moved too much)
+function handleTouchMove(event) {
+  // console.log("touch move");
+
+  const touch = event.touches[0];
+  const deltaX = Math.abs(touch.clientX - (event.startX || 0));
+  const deltaY = Math.abs(touch.clientY - (event.startY || 0));
+  // console.log("deltaX:", deltaX, "deltaY:", deltaY);
+
+  if (!isDragSelection) {
+    if (deltaX > 5 || deltaY > 5) {
+      // Cancel long press
+      clearTimeout(longPressTimer);
+    }
+  } else {
+    // Enter drag selection mode
+    event.preventDefault();
+
+    let range;
+    if (document.caretRangeFromPoint) {
+      range = document.caretRangeFromPoint(touch.clientX, touch.clientY);
+    } else {
+      console.assert("caretRangeFromPoint not supported");
+    }
+
+    if (range) {
+      expandRangeToWord(range);
+      const selection = window.getSelection();
+      if (selection.rangeCount === 0) {
+        selection.addRange(range);
+      } else {
+        const existingRange = selection.getRangeAt(0);
+        existingRange.setEnd(range.endContainer, range.endOffset);
+        expandRangeToWord(existingRange);
+      }
+    }
+
+  }
+}
+
+// Handle text selection
+function handleTextSelection(event) {
+  const selection = window.getSelection();
+  const selectedText = selection.toString().trim();
+  console.log("selectedText:", selectedText);
+  if (selectedText) {
+    selectedWord = selectedText;
+    // Get the position of the selection range
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+
+    // show the bar
+    const x = rect.left + rect.width / 2;
+    const y = rect.bottom;
+    // showWordToolbar(x, y);
+    ToolBarModule.show(x, y);
+
+    highlightWordInContent(selectedWord);
+
+    selection.removeAllRanges();
+  }
+}
+
+// Highlight the specified word in the content (for future use)
+function highlightWordInContent(word) {
+  const sentenceTexts = document.querySelectorAll('.sentence-text');
+
+  sentenceTexts.forEach(sentenceText => {
+    const textContent = sentenceText.innerHTML;
+
+    // Use a regular expression to match the whole word (case-insensitive)
+    const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+    const highlightedContent = textContent.replace(regex,
+      '<span class="selected-word-highlight">$1</span>'
+    );
+
+    sentenceText.innerHTML = highlightedContent;
+  });
+}
+
+// Clear word selection
+function clearWordSelection() {
+  // Remove all highlights
+  const highlightedWords = document.querySelectorAll('.selected-word-highlight');
+  highlightedWords.forEach(element => {
+    const parent = element.parentNode;
+    parent.replaceChild(document.createTextNode(element.textContent), element);
+    parent.normalize(); // Merge adjacent text nodes
+  });
+}
+
+// Toolbar button event handler
+function openAIDictionary() {
+  if (selectedWord) {
+    console.log('Tool 1 - AI dictionary:', selectedWord)
+    ToolBarModule.close()
+    clearWordSelection();
+    WordModule.show(selectedWord);
+  }
+}
+
+function openYouglish() {
+  if (selectedWord) {
+    console.log('tool 2 - YouGlish:', selectedWord);
+    ToolBarModule.close()
+    clearWordSelection();
+    YouglishModule.show(selectedWord);
+  }
+}
+
+function openTags() {
+  if (selectedWord) {
+    console.log('tool 3 - Tag:', selectedWord);
+    TagModule.show(selectedWord);
+    ToolBarModule.close()
+  }
+}
+
+// 增大字体
+function increaseFontSize() {
+  if (currentFontSize < fontSizes.length - 1) {
+    currentFontSize++;
+    updateFontSize();
+  }
+}
+
+// 减小字体
+function decreaseFontSize() {
+  if (currentFontSize > 0) {
+    currentFontSize--;
+    updateFontSize();
+  }
+}
+
+// 更新字体大小
+function updateFontSize() {
+  const sentenceContainer = document.querySelector('.sentence-container');
+  if (sentenceContainer) {
+    // 移除所有字体大小类
+    fontSizes.forEach(size => {
+      sentenceContainer.classList.remove(`font-size-${size}`);
+    });
+    // 添加当前字体大小类
+    sentenceContainer.classList.add(`font-size-${fontSizes[currentFontSize]}`);
+  }
+
+  // 更新显示
+  fontSizeDisplay.textContent = fontSizeNames[currentFontSize];
+
+  // 保存到本地存储
+  localStorage.setItem('fontSize', currentFontSize.toString());
+}
+
+// 加载字体大小设置
+function loadFontSizeSettings() {
+  const savedFontSize = localStorage.getItem('fontSize');
+  if (savedFontSize !== null) {
+    currentFontSize = parseInt(savedFontSize);
+    // 确保值在有效范围内
+    if (currentFontSize < 0 || currentFontSize >= fontSizes.length) {
+      currentFontSize = 2; // 默认中等
+    }
+    fontSizeDisplay.textContent = fontSizeNames[currentFontSize];
+  }
+}
+
+// 切换夜间模式
+function toggleNightMode() {
+  console.log('切换夜间模式');
+  isNightMode = !isNightMode;
+  const body = document.body;
+
+  if (isNightMode) {
+    body.classList.add('night-mode');
+    nightModeIcon.textContent = '☀️';
+    // nightModeText.textContent = 'Switch';
+    localStorage.setItem('nightMode', 'true');
+  } else {
+    body.classList.remove('night-mode');
+    nightModeIcon.textContent = '🌙';
+    // nightModeText.textContent = 'Switch';
+    localStorage.setItem('nightMode', 'false');
+  }
+}
+
+// 加载夜间模式设置
+function loadNightModeSettings() {
+  const savedNightMode = localStorage.getItem('nightMode');
+  if (savedNightMode === 'true') {
+    isNightMode = false; // 设为false，然后调用toggle来激活
+    toggleNightMode();
+  }
+}
+
+
+function createReaderPanel(container) {
+  renderHTML(container);
+  loadNightModeSettings();
+  loadFontSizeSettings();
+
+  loadNovelList();
+
+  YouglishModule.init({
+    cssUrl: '/static/css/reader/youglish_panel.css',
+    ccb: () => {
+      clearWordSelection();
+      ToolBarModule.close()
+    }
+  });
+
+  // 初始化单词详情面板
+  WordModule.init({
+    cssUrl: '/static/css/reader/word_panel.css',
+    ccb: () => {
+      clearWordSelection();
+      ToolBarModule.close()
+    }
+  });
+
+  //
+  TagModule.init({
+    cssUrl: '/static/css/reader/tag_panel.css',
+    ccb: () => {
+      clearWordSelection();
+      ToolBarModule.close()
+    }
+  });
+
+  // //
+  ToolBarModule.init({
+    cssUrl: '/static/css/reader/tool_bar.css',
+    applist: [
+      { name: "AI_D", onclick: openAIDictionary, logo: "AI" },
+      { name: "PN", onclick: openYouglish, logo: "YT" },
+      { name: "TAG", onclick: openTags, logo: "TT" }
+    ],
+    ccb: () => {
+      clearWordSelection();
+    }
+  });
+
+
+  console.log('Novel Reader 页面加载完成');
+}
+
+export {
+  createReaderPanel
+}

@@ -1,7 +1,7 @@
 /* ========== Optimized Book Card Styles ========== */
 .book-card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 1px solid;
   border-radius: 1rem;
   padding: 1rem;
   cursor: pointer;
@@ -10,7 +10,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* height: 100%; */
   box-shadow: 0 4px 12px var(--shadow);
   text-decoration: none;
   color: inherit;
@@ -138,9 +138,9 @@
   color: var(--muted);
   font-size: 0.875rem;
   line-height: 1.5;
-  flex: 1;
+  /* flex: 1; */
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
@@ -300,37 +300,7 @@
   100% { transform: rotate(360deg); }
 }
 
-/* ========== Responsive Design ========== */
-@media (max-width: 768px) {
-  .book-card {
-    padding: 0.875rem;
-  }
-  
-  .book-title {
-    font-size: 1rem;
-  }
-  
-  .book-description {
-    font-size: 0.8125rem;
-    -webkit-line-clamp: 2;
-  }
-  
-  .book-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .book-stats {
-    flex-direction: row;
-    gap: 1rem;
-    width: 100%;
-  }
-  
-  .book-level {
-    align-self: flex-end;
-  }
-}
+
 
 @media (max-width: 480px) {
   .book-card {
@@ -369,19 +339,12 @@
   padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
-}
-
-@media (max-width: 768px) {
-  .books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
-  }
+  width: inherit;
 }
 
 @media (max-width: 480px) {
   .books-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);;
     gap: 0.75rem;
     padding: 0.75rem;
   }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,94 +20,153 @@
   <meta name="msapplication-TileColor" content="#667eea">
   <meta name="msapplication-tap-highlight" content="no">
 
-  <link rel="stylesheet" href="/static/css/nav.css">
-</head>
-<body>
-  <div class="nav-container">
-    <h2>WhatIsThis</h2>
-    <ul class="nav-grid" id="navGrid">
-      <!-- JS 动态生成 -->
-    </ul>
-  </div>
 
-  <script>
-    // 定义 app 配置
-    const apps = [
-      {
-        href: "/lwi",
-        icon: "🖼️",
-        title: "Learn with Image",
-        description: "Learn vocabulary through images, intuitively understand word meanings",
-      },
-      {
-        href: "/lwg",
-        icon: "📚",
-        title: "Learn with Group Words",
-        description: "Learn related words in groups for systematic memorization",
-      },
-      {
-        href: "/word-cards",
-        icon: "🎴",
-        title: "Word Cards",
-        description: "Review your vocabulary",
-      },
-      {
-        href: "/novel-reader",
-        icon: "📖",
-        title: "Novel Reader",
-        description: "Immersive novel reading, learn in context",
-      },
-      {
-        href: "/annotation",
-        icon: "🏷️",
-        title: "Annotation Mode",
-        description: "Image annotation mode, generate and edit learning data",
-      },
-      {
-        href: "/novel-upload",
-        icon: "📝",
-        title: "Manage Novel",
-        description: "Manage novel chapters, upload and edit novel content",
-      },
-      {
-        href: "/settings",
-        icon: "⚙️",
-        title: "Settings",
-        description: "Configure your learning preferences and app settings", 
-      },
-      {
-        href: "/books",
-        icon: "📚",
-        title: "Books",
-        description: "Manage your book collection, add and edit books",
-      }
-    ];
+  <link rel="stylesheet" href="/static/css/navBar.css">
+  <link rel="stylesheet" href="/static/css/infoPanel.css">
 
-    // 渲染函数
-    function renderApps(appList) {
-      const navGrid = document.getElementById("navGrid");
-      navGrid.innerHTML = ""; // 清空旧内容
-      appList.forEach(app => {
-        const li = document.createElement("li");
-        li.className = "nav-item";
-        li.innerHTML = `
-          <a href="${app.href}" class="nav-link">
-            <div class="nav-icon">${app.icon}</div>
-            <div class="nav-content">
-              <div class="nav-title">${app.title}</div>
-              <div class="nav-description">${app.description}</div>
-            </div>
-          </a>
-        `;
-        navGrid.appendChild(li);
-      });
+  <link rel="stylesheet" href="/static/css/bookPage/filter.css">
+  <link rel="stylesheet" href="/static/css/bookPage/bookCard.css">
+  <link rel="stylesheet" href="/static/css/bookPage/bookDetail.css">
+  <link rel="stylesheet" href="/static/css/bookPage/bookShelfPanel.css">
+
+  <link rel="stylesheet" href="/static/css/reader/readerPanel.css">
+
+  <link rel="stylesheet" href="/static/css/learnPanel.css">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      width: 100vw;
+      height: 100vh;
+      /* Change to your desired background color */
     }
 
-    // 初始化
-    renderApps(apps);
+    .nav-bar-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #fff;
+      /* Change to your desired color */
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      /* Ensure it stays on top */
+    }
+
+    .page-panel {
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      /* align-items: center; */
+      /* justify-content: center; */
+      width: 100%;
+      height: calc(100vh - 60px);
+      /* Adjust height to account for the nav bar */
+      /* overflow-y: auto; */
+      /* Adjust for navigation bar height */
+      /* padding: 20px; */
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .full-screen {
+      height: 100vh;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="page-panel home-panel "> </div>
+  <div class="page-panel learn-page" style="display: none;"></div>
+  <div class="page-panel shelf-panel" style="display: none;"></div>
+  <div class="page-panel full-screen read-panel" style="display: none;"></div>
+
+  <div class="nav-bar-container"></div>
+  <script type="module">
+    import { registerNavBar, registerPath, toPath } from '/static/js/router/router.js';
+    import { createNavigationBar } from '/static/js/navBar.js';
+    import { createInfoPanel } from '/static/js/infoPanel.js';
+    import { createLearnPanel } from '/static/js/learnPanel.js';
+    import { createBookShelfPanel } from '/static/js/bookPage/bookShelfPanel.js';
+    import { createReaderPanel } from '/static/js/reader/readerPanel.js';
+
+    
+
+    registerPath('home-panel');
+    registerPath('learn-page');
+    registerPath('shelf-panel');
+    registerPath('read-panel', {
+      // fullscreen: true
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      registerNavBar(document.querySelector('.nav-bar-container'));
+
+      createNavigationBar(document.querySelector('.nav-bar-container'),
+        [
+          {
+            cb: () => {
+              toPath('shelf-panel');
+            },
+            icon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+          <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22h13"></path>
+          <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2h13v20h-13A2.5 2.5 0 0 1 4 19.5z"></path>
+        </svg>
+      `
+          },
+          {
+            // url: '/learn',
+            cb: () => {
+              toPath('learn-page');
+            },
+            icon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+          <path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2z"></path>
+          <path d="M12 22v-7"></path>
+          <path d="M9 20h6"></path>
+        </svg>
+      `
+          },
+          {
+            cb: () => {
+              toPath('home-panel');
+            },
+            icon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+          <path d="M3 12L12 3l9 9"></path>
+          <path d="M9 21V12h6v9"></path>
+        </svg>
+      `
+          }
+        ]);
+
+      createInfoPanel(document.querySelector('.home-panel'), {
+        learnedDays: [1, 2, 3, 4, 7, 8, 9, 10],
+        daysLearned: 30,
+        wordsAdded: 150,
+        calendarHTML: '<div class="calendar"></div>'
+      });
+
+      createLearnPanel(document.querySelector('.learn-page'));
+
+      createBookShelfPanel(document.querySelector('.shelf-panel'));
+
+      createReaderPanel(document.querySelector('.read-panel'));
+    });
+
+
   </script>
+
 
   <!-- PWA Support Script -->
   <script src="/static/pwa.js"></script>
 </body>
+
 </html>

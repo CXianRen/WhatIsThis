@@ -68,7 +68,9 @@ def AI_Dictionary(words, target_lang="en", native_lang="zh"):
     cached_result = get_word_definition(target_lang, words)
     if cached_result:
         print("Cache hit, returning result directly: ", words)
-        return cached_result['definition']
+        print("Cached result:", cached_result)
+        # return cached_result['definition']
+        return cached_result
 
     else:
         print("Cache miss, calling DeepSeek API to fetch data")

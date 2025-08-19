@@ -127,7 +127,7 @@ class SidebarComponent {
       // 尝试加载外部CSS文件
       const cssLink = document.createElement('link');
       cssLink.rel = 'stylesheet';
-      cssLink.href = '/static/sidebar-component.css';
+      cssLink.href = '/static/css/sidebar-component.css';
       
       // 添加错误处理，如果外部CSS加载失败，则使用内联样式
       cssLink.onerror = () => {
@@ -360,8 +360,4 @@ class SidebarComponent {
 }
 
 // 导出组件类
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = SidebarComponent;
-} else {
-  window.SidebarComponent = SidebarComponent;
-}
+export default SidebarComponent;
