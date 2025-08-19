@@ -13,11 +13,11 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: none;
 
-  
+
   justify-content: center;
   align-items: center;
 }
@@ -25,55 +25,60 @@
 .book-control-panel {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  /* align-items: center; */
-  
-  background: #f7f7fa;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  background: #fdfdfd;
+  padding: 2.5rem 2rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+  animation: popup-fade-in 0.25s ease;
 }
 
+@keyframes popup-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 
 #read-book-btn,
 #remove-book-btn {
   width: 200px;
-  height: 50px;
+  height: 48px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
 }
 
+/* 主按鈕 - 閱讀 */
 #read-book-btn {
-  background-color: #e0f7e9; /* Light green */
-  border: none;
-  color: #218c5a;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: background 0.2s;
+  background-color: #4f8ef7;
+  color: #fff;
 }
 
-#read-book-btn:hover {
-  background-color: #c2eed7;
+#read-book-btn:hover,
+#read-book-btn:focus {
+  background-color: #3a6fd1;
 }
 
+/* 副按鈕 - 刪除 */
 #remove-book-btn {
-  background-color: #ffeaea; /* Light red */
-  border: none;
-  color: #c62828;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: background 0.2s;
+  background-color: #f87171;
+  color: #fff;
 }
-#remove-book-btn:hover {
-  background-color: #ffd6d6;
+
+#remove-book-btn:hover,
+#remove-book-btn:focus {
+  background-color: #dc2626;
 }

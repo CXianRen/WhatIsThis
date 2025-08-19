@@ -20,6 +20,12 @@
   <meta name="msapplication-TileColor" content="#667eea">
   <meta name="msapplication-tap-highlight" content="no">
 
+  <style>
+    :root {
+      --bg-color: linear-gradient(135deg, #232946 0%, #393e46 100%);
+      --text-color: #f3f6fa;
+    }
+  </style>
 
   <link rel="stylesheet" href="/static/css/navBar.css">
   <link rel="stylesheet" href="/static/css/infoPanel.css">
@@ -38,7 +44,7 @@
       margin: 0;
       padding: 0;
       font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
+      background-color: var(--bg-color);
       width: 100vw;
       height: 100vh;
       /* Change to your desired background color */
@@ -49,23 +55,20 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 60px;
-      background-color: #fff;
-      /* Change to your desired color */
-      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+      height: 40px;
       z-index: 1000;
       /* Ensure it stays on top */
     }
 
     .page-panel {
-      background: white;
+      background: var(--bg-color);
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       /* align-items: center; */
       /* justify-content: center; */
       width: 100%;
-      height: calc(100vh - 60px);
+      height: calc(100vh - 40px);
       /* Adjust height to account for the nav bar */
       /* overflow-y: auto; */
       /* Adjust for navigation bar height */
@@ -73,11 +76,9 @@
       box-sizing: border-box;
       overflow-y: auto;
     }
-
     .full-screen {
       height: 100vh;
     }
-
   </style>
 </head>
 
@@ -96,7 +97,7 @@
     import { createBookShelfPanel } from '/static/js/bookPage/bookShelfPanel.js';
     import { createReaderPanel } from '/static/js/reader/readerPanel.js';
 
-    
+
 
     registerPath('home-panel');
     registerPath('learn-page');
