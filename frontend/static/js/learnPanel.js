@@ -6,7 +6,7 @@ function createLearnPanel(
   container,
   apps = [
     {
-      href: "/word-cards",
+      href: "/#wordcard",
       icon: "🎴",
       title: "Word Cards",
       description: "Review your vocabulary",

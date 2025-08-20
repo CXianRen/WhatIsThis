@@ -34,12 +34,16 @@
   <link rel="stylesheet" href="/static/css/bookPage/bookCard.css">
   <link rel="stylesheet" href="/static/css/bookPage/bookDetail.css">
   <link rel="stylesheet" href="/static/css/bookPage/bookShelfPanel.css">
-
   <link rel="stylesheet" href="/static/css/reader/readerPanel.css">
 
   <link rel="stylesheet" href="/static/css/learnPanel.css">
+  <link rel="stylesheet" href="/static/css/wordcard/wordcardPanel.css">
 
   <style>
+    html{
+      background: var(--bg-color);
+    }
+
     body {
       margin: 0;
       padding: 0;
@@ -47,6 +51,8 @@
       background-color: var(--bg-color);
       width: 100vw;
       height: 100vh;
+      max-width: 900px;
+      margin: 0 auto; 
       /* Change to your desired background color */
     }
 
@@ -88,6 +94,7 @@
   <div class="page-panel learn" style="display: none;"></div>
   <div class="page-panel shelf" style="display: none;"></div>
   <div class="page-panel full-screen reader" style="display: none;"></div>
+  <div class="page-panel full-screen wordcard" style="display: none;"></div>
 
   <div class="nav-bar-container"></div>
   <script type="module">
@@ -97,12 +104,16 @@
     import { createLearnPanel } from '/static/js/learnPanel.js';
     import { createBookShelfPanel } from '/static/js/bookPage/bookShelfPanel.js';
     import { createReaderPanel } from '/static/js/reader/readerPanel.js';
+    import { createWordCardPanel } from '/static/js/wordcard/wordcardPanel.js';
 
     registerPath('home');
     registerPath('learn');
     registerPath('shelf');
     registerPath('reader', {
-      // fullscreen: true
+      fullscreen: true
+    });
+    registerPath('wordcard', {
+      fullscreen: true
     });
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -159,6 +170,8 @@
       createBookShelfPanel(document.querySelector('.shelf'));
 
       createReaderPanel(document.querySelector('.reader'));
+
+      createWordCardPanel(document.querySelector('.wordcard'));
     });
 
 

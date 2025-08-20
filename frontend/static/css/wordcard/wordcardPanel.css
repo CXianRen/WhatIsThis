@@ -1,0 +1,275 @@
+.wc-wordcard-container,
+.wc-wordcard-main-container {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.wc-word-card {
+  height: inherit;
+  padding: 20px;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  height: inherit;
+}
+
+.wc-word-display{
+  padding: 1rem;
+}
+
+.wc-word-title
+ {
+  min-height: 5vh;
+  background-color: rgb(72, 72, 72);
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid rgba(114, 204, 223, 0.1);
+  color: var(--text-color);
+  margin-bottom: 0px;
+  text-align: center;
+}
+
+/* Image viewer */
+
+.wc-image-viewer {
+  padding: 1rem;
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 50vh !important;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgb(72, 72, 72) !important;
+}
+
+.image-slide {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.image-slide.active {
+  display: block;
+}
+
+.image-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.image-btn {
+  padding: 8px 12px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.image-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.image-indicators {
+  display: flex;
+  gap: 8px;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ccc;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.indicator.active {
+  background: #667eea;
+}
+
+
+/* toolbar */
+.wc-toolbar {
+  margin-top: 10px;
+}
+
+.wc-nav-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  padding: auto 20px;
+}
+
+.wc-toolbar-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.wc-nav-btn {
+  padding: 10px;
+  margin: 10px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  min-width: 100px;
+}
+
+/* filter */
+.wc-filter-section {
+  padding: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.wc-filter-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--text-color);
+}
+
+.wc-available-tags,
+.wc-selected-tags {
+  margin-bottom: 15px;
+}
+
+.wc-tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  min-height: 32px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+}
+
+.wc-tag-btn {
+  padding: 4px 10px;
+  border: 1px solid #667eea;
+  background: white;
+  color: #667eea;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.3s ease;
+}
+
+.wc-tag-btn:hover {
+  background: #667eea;
+  color: white;
+}
+
+.wc-selected-tag {
+  padding: 4px 10px;
+  background: #667eea;
+  color: white;
+  border-radius: 15px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wc-remove-tag {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 1, 1, 0.3);
+}
+
+.wc-remove-tag:hover {
+  background: rgba(255, 1, 1, 0.7);
+}
+
+.wc-filter-btn {
+  width: 100%;
+  padding: 10px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.wc-filter-btn:hover {
+  background: #5a6fd8;
+}
+
+.wc-filter-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.wc-word-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.wc-word-item {
+  padding: 12px 15px;
+  margin-bottom: 5px;
+  background: rgba(102, 126, 234, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.wc-word-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  border-left-color: #09f701;
+}
+
+.wc-word-item.active {
+  background: rgba(102, 126, 234, 0.2);
+  border-left-color: #fbff00;
+}
+
+.wc-word-text {
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+
+.wc-word-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.wc-word-tag {
+  padding: 2px 6px;
+  background: #667eea;
+  color: white;
+  border-radius: 10px;
+  font-size: 10px;
+}

@@ -9,15 +9,14 @@ let novelData = [];
 let currentNovel = null;
 let currentChapter = null;
 let currentContent = null;
-let sentenceStates = {}; // {chapterPath: {sentenceIndex: 'english'|'chinese'}}
+let sentenceStates = {}; // {chapterPath: {sentenceIndex: 'dest'|'source'}}
 let sidebar = null;
 let longPressTimer = null;
 let isDragSelection = false;
 let selectedWord = '';
 let selectedWordElement = null;
-let isNightMode = false;
 let currentFontSize = 2;
-// 0:小, 1:较小, 2:中等, 3:较大, 4:大
+
 const fontSizes = ['small', 'medium', 'large', 'extra-large', 'huge'];
 const fontSizeNames = ['small', 'medium', 'large', 'extra-large', 'huge'];;
 
@@ -32,28 +31,22 @@ let chapterInfoElement = null;
 let contentAreaElement = null;
 let wordToolbar = null;
 
-let nightModeIcon = null;
 let fontSizeDisplay = null;
-
 
 
 function renderHTML(container) {
   const htmlContent = `
-  <div id="container" class="container">
-    <div class="main-content">
+    <div class="main-content", id="main-content">
       <div class="content-header">
-        <div>
-          <h2 id="currentChapter">Select a chapter to start reading</h2>
+        <div class="chapter-title-area">
+          <h2 id="currentChapter"></h2>
         </div>
-
         <div class="control-area">
           <p id="chapterInfo"></p>
-          <button class="night-mode-toggle">
-            <span id="nightModeIcon">🌙</span>
-          </button>
+     
           <div class="font-size-control">
             <button class="font-size-btn" id="fontSizeIncrease" title="减小字体">A-</button>
-            <span class="font-size-display" id="fontSizeDisplay">中</span>
+            <span class="font-size-display" id="fontSizeDisplay">medium</span>
             <button class="font-size-btn" id="fontSizeDecrease" title="增大字体">A+</button>
           </div>
         </div>
@@ -62,7 +55,6 @@ function renderHTML(container) {
         <div class="loading">Please select a chapter from the left</div>
       </div>
     </div>
-  </div>
   `;
   container.innerHTML = htmlContent;
 
@@ -71,13 +63,9 @@ function renderHTML(container) {
   contentAreaElement = document.getElementById('contentArea');
   wordToolbar = document.getElementById('wordToolbar');
 
-  nightModeIcon = document.getElementById('nightModeIcon');
   fontSizeDisplay = document.getElementById('fontSizeDisplay');
 
   // register event
-
-  let night_mode_btn = document.querySelector('.night-mode-toggle');
-  night_mode_btn.addEventListener('click', toggleNightMode);
 
   let font_increase_btn = document.querySelector('#fontSizeIncrease');
   font_increase_btn.addEventListener('click', decreaseFontSize);
@@ -91,7 +79,7 @@ function renderHTML(container) {
 
   sidebar = new SidebarComponent({
     title: 'Chapter List',
-    containerId: 'container',
+    containerId: 'main-content',
     position: 'left',
     width: isLandscape ? '50vw' : '80vw',
     height: 'auto',
@@ -102,7 +90,6 @@ function renderHTML(container) {
   });
 
 }
-
 
 // load the novel list from the server
 async function loadNovelList() {
@@ -273,7 +260,7 @@ async function selectChapter(novelIndex, chapterIndex, chapterElement, event) {
     if (currentContent.content) {
       currentContent.content.forEach((_, index) => {
         if (!(index in sentenceStates[chapterPath])) {
-          sentenceStates[chapterPath][index] = 'english';
+          sentenceStates[chapterPath][index] = 'dest';
         }
       });
     }
@@ -292,16 +279,16 @@ function renderChapterContent(content, chapterPath) {
   chapterInfoElement.textContent = `Total ${sentences.length} sentences`;
 
   const sentenceHTML = sentences.map((sentence, index) => {
-    const currentState = sentenceStates[chapterPath][index] || 'english';
-    const isChinese = currentState === 'chinese';
-    const cssClass = isChinese ? 'chinese-text' : 'english-text';
-    const text = isChinese ? sentence.src : sentence.target;
+    const currentState = sentenceStates[chapterPath][index] || 'dest';
+    const isSource = currentState === 'source';
+    const cssClass = isSource ? 'source-text' : 'dest-text';
+    const text = isSource ? sentence.src : sentence.target;
 
-    const toggleIcon = isChinese ? 'CN' : 'EN';
-    const toggleTitle = isChinese ? 'Switch to English' : 'Switch to Chinese';
+    const toggleIcon = isSource ? 'src' : 'dst';
+    const toggleTitle = isSource ? 'Switch to English' : 'Switch to Chinese';
 
     return `
-      <div class="sentence ${isChinese ? 'chinese' : ''}" data-index="${index}" data-chapter-path="${chapterPath}">
+      <div class="sentence ${isSource ? 'source' : ''}" data-index="${index}" data-chapter-path="${chapterPath}">
         <div class="language-toggle" title="${toggleTitle}">
           ${toggleIcon}
         </div>
@@ -338,8 +325,8 @@ function renderChapterContent(content, chapterPath) {
 function toggleSentence(sentenceIndex, chapterPath) {
   event.stopPropagation(); // Prevent event bubbling
 
-  const currentState = sentenceStates[chapterPath][sentenceIndex] || 'english';
-  sentenceStates[chapterPath][sentenceIndex] = currentState === 'chinese' ? 'english' : 'chinese';
+  const currentState = sentenceStates[chapterPath][sentenceIndex] || 'dest';
+  sentenceStates[chapterPath][sentenceIndex] = currentState === 'source' ? 'dest' : 'source';
 
   if (currentContent) {
     renderChapterContent(currentContent, chapterPath);
@@ -615,38 +602,8 @@ function loadFontSizeSettings() {
   }
 }
 
-// 切换夜间模式
-function toggleNightMode() {
-  console.log('切换夜间模式');
-  isNightMode = !isNightMode;
-  const body = document.body;
-
-  if (isNightMode) {
-    body.classList.add('night-mode');
-    nightModeIcon.textContent = '☀️';
-    // nightModeText.textContent = 'Switch';
-    localStorage.setItem('nightMode', 'true');
-  } else {
-    body.classList.remove('night-mode');
-    nightModeIcon.textContent = '🌙';
-    // nightModeText.textContent = 'Switch';
-    localStorage.setItem('nightMode', 'false');
-  }
-}
-
-// 加载夜间模式设置
-function loadNightModeSettings() {
-  const savedNightMode = localStorage.getItem('nightMode');
-  if (savedNightMode === 'true') {
-    isNightMode = false; // 设为false，然后调用toggle来激活
-    toggleNightMode();
-  }
-}
-
-
 function createReaderPanel(container) {
   renderHTML(container);
-  loadNightModeSettings();
   loadFontSizeSettings();
 
   loadNovelList();
