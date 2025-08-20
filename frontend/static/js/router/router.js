@@ -1,8 +1,10 @@
-let register_path = []
+let register_path = [];
 let navbar = null;
+let currentPath = null;
+let stateStore = {}; // for saving path data
 
 function registerPath(path, config = {}) {
-  if (register_path.includes(path)) {
+  if (register_path.some(p => p.path === path)) {
     console.warn(`Path ${path} is already registered.`);
     return;
   }
@@ -10,20 +12,40 @@ function registerPath(path, config = {}) {
   console.log(`Path ${path} registered successfully.`);
 }
 
-function toPath(path) {
-
+function toPath(path, data = null, pushHistory = true) {
   console.log(`Navigating to path: ${path}`);
-  register_path.forEach(panel => {
-    const el = document.querySelector(`.${panel.path}`);
+  currentPath = path;
+
+  // if data is not null, saive it to stateStore
+  if (data !== null) {
+    stateStore[path] = data;
+  }
+
+  // update the URL hash
+  if (pushHistory) {
+
+    let url = '#' + path;
+    // if (data && data.id !== undefined) {
+    //   // if data has an id, append it to the URL
+    //   // and encodeURIComponent to handle special characters
+    //   url += `?id=${encodeURIComponent(data.id)}`;
+    // }
+    location.hash = url;
+    console.log(`Updating URL hash to: #${path}`);
+  }
+
+  // switch display of registered paths
+  register_path.forEach(page => {
+    const el = document.querySelector(`.${page.path}`);
     if (el) {
-      el.style.display = panel.path === path ? 'flex' : 'none';
-      console.log(panel)
-      if (panel.config.fullscreen === true) {
-        navbar.style.display = 'none';
-        console.log(`Hiding navbar for full-screen path: ${path}`);
-      }
-      else {
-        navbar.style.display = 'block';
+      el.style.display = page.path === path ? 'flex' : 'none';
+      if (page.path === path) {
+        if (page.config.fullscreen === true) {
+          navbar.style.display = 'none';
+          console.log(`Hiding navbar for full-screen path: ${path}`);
+        } else {
+          navbar.style.display = 'block';
+        }
       }
     }
   });
@@ -33,4 +55,44 @@ function registerNavBar(bar) {
   navbar = bar;
 }
 
-export { registerPath, toPath, registerNavBar };
+// getPathData(path) returns the data for the given path
+function getPathData(path = currentPath) {
+  return stateStore[path] || null;
+}
+
+// listen for hash changes to handle navigation
+window.addEventListener('hashchange', () => {
+  const hash = location.hash.slice(1);
+  if (!hash) return;
+
+  const [path, queryStr] = hash.split('?');
+  let query = {};
+  if (queryStr) {
+    query = Object.fromEntries(new URLSearchParams(queryStr));
+  }
+
+  // if the path exists in stateStore, 
+  // use that data; otherwise use query
+  const data = stateStore[path] || query;
+
+  if (path && path !== currentPath) {
+    toPath(path, data, false);
+  }
+});
+
+// initial load handling
+window.addEventListener('load', () => {
+  const hash = location.hash.slice(1);
+  if (!hash && register_path.length > 0) {
+    toPath(register_path[0].path, null, false);
+  } else if (hash) {
+    const [path, queryStr] = hash.split('?');
+    let query = {};
+    if (queryStr) {
+      query = Object.fromEntries(new URLSearchParams(queryStr));
+    }
+    toPath(path, query, false);
+  }
+});
+
+export { registerPath, toPath, registerNavBar, getPathData };

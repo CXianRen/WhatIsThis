@@ -76,6 +76,7 @@
       box-sizing: border-box;
       overflow-y: auto;
     }
+
     .full-screen {
       height: 100vh;
     }
@@ -83,10 +84,10 @@
 </head>
 
 <body>
-  <div class="page-panel home-panel "> </div>
-  <div class="page-panel learn-page" style="display: none;"></div>
-  <div class="page-panel shelf-panel" style="display: none;"></div>
-  <div class="page-panel full-screen read-panel" style="display: none;"></div>
+  <div class="page-panel home "> </div>
+  <div class="page-panel learn" style="display: none;"></div>
+  <div class="page-panel shelf" style="display: none;"></div>
+  <div class="page-panel full-screen reader" style="display: none;"></div>
 
   <div class="nav-bar-container"></div>
   <script type="module">
@@ -97,12 +98,10 @@
     import { createBookShelfPanel } from '/static/js/bookPage/bookShelfPanel.js';
     import { createReaderPanel } from '/static/js/reader/readerPanel.js';
 
-
-
-    registerPath('home-panel');
-    registerPath('learn-page');
-    registerPath('shelf-panel');
-    registerPath('read-panel', {
+    registerPath('home');
+    registerPath('learn');
+    registerPath('shelf');
+    registerPath('reader', {
       // fullscreen: true
     });
 
@@ -113,7 +112,7 @@
         [
           {
             cb: () => {
-              toPath('shelf-panel');
+              toPath('shelf');
             },
             icon: `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
@@ -125,7 +124,7 @@
           {
             // url: '/learn',
             cb: () => {
-              toPath('learn-page');
+              toPath('learn');
             },
             icon: `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
@@ -137,7 +136,7 @@
           },
           {
             cb: () => {
-              toPath('home-panel');
+              toPath('home');
             },
             icon: `
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
@@ -148,18 +147,18 @@
           }
         ]);
 
-      createInfoPanel(document.querySelector('.home-panel'), {
+      createInfoPanel(document.querySelector('.home'), {
         learnedDays: [1, 2, 3, 4, 7, 8, 9, 10],
         daysLearned: 30,
         wordsAdded: 150,
         calendarHTML: '<div class="calendar"></div>'
       });
 
-      createLearnPanel(document.querySelector('.learn-page'));
+      createLearnPanel(document.querySelector('.learn'));
 
-      createBookShelfPanel(document.querySelector('.shelf-panel'));
+      createBookShelfPanel(document.querySelector('.shelf'));
 
-      createReaderPanel(document.querySelector('.read-panel'));
+      createReaderPanel(document.querySelector('.reader'));
     });
 
 

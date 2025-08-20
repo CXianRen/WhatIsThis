@@ -82,7 +82,7 @@ function createBookShelfPanel(container) {
   panelContainer.appendChild(loadingState);
   container.appendChild(panelContainer);
   container.appendChild(overlay);
-  
+
   // Setup the app
   setup();
 
@@ -307,7 +307,7 @@ function handleBookClick(book) {
 }
 
 function showBookControl(book) {
-   // Show the overlay
+  // Show the overlay
   const overlay = document.getElementById('book-control-panel-overlay');
   if (overlay) {
     overlay.style.display = 'flex';
@@ -322,7 +322,7 @@ function showBookControl(book) {
       // Handle reading the book
       console.log(`Reading book: ${book.title}`);
       closeBookControl();
-      toPath(`read-panel`); // Navigate to the reading panel
+      toPath('reader'); // Navigate to the reading panel
       // Here you would typically navigate to the reading panel
     };
   }
