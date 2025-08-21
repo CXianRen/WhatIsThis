@@ -15,6 +15,7 @@ from routes.novel import novel_bp
 from routes.translation import translation_bp
 from routes.annotation import annotation_bp
 from routes.vocb import vocb_bp
+from routes.user import user_bp
 import sys
 
 def create_app():
@@ -37,6 +38,7 @@ def create_app():
     app.register_blueprint(translation_bp)
     app.register_blueprint(annotation_bp)
     app.register_blueprint(vocb_bp)
+    app.register_blueprint(user_bp)
     
     # Set static file MIME type
     @app.after_request

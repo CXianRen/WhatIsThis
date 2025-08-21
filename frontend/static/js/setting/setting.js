@@ -1,4 +1,5 @@
 import { toPath } from '../router/router.js';
+import { getUserInfo, logout } from '../user/login.js';
 
 // temporary setting.js file for frontend static JS settings component
 const settingConfig = [
@@ -49,30 +50,33 @@ export function renderSettingComponent() {
   avatar.width = 48;
   avatar.height = 48;
 
-  if (window.user && window.user.id) {
-    const userId = document.createElement('span');
-    userId.id = 'user-id';
-    userId.textContent = window.user.id;
-    const logoutBtn = document.createElement('button');
-    logoutBtn.id = 'logout-btn';
-    logoutBtn.textContent = 'Logout';
-    logoutBtn.onclick = () => {
-      // logout logic here
-    };
-    userInfo.appendChild(avatar);
-    userInfo.appendChild(userId);
-    userInfo.appendChild(logoutBtn);
-  } else {
-    const loginBtn = document.createElement('button');
-    loginBtn.id = 'login-btn';
-    loginBtn.textContent = 'Login';
-    loginBtn.onclick = () => {
-      // login logic here
-      toPath('login');
-    };
-    userInfo.appendChild(avatar);
-    userInfo.appendChild(loginBtn);
-  }
+  getUserInfo()
+    .then(user => {
+      const userId = document.createElement('span');
+      userId.id = 'user-id';
+      userId.textContent = user.username || user.email || 'Unknown User';
+      const logoutBtn = document.createElement('button');
+      logoutBtn.id = 'logout-btn';
+      logoutBtn.textContent = 'Logout';
+      logoutBtn.onclick = () => {
+        logout().then(() => {
+          window.location.reload();
+        });
+      };
+      userInfo.appendChild(avatar);
+      userInfo.appendChild(userId);
+      userInfo.appendChild(logoutBtn);
+    })
+    .catch(() => {
+      const loginBtn = document.createElement('button');
+      loginBtn.id = 'login-btn';
+      loginBtn.textContent = 'Login';
+      loginBtn.onclick = () => {
+        toPath('login');
+      };
+      userInfo.appendChild(avatar);
+      userInfo.appendChild(loginBtn);
+  });
 
   // Settings Panels
   const panels = document.createElement('div');

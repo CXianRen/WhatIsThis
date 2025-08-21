@@ -31,8 +31,19 @@ export function renderLoginComponent() {
     // Here you would typically handle the login logic, e.g., sending a request to the server
     console.log('Username:', username);
     console.log('Password:', password);
-    // For now, just log the values to the console
-  });
+    login(username, password)
+      .then(data => {
+        console.log('Login successful:', data);
+        // Redirect to the main page or show a success message
+        window.location.href = '/#home'; // Redirect to the main page after successful login
+      })
+      .catch(error => {
+        console.error('Login failed:', error);
+        // Show error message to the user
+        alert('Login failed: ' + error.message);
+      });
+    }
+  );
 
   return container;
 }
@@ -172,10 +183,114 @@ export function renderSignUpComponent() {
       console.log('New Username:', newUsername);
       console.log('Email:', email);
       console.log('New Password:', newPassword);
-      // For now, just log the values to the console
+      
+      signup(newUsername, email, newPassword)
+        .then(data => {
+          console.log('Signup successful:', data);
+          // Redirect to login or show success message
+          window.location.href = '/#login';
+        }
+        )
+        .catch(error => {
+          console.error('Signup failed:', error);
+          // Show error message to the user
+          alert('Signup failed: ' + error.message);
+        }
+      );
     }
   );
 
   return container;
 }
 
+
+function signup(username, email, password) {
+  // API: POST /api/user/signup
+  return fetch('/api/user/signup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username: username,
+      useremail: email,
+      userpassword: password
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(err => {
+        throw new Error(err.error || 'Signup failed');
+      });
+    }   return response.json();
+  }
+  )
+  .then(data => {
+    console.log('Signup successful:', data);
+    return data;
+  }
+  )
+  .catch(error => {
+    console.error('Error during signup:', error);
+    throw error;
+  }
+  );
+}
+
+
+function login(username, password) {
+  // API: POST /api/user/login
+  return fetch('/api/user/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username: username,
+      userpassword: password
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(err => {
+        throw new Error(err.error || 'Login failed');
+      });
+    }
+    return response.json();
+  }
+  )
+  .then(data => {
+    console.log('Login successful:', data);
+    // Store the token in localStorage or sessionStorage
+    localStorage.setItem('token', data.token);
+    return data;
+  }
+  )
+  .catch(error => {
+    console.error('Error during login:', error);
+    throw error;
+  }
+  );
+}
+
+export function logout() {
+  // just remove the token from storage
+  localStorage.removeItem('token');
+  console.log('Logged out successfully');
+  return Promise.resolve({ message: 'Logout successful' });
+}
+
+
+export function getUserInfo() {
+  // return local information from localStorage
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return Promise.reject(new Error('User not logged in'));
+  }
+  // Decode the token to get user info (assuming JWT)
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return Promise.resolve({
+    username: payload.username,
+    email: payload.useremail
+  });
+}

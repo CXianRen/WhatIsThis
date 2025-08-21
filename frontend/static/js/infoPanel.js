@@ -1,14 +1,14 @@
 // ================== Info Panel Component (ESM) ==================
 import { toPath } from './router/router.js';
+import { getUserInfo } from './user/login.js';
 let panelElement = null;
 
-function createInfoPanel(container, data = {}) {
+async function createInfoPanel(container, data = {}) {
   if (!container) return;
 
-  const { daysLearned = 0,
+  let { daysLearned = 0,
     wordsAdded = 0,
     learnedDays = [], // Fixed typo: was daysLearneListd
-    user = {}
   } = data;
 
   if (panelElement) {
@@ -49,12 +49,22 @@ function createInfoPanel(container, data = {}) {
   panelElement.appendChild(calendarDiv);
 
   // Info and settings
+  let userinfo = null;
+
+  try {
+    userinfo = await getUserInfo();
+  } catch (e) {
+    userinfo = { username: 'Guest' };
+  }
+
+  console.log('User Info:', userinfo);
+  
   const userDiv = document.createElement('div');
   userDiv.className = 'info-section info-user';
   userDiv.innerHTML = `
     <div class="user-info">
-      <img class="avatar" src="${user.avatarUrl || '/static/imgs/default-avatar.png'}" alt="avatar">
-      <span class="username">${user.name || 'User'}</span>
+      <img class="avatar" src="${'/static/imgs/default-avatar.png'}" alt="avatar">
+      <span class="username">${userinfo.username || 'Guest'}</span>
     </div>
     <div class="settings-icon">
       ⚙️

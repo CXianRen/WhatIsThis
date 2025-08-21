@@ -32,7 +32,8 @@ def init_db():
             __init_db_language(db_path)
         else:
             print(f"Database for {lang} already exists at {db_path}")
-
+    
+    init_user_db()
 
 def __init_db_language(db_path):
     """Initialize all required databases and tables into one DB file."""
@@ -121,3 +122,90 @@ def get_word_definition(lang, word):
             'SELECT definition FROM definition WHERE word=?', (word,))
         row = cursor.fetchone()
         return row[0] if row else None
+    
+
+# user part
+
+def init_user_db():
+    """
+    Initialize the user database.
+    """
+    user_db_path = os.path.join(DATA_DIR, "user_db.sqlite")
+    if not os.path.exists(user_db_path):
+        print(f"Initializing user database at {user_db_path}")
+        with sqlite3.connect(user_db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    userid INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT NOT NULL,
+                    useremail TEXT UNIQUE NOT NULL,
+                    userpassword TEXT NOT NULL
+                )
+            ''')
+            conn.commit()
+    else:
+        print(f"User database already exists at {user_db_path}")
+
+
+def is_email_registered(useremail):
+    """
+    Check if the email is already registered.
+    Returns True if registered, False otherwise.
+    """
+    user_db_path = os.path.join(DATA_DIR, "user_db.sqlite")
+    with sqlite3.connect(user_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT 1 FROM users WHERE useremail=?', (useremail,))
+        return cursor.fetchone() is not None
+
+def is_username_registered(username):
+    """
+    Check if the username is already registered.
+    Returns True if registered, False otherwise.
+    """
+    user_db_path = os.path.join(DATA_DIR, "user_db.sqlite")
+    with sqlite3.connect(user_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT 1 FROM users WHERE username=?', (username,))
+        return cursor.fetchone() is not None
+
+
+def get_userinfo_by_username(username):
+    """
+    Get user information by username.
+    Returns a dictionary with user information or None if not found.
+    """
+    user_db_path = os.path.join(DATA_DIR, "user_db.sqlite")
+    with sqlite3.connect(user_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE username=?', (username,))
+        row = cursor.fetchone()
+        if row:
+            return {
+                'userid': row[0],
+                'username': row[1],
+                'useremail': row[2],
+                'userpassword': row[3]
+            }
+        return None
+
+def register_user(username, useremail, userpassword):
+    """
+    Register a new user.
+    Returns True if registration is successful, False if email or username is already registered.
+    """
+    user_db_path = os.path.join(DATA_DIR, "user_db.sqlite")
+    if is_email_registered(useremail):
+        return False, "Email is already registered."
+    if is_username_registered(username):
+        return False, "Username is already registered."
+    
+    with sqlite3.connect(user_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO users (username, useremail, userpassword)
+            VALUES (?, ?, ?)
+        ''', (username, useremail, userpassword))
+        conn.commit()
+    return True, "Registration successful."
