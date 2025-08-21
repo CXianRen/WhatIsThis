@@ -1,0 +1,78 @@
+/* ===== 手机默认布局 Login Form ===== */
+
+/* 容器 */
+login-div {
+  height: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  /* font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; */
+  padding: 40px;
+  /* margin: 20px auto; */
+  border-radius: 12px;
+  /* max-width: 480px; */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* 表单样式 */
+#loginForm {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+}
+
+#loginForm div {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+#loginForm label {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+#loginForm input[type="text"],
+#loginForm input[type="password"] {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.3);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-size: 14px;
+}
+
+/* 提交按钮 */
+#loginForm button[type="submit"] {
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  background-color: rgba(255,255,255,0.3);
+  color: var(--bg-color);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  /* max-width: 200px; */
+}
+
+#loginForm button[type="submit"]:hover {
+  opacity: 0.85;
+}
+
+/* 注册链接 */
+login-div > div a {
+  display: block;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-color);
+  text-decoration: underline;
+  text-align: center;
+}
+
+login-div > div a:hover {
+  opacity: 0.8;
+}

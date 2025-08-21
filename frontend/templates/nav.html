@@ -39,20 +39,24 @@
   <link rel="stylesheet" href="/static/css/learnPanel.css">
   <link rel="stylesheet" href="/static/css/wordcard/wordcardPanel.css">
 
+  <link rel="stylesheet" href="/static/css/setting/setting.css">
+  <link rel="stylesheet" href="/static/css/user/login.css">
+  <link rel="stylesheet" href="/static/css/user/signup.css">
+
   <style>
-    html{
+    html {
       background: var(--bg-color);
     }
 
     body {
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       width: 100vw;
       height: 100vh;
       max-width: 900px;
-      margin: 0 auto; 
+      margin: 0 auto;
       /* Change to your desired background color */
     }
 
@@ -95,6 +99,9 @@
   <div class="page-panel shelf" style="display: none;"></div>
   <div class="page-panel full-screen reader" style="display: none;"></div>
   <div class="page-panel full-screen wordcard" style="display: none;"></div>
+  <div class="page-panel login" style="display: none;"></div>
+  <div class="page-panel signup" style="display: none;"></div>
+  <div class="page-panel setting" style="display: none;"></div>
 
   <div class="nav-bar-container"></div>
   <script type="module">
@@ -105,6 +112,9 @@
     import { createBookShelfPanel } from '/static/js/bookPage/bookShelfPanel.js';
     import { createReaderPanel } from '/static/js/reader/readerPanel.js';
     import { createWordCardPanel } from '/static/js/wordcard/wordcardPanel.js';
+    import { renderLoginComponent, renderSignUpComponent } from '/static/js/user/login.js';
+
+    import { renderSettingComponent} from '/static/js/setting/setting.js';
 
     registerPath('home');
     registerPath('learn');
@@ -115,6 +125,9 @@
     registerPath('wordcard', {
       fullscreen: true
     });
+    registerPath('login');
+    registerPath('signup');
+    registerPath('setting');
 
     window.addEventListener('DOMContentLoaded', () => {
       registerNavBar(document.querySelector('.nav-bar-container'));
@@ -161,8 +174,7 @@
       createInfoPanel(document.querySelector('.home'), {
         learnedDays: [1, 2, 3, 4, 7, 8, 9, 10],
         daysLearned: 30,
-        wordsAdded: 150,
-        calendarHTML: '<div class="calendar"></div>'
+        wordsAdded: 150
       });
 
       createLearnPanel(document.querySelector('.learn'));
@@ -172,6 +184,15 @@
       createReaderPanel(document.querySelector('.reader'));
 
       createWordCardPanel(document.querySelector('.wordcard'));
+      
+      const signupe_upComponent = renderSignUpComponent();
+      document.querySelector('.signup').appendChild(signupe_upComponent);
+
+      const loginComponent = renderLoginComponent();
+      document.querySelector('.login').appendChild(loginComponent);
+
+      const settingComponent = renderSettingComponent();
+      document.querySelector('.setting').appendChild(settingComponent);
     });
 
 

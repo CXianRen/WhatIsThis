@@ -1,5 +1,5 @@
 // ================== Info Panel Component (ESM) ==================
-
+import { toPath } from './router/router.js';
 let panelElement = null;
 
 function createInfoPanel(container, data = {}) {
@@ -53,16 +53,19 @@ function createInfoPanel(container, data = {}) {
   userDiv.className = 'info-section info-user';
   userDiv.innerHTML = `
     <div class="user-info">
-      <img class="avatar" src="${user.avatarUrl || 'https://via.placeholder.com/40'}" alt="avatar">
+      <img class="avatar" src="${user.avatarUrl || '/static/imgs/default-avatar.png'}" alt="avatar">
       <span class="username">${user.name || 'User'}</span>
     </div>
     <div class="settings-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l0 0a2 2 0 1 1-2.83 2.83l0 0a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v0a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l0 0a2 2 0 1 1-2.83-2.83l0 0a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h0a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l0 0a2 2 0 1 1 2.83-2.83l0 0a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v0a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l0 0a2 2 0 1 1 2.83 2.83l0 0a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h0a1.65 1.65 0 0 0-1.51 1z"/>
-      </svg>
+      ⚙️
     </div>
   `;
+  userDiv.querySelector('.settings-icon').onclick = () => {
+    // Open settings panel logic here
+    console.log('Open settings panel');
+    toPath('setting');
+  }; 
+  
   panelElement.appendChild(userDiv);
 
   return panelElement;
