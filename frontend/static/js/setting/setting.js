@@ -52,6 +52,8 @@ export function renderSettingComponent() {
 
   getUserInfo()
     .then(user => {
+      const div = document.createElement('div');
+      div.id = 'user-details';
       const userId = document.createElement('span');
       userId.id = 'user-id';
       userId.textContent = user.username || user.email || 'Unknown User';
@@ -64,8 +66,9 @@ export function renderSettingComponent() {
         });
       };
       userInfo.appendChild(avatar);
-      userInfo.appendChild(userId);
-      userInfo.appendChild(logoutBtn);
+      div.appendChild(userId);
+      div.appendChild(logoutBtn);
+      userInfo.appendChild(div);
     })
     .catch(() => {
       const loginBtn = document.createElement('button');
@@ -76,7 +79,7 @@ export function renderSettingComponent() {
       };
       userInfo.appendChild(avatar);
       userInfo.appendChild(loginBtn);
-  });
+    });
 
   // Settings Panels
   const panels = document.createElement('div');
@@ -96,8 +99,9 @@ export function renderSettingComponent() {
         const input = document.createElement('input');
         input.type = 'checkbox';
         input.id = setting.id;
-        label.appendChild(input);
+
         label.appendChild(document.createTextNode(' ' + setting.label));
+        label.appendChild(input);
       } else if (setting.type === 'select') {
         const select = document.createElement('select');
         select.id = setting.id;
@@ -107,8 +111,9 @@ export function renderSettingComponent() {
           option.textContent = opt.text;
           select.appendChild(option);
         });
-        label.appendChild(select);
+
         label.appendChild(document.createTextNode(' ' + setting.label));
+        label.appendChild(select);
       }
       panel.appendChild(label);
     });

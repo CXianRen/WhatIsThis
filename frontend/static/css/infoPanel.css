@@ -246,6 +246,11 @@
 .username {
   font-size: 1.1rem;
   font-weight: 600;
+  max-width: 150px;           /* 限制最大宽度 */
+  white-space: nowrap;        /* 不换行 */
+  overflow: hidden;           /* 超出隐藏 */
+  text-overflow: ellipsis;    /* 显示省略号 … */
+  vertical-align: middle;     
 }
 
 .settings-icon {

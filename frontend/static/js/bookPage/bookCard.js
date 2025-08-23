@@ -27,7 +27,7 @@ function createCoverHtml(book) {
            onerror="this.src='/static/imgs/book-placeholder.svg'">
       <div class="book-tags">
         ${createLanguageTags(book.languages)}
-        ${createLevelTag(book.level)}
+      
       </div>
       ${createProgressBar(book.progress)}
     </div>
@@ -35,7 +35,11 @@ function createCoverHtml(book) {
 }
 
 function createLanguageTags(langs = []) {
-  return langs.map(l => `<span class="language-tag">${l.toUpperCase()}</span>`).join("");
+  // console.log('Creating language tags:', langs);
+  return langs.map(l => `<div>
+    <span class="language-tag">${l.lang.toUpperCase()}</span>
+    ${Array.isArray(l.level) ? l.level.map(level => `<span class="level-tag ${level.toLowerCase()}">${level}</span>`).join("") : ""}
+    </div>`).join("");
 }
 
 function createLevelTag(level) {

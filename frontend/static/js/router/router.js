@@ -3,6 +3,8 @@ let navbar = null;
 let currentPath = null;
 let stateStore = {}; // for saving path data
 
+import { isLoggedIn } from '../user/login.js';
+
 function registerPath(path, config = {}) {
   if (register_path.some(p => p.path === path)) {
     console.warn(`Path ${path} is already registered.`);
@@ -13,7 +15,28 @@ function registerPath(path, config = {}) {
 }
 
 function toPath(path, data = null, pushHistory = true) {
+
   console.log(`Navigating to path: ${path}`);
+
+  //  check if path is registered
+  if (!register_path.some(p => p.path === path)) {
+    console.error(`Path ${path} is not registered.`);
+    alert(`Error: Page ${path} is not registered.`);
+    return;
+  }
+
+  // check if path requires login
+  const pathConfig = register_path.find(p => p.path === path).config;
+  if (!('requiresLogin' in pathConfig)) {
+    pathConfig.requiresLogin = true; // default to true
+  }
+
+
+  if (pathConfig.requiresLogin && !isLoggedIn()) {
+    toPath('login');
+    return;
+  }
+
   currentPath = path;
 
   // if data is not null, saive it to stateStore

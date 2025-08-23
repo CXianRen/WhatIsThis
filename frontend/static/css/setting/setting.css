@@ -34,6 +34,7 @@
   margin-left: 20px;
   margin-right: 20px;
   box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  background-color: whitesmoke;
 }
 
 /* 用户ID */
@@ -41,7 +42,12 @@
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 6px;
-  max-width: 100px;
+  display: inline-block;      /* 或 block，根据需要 */
+  max-width: 150px;           /* 限制最大宽度 */
+  white-space: nowrap;        /* 不换行 */
+  overflow: hidden;           /* 超出隐藏 */
+  text-overflow: ellipsis;    /* 显示省略号 … */
+  vertical-align: middle;     /* 可选：和其他 inline 元素对齐 */
 }
 
 /* 登录/注销按钮 */
@@ -94,9 +100,10 @@
 .setting-panel label {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   font-size: 13px;
   margin: 5px 0;
-  cursor: pointer;
+  /* cursor: pointer; */
   flex-wrap: wrap; /* 适配小屏幕 */
 }
 
@@ -104,7 +111,7 @@
 .setting-panel input[type="checkbox"],
 .setting-panel select {
   margin-right: 6px;
-  cursor: pointer;
+  /* cursor: pointer; */
 }
 
 /* 下拉框样式 */

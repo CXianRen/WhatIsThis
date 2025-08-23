@@ -44,6 +44,7 @@
   /* 深灰色文字 */
   transition: border-color 0.3s ease;
   font-size: 0.875rem;
+  max-width: 70px;
 }
 
 .filter-select option {

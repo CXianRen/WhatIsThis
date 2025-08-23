@@ -9,13 +9,13 @@ from models.database import init_db
 from models.tag.tag import init_tags
 
 # Import all route blueprints
-from routes.app import app_bp
-from routes.group import group_bp
-from routes.novel import novel_bp
-from routes.translation import translation_bp
-from routes.annotation import annotation_bp
-from routes.vocb import vocb_bp
-from routes.user import user_bp
+from routers.app import app_bp
+from routers.group import group_bp
+from routers.novel import book_bp
+from routers.translation import translation_bp
+from routers.annotation import annotation_bp
+from routers.vocb import vocb_bp
+from routers.user import user_bp
 import sys
 
 def create_app():
@@ -34,7 +34,7 @@ def create_app():
     # Register blueprints
     app.register_blueprint(app_bp)
     app.register_blueprint(group_bp)
-    app.register_blueprint(novel_bp)
+    app.register_blueprint(book_bp)
     app.register_blueprint(translation_bp)
     app.register_blueprint(annotation_bp)
     app.register_blueprint(vocb_bp)

@@ -1,3 +1,6 @@
+
+from functools import wraps
+from flask import g
 from flask import Blueprint, request, jsonify
 import os
 import json
@@ -19,6 +22,28 @@ user_bp = Blueprint('user', __name__, url_prefix='/api/user')
 
 
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'mmmmysecretkey')
+
+# JWT_SECRET_KEY should be imported or defined as in your user.py
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get('Authorization', None)
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'Authorization header missing or invalid'}), 401
+        token = auth_header.split(' ')[1]
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256'])
+            # check token expiration
+            if payload['exp'] < datetime.datetime.utcnow().timestamp():
+                return jsonify({'error': 'Token has expired'}), 401
+            g.user = payload
+            print("Authenticated user:", g.user)
+        except Exception:
+            return jsonify({'error': 'Invalid or expired token'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 @user_bp.route('/login', methods=['POST'])
@@ -44,6 +69,7 @@ def login():
     token = jwt.encode({
         'username': user['username'],
         'useremail': user['useremail'],
+        'userid': user['userid'],
         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24*7)
     }, JWT_SECRET_KEY, algorithm='HS256')
 
@@ -57,6 +83,29 @@ def login():
         }
     }), 200
 
+# login as guest
+@user_bp.route('/guest_login', methods=['POST'])
+def guest_login():
+    # create a guest user with limited access
+    guest_username = "guest_" + datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    guest_useremail = guest_username + "@example.com"
+    guest_userid = -1
+    token = jwt.encode({
+        'username': guest_username,
+        'useremail': guest_useremail,
+        'userid': guest_userid,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24*7)
+    }, JWT_SECRET_KEY, algorithm='HS256')
+    return jsonify({
+        'message': 'Guest login successful',
+        'token': token,
+        'user': {
+            'username': guest_username,
+            'useremail': guest_useremail,
+            'userid': guest_userid,
+        }
+    }), 200
+
 
 @user_bp.route('/signup', methods=['POST'])
 def signup():
@@ -64,7 +113,8 @@ def signup():
     useremail = data.get('useremail')
     username = data.get('username')
     userpassword = data.get('userpassword')
-    print(f"Received signup request with email: {useremail}, username: {username}")
+    print(
+        f"Received signup request with email: {useremail}, username: {username}")
 
     if not useremail or not username or not userpassword:
         print("Missing required fields for signup")
@@ -81,7 +131,8 @@ def signup():
     # Hash the password before storing it
     hashed_password = generate_password_hash(userpassword)
 
-    register_user(username = username, useremail=useremail, userpassword=hashed_password)
+    register_user(username=username, useremail=useremail,
+                  userpassword=hashed_password)
 
     return jsonify({'message': 'Signup successful',
                     'email': useremail, 'username': username}), 201

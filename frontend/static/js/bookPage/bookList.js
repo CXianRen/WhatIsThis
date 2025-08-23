@@ -1,104 +1,68 @@
-// ========== Book List Component ==========
+// bookList.js
 import BookCard from './bookCard.js';
 
-let container = null;
-let books = [];
-let onBookClick = null;
+class BookList {
+  constructor(containerElement, clickCallback) {
+    this.container = containerElement;
+    this.books = [];
+    this.onBookClick = clickCallback;
 
-function init(containerElement, clickCallback) {
-  container = containerElement;
-  onBookClick = clickCallback;
-
-  if (container) {
-    container.classList.add('book-list');
-  }
-}
-
-function render(booksData) {
-  books = booksData || [];
-  updateDisplay();
-}
-
-function updateDisplay() {
-  if (!container) return;
-
-  if (books.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">📚</div>
-        <h3>No books found</h3>
-        <p>Try adjusting your search or filter criteria</p>
-      </div>
-    `;
-    return;
-  }
-
-  // Clear container first
-  container.innerHTML = '';
-
-  // Use BookCard API to create each card
-  books.forEach(book => {
-    let bookCard;
-
-    if (BookCard && typeof BookCard.create === 'function') {
-      bookCard = BookCard.create(book);
-
-      // Override the click handler to use our onBookClick callback
-      const newCard = bookCard.cloneNode(true);
-      setupCustomEventListeners(newCard, book);
-      container.appendChild(newCard);
-    } else {
-      console.warn('BookCard component not found. Using legacy method.');
+    if (this.container) {
+      this.container.classList.add('book-list');
     }
-  });
-}
+  }
 
-function setupCustomEventListeners(card, book) {
-  const handleClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleBookClick(book);
-  };
+  render(booksData) {
+    this.books = booksData || [];
+    this.updateDisplay();
+  }
 
-  const handleKeydown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      e.stopPropagation();
-      handleBookClick(book);
+  updateDisplay() {
+    if (!this.container) return;
+    this.container.innerHTML = '';
+
+    this.books.forEach(book => {
+      let bookCard;
+      if (BookCard && typeof BookCard.create === 'function') {
+        bookCard = BookCard.create(book);
+        const newCard = bookCard.cloneNode(true);
+        this.setupCustomEventListeners(newCard, book);
+        this.container.appendChild(newCard);
+      }
+    });
+  }
+
+  setupCustomEventListeners(card, book) {
+    card.addEventListener('click', () => this.handleBookClick(book));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.handleBookClick(book);
+      }
+    });
+  }
+
+  handleBookClick(book) {
+    if (this.onBookClick) {
+      this.onBookClick(book);
     }
-  };
+  }
 
-  card.addEventListener('click', handleClick);
-  card.addEventListener('keydown', handleKeydown);
-}
+  updateBook(bookId, updates) {
+    const book = this.books.find(b => b.id === bookId);
+    if (book) {
+      Object.assign(book, updates);
+      this.updateDisplay();
+    }
+  }
 
-function handleBookClick(book) {
-  if (onBookClick && typeof onBookClick === 'function') {
-    onBookClick(book);
+  getBooks() {
+    return [...this.books];
+  }
+
+  getBook(bookId) {
+    return this.books.find(b => b.id === bookId);
   }
 }
 
-function updateBook(bookId, updates) {
-  const book = books.find(b => b.id === bookId);
-  if (book) {
-    Object.assign(book, updates);
-    updateDisplay();
-  }
-}
-
-function getBooks() {
-  return [...books];
-}
-
-function getBook(bookId) {
-  return books.find(b => b.id === bookId);
-}
-
-// -------- Export API --------
-export default {
-  init,
-  render,
-  updateBook,
-  getBooks,
-  getBook
-};
+export default BookList;

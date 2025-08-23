@@ -34,6 +34,7 @@ def init_db():
             print(f"Database for {lang} already exists at {db_path}")
     
     init_user_db()
+    init_book_db()
 
 def __init_db_language(db_path):
     """Initialize all required databases and tables into one DB file."""
@@ -209,3 +210,101 @@ def register_user(username, useremail, userpassword):
         ''', (username, useremail, userpassword))
         conn.commit()
     return True, "Registration successful."
+
+
+# book management
+
+def init_book_db():
+    """
+        book_id: 000000 （6 digits）
+        book_name: EN book name
+        author:  author name | cat
+        user_id: 
+        cover-page: string
+        org-lang: zh
+        total-chapters: 0
+
+        support-language:
+        [
+            {
+            lang: EN
+            level: [A1-C2]
+            }
+        ]
+
+        chapter-id:[
+            
+        ]
+    """
+    book_db_path = os.path.join(DATA_DIR, "book_db.sqlite")
+    if not os.path.exists(book_db_path):
+        print(f"Initializing book database at {book_db_path}")
+        with sqlite3.connect(book_db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS books (
+                    book_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    book_name TEXT NOT NULL,
+                    author TEXT NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    cover_page TEXT,
+                    org_lang TEXT NOT NULL,
+                    total_chapters INTEGER NOT NULL,
+                    support_language TEXT,
+                    chapter_id TEXT
+                )
+            ''')
+            conn.commit()
+    else:
+        print(f"Book database already exists at {book_db_path}")
+
+    
+def get_all_books():
+    """
+    Get all books in the database.
+    Returns a list of dictionaries with book information.
+    """
+    book_db_path = os.path.join(DATA_DIR, "book_db.sqlite")
+    with sqlite3.connect(book_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM books')
+        rows = cursor.fetchall()
+        books = []
+        for row in rows:
+            books.append({
+                'book_id': row[0],
+                'book_name': row[1],
+                'author': row[2],
+                'user_id': row[3],
+                'cover_page': row[4],
+                'org_lang': row[5],
+                'total_chapters': row[6],
+                'support_language': json.loads(row[7]),
+                'chapter_id': json.loads(row[8])
+            })
+        return books
+
+def get_books_by_user(user_id):
+    """
+    Get all books for a specific user.
+    Returns a list of dictionaries with book information.
+    """
+    book_db_path = os.path.join(DATA_DIR, "book_db.sqlite")
+    with sqlite3.connect(book_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM books WHERE user_id=?', (user_id,))
+        rows = cursor.fetchall()
+        books = []
+        for row in rows:
+            books.append({
+                'book_id': row[0],
+                'book_name': row[1],
+                'author': row[2],
+                'user_id': row[3],
+                'cover_page': row[4],
+                'org_lang': row[5],
+                'total_chapters': row[6],
+                'support_language': json.loads(row[7]),
+                'chapter_id': json.loads(row[8])
+            })
+        return books

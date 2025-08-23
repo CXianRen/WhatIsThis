@@ -13,28 +13,29 @@ let currentFilters = {
 };
 let isLoading = false;
 
+let panelContainer = null;
+
 //  components
 let myBookFilter = null;
 let myBookList = null;
 
-
 // ========== Initialization ==========
 
-function createBookShelfPanel(container) {
+function createBookLibraryPanel(container) {
   if (!container) return null;
 
   // 清空 container
   container.innerHTML = '';
 
   // panel container
-  const panelContainer = document.createElement('div');
-  panelContainer.className = 'book-shelf-panel';
+  panelContainer = document.createElement('div');
+  panelContainer.className = 'book-Library-panel';
 
   // header section
   const header = document.createElement('div');
-  header.className = 'bookshelf-header';
+  header.className = 'bookLibrary-header';
   header.innerHTML = `
-    <h2>Bookshelf</h2>
+    <h2>Library</h2>
   `;
   panelContainer.appendChild(header);
 
@@ -56,7 +57,6 @@ function createBookShelfPanel(container) {
   emptyState.innerHTML = `
     <div class="empty-icon">📖</div>
     <h3>No books available</h3>
-    <div class="add-books" id="addBooks">Add books from libary 🖱️</div>
   `;
 
   // Loading state
@@ -73,7 +73,7 @@ function createBookShelfPanel(container) {
   // book control panel
   // a pannel has two buttons: Read and Remove
   // when click Read, it will open jump to the reading panel
-  // when click Remove, it will alert the user and remove the book from the shelf
+  // when click Remove, it will alert the user and remove the book from the Library
   const overlay = document.createElement('div');
   overlay.className = 'overlay';
   overlay.id = 'book-control-panel-overlay';
@@ -83,8 +83,7 @@ function createBookShelfPanel(container) {
   bookControlPanel.id = 'book-control-panel';
   bookControlPanel.className = 'book-control-panel';
   bookControlPanel.innerHTML = `
-    <button id="read-book-btn" class="btn btn-primary">Read</button>
-    <button id="remove-book-btn" class="btn btn-secondary">Remove</button>
+    <button id="add-book-btn" class="btn btn-primary">Add</button>
   `;
   overlay.appendChild(bookControlPanel);
 
@@ -112,12 +111,12 @@ function setup() {
   // Setup event listeners
   setupEventListeners();
 
-  console.log('✅ Books App ready!');
+  console.log('✅ Books Lib ready!');
 }
 
 function initializeComponents() {
-  const filterContainer = document.getElementById('book-filter');
-  const listContainer = document.getElementById('book-list');
+  const filterContainer = panelContainer.querySelector('#book-filter');
+  const listContainer = panelContainer.querySelector('#book-list');
 
   if (filterContainer && BookFilter) {
     // BookFilter.init(filterContainer, handleFilterChange);
@@ -125,14 +124,14 @@ function initializeComponents() {
   }
 
   if (listContainer && BookList) {
-    myBookList = new BookList(listContainer, handleBookClick);
     // BookList.init(listContainer, handleBookClick);
+    myBookList = new BookList(listContainer, handleBookClick);
   }
 }
 
 function setupEventListeners() {
   // Modal close events
-  const overlay = document.getElementById('book-control-panel-overlay');
+  const overlay = panelContainer.querySelector('#book-control-panel-overlay');
   if (overlay) {
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
@@ -142,12 +141,11 @@ function setupEventListeners() {
   }
 
   // add books button in empty state
-  const el = document.getElementById('addBooks');
+  const el = panelContainer.querySelector('#addBooks');
   if (el) {
     el.addEventListener('click', () => {
       console.log('Navigating to library to add books');
       // toPath('library'); // Navigate to the library panel
-      toPath('libary'); // Navigate to the library panel
     });
   }
 }
@@ -272,8 +270,8 @@ function updateFilterSummary() {
 }
 
 function toggleEmptyState(show) {
-  const emptyState = document.getElementById('empty-state');
-  const booksList = document.getElementById('book-list');
+  const emptyState = panelContainer.querySelector('#empty-state');
+  const booksList = panelContainer.querySelector('#book-list');
 
   if (emptyState) {
     emptyState.style.display = show ? 'block' : 'none';
@@ -285,8 +283,8 @@ function toggleEmptyState(show) {
 
 function showLoading(show) {
   isLoading = show;
-  const loadingState = document.getElementById('loading-state');
-  const booksList = document.getElementById('book-list');
+  const loadingState = panelContainer.querySelector('#loading-state');
+  const booksList = panelContainer.querySelector('#book-list');
 
   if (loadingState) {
     loadingState.style.display = show ? 'block' : 'none';
@@ -303,17 +301,19 @@ function handleBookClick(book) {
 
 function showBookControl(book) {
   // Show the overlay
-  const overlay = document.getElementById('book-control-panel-overlay');
+
+
+  const overlay = panelContainer.querySelector('#book-control-panel-overlay');
   if (overlay) {
     overlay.style.display = 'flex';
   }
 
   // Set up the buttons
-  const readButton = document.getElementById('read-book-btn');
-  const removeButton = document.getElementById('remove-book-btn');
+  const addButton = panelContainer.querySelector('#add-book-btn');
+  console.log('Setting up Read button for book:', book);
 
-  if (readButton) {
-    readButton.onclick = () => {
+  if (addButton) {
+    addButton.onclick = () => {
       // Handle reading the book
       console.log(`Reading book: ${book.title}`);
       closeBookControl();
@@ -321,24 +321,10 @@ function showBookControl(book) {
       // Here you would typically navigate to the reading panel
     };
   }
-
-  if (removeButton) {
-    removeButton.onclick = () => {
-      // Handle removing the book
-      const confirmRemove = confirm(`Are you sure you want to remove "${book.title}" from your shelf?`);
-      if (confirmRemove) {
-        books = books.filter(b => b.id !== book.id);
-        filteredBooks = filteredBooks.filter(b => b.id !== book.id);
-        renderBooks();
-        closeBookControl();
-      }
-    };
-  }
-
 }
 
 function closeBookControl() {
-  const overlay = document.getElementById('book-control-panel-overlay');
+  const overlay = panelContainer.querySelector('#book-control-panel-overlay');
   if (overlay) {
     overlay.style.display = 'none';
   }
@@ -346,5 +332,5 @@ function closeBookControl() {
 
 // ========== Default export ==========
 export {
-  createBookShelfPanel
+  createBookLibraryPanel
 };

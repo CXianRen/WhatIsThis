@@ -94,7 +94,7 @@
 </head>
 
 <body>
-  <div class="page-panel home "> </div>
+  <div class="page-panel home " style="display: none;"> </div>
   <div class="page-panel learn" style="display: none;"></div>
   <div class="page-panel shelf" style="display: none;"></div>
   <div class="page-panel full-screen reader" style="display: none;"></div>
@@ -102,6 +102,7 @@
   <div class="page-panel login" style="display: none;"></div>
   <div class="page-panel signup" style="display: none;"></div>
   <div class="page-panel setting" style="display: none;"></div>
+  <div class="page-panel libary" style="display: none;"></div>
 
   <div class="nav-bar-container"></div>
   <script type="module">
@@ -110,23 +111,34 @@
     import { createInfoPanel } from '/static/js/infoPanel.js';
     import { createLearnPanel } from '/static/js/learnPanel.js';
     import { createBookShelfPanel } from '/static/js/bookPage/bookShelfPanel.js';
+    import { createBookLibraryPanel } from '/static/js/bookPage/bookLibPanel.js';
     import { createReaderPanel } from '/static/js/reader/readerPanel.js';
     import { createWordCardPanel } from '/static/js/wordcard/wordcardPanel.js';
     import { renderLoginComponent, renderSignUpComponent } from '/static/js/user/login.js';
 
-    import { renderSettingComponent} from '/static/js/setting/setting.js';
+    import { renderSettingComponent } from '/static/js/setting/setting.js';
+
+    registerPath('login', {
+      fullscreen: true,
+      requiresLogin: false
+    });
+    registerPath('signup', {
+      fullscreen: true,
+      requiresLogin: false
+    });
 
     registerPath('home');
     registerPath('learn');
     registerPath('shelf');
+    registerPath('libary');
+
     registerPath('reader', {
       fullscreen: true
     });
     registerPath('wordcard', {
       fullscreen: true
     });
-    registerPath('login');
-    registerPath('signup');
+
     registerPath('setting');
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -181,10 +193,12 @@
 
       createBookShelfPanel(document.querySelector('.shelf'));
 
+      createBookLibraryPanel(document.querySelector('.libary'));
+
       createReaderPanel(document.querySelector('.reader'));
 
       createWordCardPanel(document.querySelector('.wordcard'));
-      
+
       const signupe_upComponent = renderSignUpComponent();
       document.querySelector('.signup').appendChild(signupe_upComponent);
 

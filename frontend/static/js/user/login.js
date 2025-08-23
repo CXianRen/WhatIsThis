@@ -17,6 +17,7 @@ export function renderLoginComponent() {
     </form>
     <div>
       <a href="/#signup">Don't have an account? Sign up</a>
+      <a id="guest-login">Start as a guest</a>
     </div>
   `;
   let container = document.createElement('login-div');
@@ -44,6 +45,32 @@ export function renderLoginComponent() {
       });
     }
   );
+
+  // Guest login
+  container.querySelector('#guest-login').addEventListener('click', function() {
+    // Handle guest login logic here
+    console.log('Guest login');
+    // warning user that guest login has limited access and get yes/no confirmation
+
+    if (confirm('Guest login has limited access. Do you want to continue?')) {
+      // Proceed with guest login
+      loginAsGuest()
+        .then(data => {
+          console.log('Guest login successful:', data);
+          // Redirect to the main page or show a success message
+          window.location.href = '/#home'; // Redirect to the main page after successful login
+        }
+        )
+        .catch(error => {
+          console.error('Guest login failed:', error);
+          // Show error message to the user
+          alert('Guest login failed: ' + error.message);
+        }
+      );
+    }
+
+  });
+
 
   return container;
 }
@@ -273,6 +300,37 @@ function login(username, password) {
   );
 }
 
+function loginAsGuest() {
+  // API: POST /api/user/login
+  return fetch('/api/user/guest_login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(err => {
+        throw new Error(err.error || 'Login failed');
+      });
+    }
+    return response.json();
+  }
+  )
+  .then(data => {
+    console.log('Login successful:', data);
+    // Store the token in localStorage or sessionStorage
+    localStorage.setItem('token', data.token);
+    return data;
+  }
+  )
+  .catch(error => {
+    console.error('Error during login:', error);
+    throw error;
+  }
+  );
+}
+
 export function logout() {
   // just remove the token from storage
   localStorage.removeItem('token');
@@ -293,4 +351,12 @@ export function getUserInfo() {
     username: payload.username,
     email: payload.useremail
   });
+}
+
+export function getToken() {
+  return localStorage.getItem('token');
+}
+
+export function isLoggedIn() {
+  return !!localStorage.getItem('token');
 }

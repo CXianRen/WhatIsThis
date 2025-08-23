@@ -1,11 +1,14 @@
 # ================= Novel Management and Reading Routes =================
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 import os
 import json
 from config.config import NOVEL_DIR
+from routers.user import login_required
+from models.database import get_all_books, get_books_by_user
+
 
 # ================= Refactored Novel API =================
-novel_bp = Blueprint('novel', __name__, url_prefix='/novel')
+book_bp = Blueprint('book', __name__, url_prefix='/api/book')
 
 
 def __parse_novel_raw_name(name: str):
@@ -22,33 +25,58 @@ def __gen_novel_raw_name(cid: int, title: str):
     return safe_title
 
 
-# Get all novels
-@novel_bp.route('/list', methods=['GET'])
-def get_novels():
-    """Get all novel names, without chapter info"""
-    novels = []
+@book_bp.route('/list', methods=['GET'])
+def get_books():
+    """Get all books with basic info"""
+    books = get_all_books()
+    if not books:
+        return jsonify([]) 
+    return jsonify(books)
+
+
+
+# get user books
+@book_bp.route('/list/user', methods=['GET'])
+@login_required
+def get_user_books():
+    """Get books of a specific user (login required)"""
+
+    userid = g.user['userid']
+    if not userid:
+        return jsonify({'error': 'User ID not found in token'}), 400
+
+    books = get_books_by_user(userid)
+    if not books:
+        return jsonify([]) 
+    return jsonify(books)
+
+# # Get all novels
+# @book_bp.route('/list', methods=['GET'])
+# def get_novels():
+#     """Get all novel names, without chapter info"""
+#     novels = []
     
-    if not os.path.exists(NOVEL_DIR):
-        os.makedirs(NOVEL_DIR, exist_ok=True)
-        return jsonify(novels)
+#     if not os.path.exists(NOVEL_DIR):
+#         os.makedirs(NOVEL_DIR, exist_ok=True)
+#         return jsonify(novels)
     
-    for novel_name in os.listdir(NOVEL_DIR):
-        novel_path = os.path.join(NOVEL_DIR, novel_name)
-        if os.path.isdir(novel_path):
-            # Count chapter files (.txt)
-            txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
-            chapter_count = len(txt_files)
+#     for novel_name in os.listdir(NOVEL_DIR):
+#         novel_path = os.path.join(NOVEL_DIR, novel_name)
+#         if os.path.isdir(novel_path):
+#             # Count chapter files (.txt)
+#             txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
+#             chapter_count = len(txt_files)
             
-            novels.append({
-                'name': novel_name,
-                'display_name': novel_name.replace('_', ' ').title(),
-                'chapter_count': chapter_count
-            })
+#             novels.append({
+#                 'name': novel_name,
+#                 'display_name': novel_name.replace('_', ' ').title(),
+#                 'chapter_count': chapter_count
+#             })
     
-    return jsonify(novels)
+#     return jsonify(novels)
 
 # Get all chapters
-@novel_bp.route('/<novel_name>/chapters', methods=['GET'])
+@book_bp.route('/<novel_name>/chapters', methods=['GET'])
 def get_chapters(novel_name):
     """Get all chapter names of the specified novel"""
     chapters = []
@@ -85,7 +113,7 @@ def get_chapters(novel_name):
     return jsonify(chapters)
 
 
-@novel_bp.route('/<novel_name>/chapters/raw/<int:cid>', methods=['GET'])
+@book_bp.route('/<novel_name>/chapters/raw/<int:cid>', methods=['GET'])
 def get_raw_chapter(novel_name, cid):
     """Get the raw text of the specified chapter"""
     novel_path = os.path.join(NOVEL_DIR, novel_name)
@@ -119,7 +147,7 @@ def get_raw_chapter(novel_name, cid):
     except Exception as e:
         return jsonify({'error': f'Failed to read file: {str(e)}'}), 500
 
-@novel_bp.route('/<novel_name>/chapters/<int:cid>/<language>', methods=['GET'])
+@book_bp.route('/<novel_name>/chapters/<int:cid>/<language>', methods=['GET'])
 def get_translated_chapter(novel_name, cid, language):
     """Get the translated version of the specified chapter (en|sw|fr)"""
     if language not in ['en', 'sw', 'fr']:
@@ -159,7 +187,7 @@ def get_translated_chapter(novel_name, cid, language):
         return jsonify({'error': f'Failed to read translation file: {str(e)}'}), 500
 
 # ================= Chapter Management API (CRUD) =================
-@novel_bp.route('/<novel_name>/chapters/update', methods=['POST'])
+@book_bp.route('/<novel_name>/chapters/update', methods=['POST'])
 def update_chapter_api(novel_name):
     """
     Update Chapter API - supports create, update, delete
@@ -202,7 +230,7 @@ def update_chapter_api(novel_name):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@novel_bp.route('/create', methods=['POST'])
+@book_bp.route('/create', methods=['POST'])
 def create_novel():
     """Create a new novel"""
     try:
@@ -313,3 +341,5 @@ def _delete_chapter(novel_path, novel_name, cid):
         'success': True,
         'message': f'Chapter {cid} deleted successfully'
     })
+
+
