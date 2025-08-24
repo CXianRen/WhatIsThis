@@ -1,4 +1,4 @@
-// ========== Main App Controller (ESM, Class Version) ==========
+// ================== BookShelfPanel (Factory Class Version) ==================
 import { toPath } from '../router/router.js';
 import BookFilter from './filter.js';
 import BookList from './bookList.js';
@@ -20,31 +20,75 @@ export default class BookShelfPanel {
     this.myBookFilter = null;
     this.myBookList = null;
 
+    // DOM
+    this.panelContainer = null;
+    this.emptyState = null;
+    this.loadingState = null;
+    this.overlay = null;
+
+    // event handlers
+    this.eventHandlers = [];
+
     if (this.container) {
-      this.init();
+      this.render(); // optional immediate render
     }
   }
 
-  // ========= Initialization =========
-  init() {
-    this.container.innerHTML = '';
+  // ================== Event Helpers ==================
+  addEvent(el, type, handler) {
+    if (!el) return;
+    el.addEventListener(type, handler);
+    this.eventHandlers.push({ el, type, handler });
+  }
 
-    // panel container
-    this.panelContainer = document.createElement('div');
-    this.panelContainer.className = 'book-shelf-panel';
+  removeAllEvents() {
+    this.eventHandlers.forEach(({ el, type, handler }) => {
+      el.removeEventListener(type, handler);
+    });
+    this.eventHandlers = [];
+  }
 
-    // header section
+  // ================== Lifecycle ==================
+  async mount() {
+    await this.render();
+    this.onMount?.();
+  }
+
+  unmount() {
+    this.removeAllEvents();
+    if (this.panelContainer && this.container.contains(this.panelContainer)) {
+      this.container.removeChild(this.panelContainer);
+    }
+    this.panelContainer = null;
+    this.onUnMount?.();
+  }
+
+  onMount() {}
+  onUnMount() {}
+
+  // ================== Render ==================
+  async render() {
+    if (!this.container) return null;
+
+    if (!this.panelContainer) {
+      this.panelContainer = document.createElement('div');
+      this.panelContainer.className = 'book-shelf-panel';
+      this.container.appendChild(this.panelContainer);
+    }
+    this.panelContainer.innerHTML = '';
+
+    // Header
     const header = document.createElement('div');
     header.className = 'bookshelf-header';
     header.innerHTML = `<h2>Bookshelf</h2>`;
     this.panelContainer.appendChild(header);
 
-    // Filter section
+    // Filter container
     const filterDiv = document.createElement('div');
     filterDiv.id = 'book-filter';
     filterDiv.className = 'filter-container';
 
-    // Books list
+    // List container
     const listDiv = document.createElement('div');
     listDiv.id = 'book-list';
     listDiv.className = 'books-grid';
@@ -70,7 +114,7 @@ export default class BookShelfPanel {
       <p>Loading books...</p>
     `;
 
-    // book control overlay
+    // Overlay for book control
     this.overlay = document.createElement('div');
     this.overlay.className = 'overlay';
     this.overlay.id = 'book-control-panel-overlay';
@@ -85,23 +129,21 @@ export default class BookShelfPanel {
     `;
     this.overlay.appendChild(bookControlPanel);
 
-    // Append all to container
+    // Append all to panelContainer
     this.panelContainer.appendChild(filterDiv);
     this.panelContainer.appendChild(listDiv);
     this.panelContainer.appendChild(this.emptyState);
     this.panelContainer.appendChild(this.loadingState);
-    this.container.appendChild(this.panelContainer);
-    this.container.appendChild(this.overlay);
+    this.panelContainer.appendChild(this.overlay);
 
-    // Setup
+    // Initialize components and events
     this.initializeComponents();
-    this.loadUserBooks();
     this.setupEventListeners();
-
-    console.log('✅ Bookshelf Panel ready!');
+    this.loadUserBooks();
+    return this.panelContainer;
   }
 
-  // ========= Components =========
+  // ================== Components ==================
   initializeComponents() {
     const filterContainer = this.container.querySelector('#book-filter');
     const listContainer = this.container.querySelector('#book-list');
@@ -115,29 +157,28 @@ export default class BookShelfPanel {
   }
 
   setupEventListeners() {
-    if (this.overlay) {
-      this.overlay.addEventListener('click', (e) => {
-        if (e.target === this.overlay) {
-          this.closeBookControl();
-        }
-      });
-    }
+    // Overlay click to close
+    this.addEvent(this.overlay, 'click', e => {
+      if (e.target === this.overlay) this.closeBookControl();
+    });
 
     const addBtn = this.container.querySelector('#addBooks');
     if (addBtn) {
-      addBtn.addEventListener('click', () => {
+      this.addEvent(addBtn, 'click', () => {
         console.log('Navigating to library to add books');
         toPath('library');
       });
     }
   }
 
-  // ========= Data =========
+  // ================== Data ==================
   loadUserBooks() {
     this.showLoading(true);
     const token = getToken();
     if (!token) {
       console.error('No token found. User might not be logged in.');
+      this.showLoading(false);
+      return;
     }
 
     fetch('/api/book/list/user', {
@@ -147,10 +188,7 @@ export default class BookShelfPanel {
         'Authorization': `Bearer ${token}`
       }
     })
-      .then(res => {
-        if (!res.ok) throw new Error('Network error');
-        return res.json();
-      })
+      .then(res => res.ok ? res.json() : Promise.reject(new Error('Network error')))
       .then(data => {
         this.books = data.map(book => ({
           id: book.book_id,
@@ -177,7 +215,7 @@ export default class BookShelfPanel {
       });
   }
 
-  // ========= Filters =========
+  // ================== Filters ==================
   handleFilterChange(filters) {
     this.currentFilters = filters;
     this.applyFilters();
@@ -206,14 +244,10 @@ export default class BookShelfPanel {
     this.renderBooks();
   }
 
-  // ========= Rendering =========
+  // ================== Rendering ==================
   renderBooks() {
-    if (this.myBookList) {
-      this.myBookList.render(this.filteredBooks);
-    }
-    if (this.myBookFilter) {
-      this.myBookFilter.updateSummary(this.filteredBooks.length, this.books.length);
-    }
+    if (this.myBookList) this.myBookList.render(this.filteredBooks);
+    if (this.myBookFilter) this.myBookFilter.updateSummary(this.filteredBooks.length, this.books.length);
     this.toggleEmptyState(this.filteredBooks.length === 0 && !this.isLoading);
   }
 
@@ -230,7 +264,7 @@ export default class BookShelfPanel {
     if (list) list.style.display = show ? 'none' : 'grid';
   }
 
-  // ========= Book Control =========
+  // ================== Book Control ==================
   handleBookClick(book) {
     this.showBookControl(book);
   }
@@ -251,49 +285,44 @@ export default class BookShelfPanel {
 
     if (removeButton) {
       removeButton.onclick = () => {
-        const confirmRemove = confirm(`Remove "${book.title}" from shelf?`);
-        if (confirmRemove) {
-          this.books = this.books.filter(b => b.id !== book.id);
-          const token = getToken();
-          if (!token) {
-            console.error('No token found. User might not be logged in.');
-          }
+        if (!confirm(`Remove "${book.title}" from shelf?`)) return;
 
-          fetch('/api/book/list/user/update', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ action: 'remove', book_id: book.id })
-          })
-            .then(async res => {
-              const data = await res.json(); // 无论成功失败都解析
-              if (!res.ok) {
-                // HTTP 错误，直接抛出后端的 error 信息
-                throw new Error(data.error || 'Network error');
-              }
-              return data;
-            })
-            .then(data => {
-              if (data.success) {
-                console.log('Book removed from shelf:', data);
-                this.filteredBooks = this.filteredBooks.filter(b => b.id !== book.id);
-                this.books = this.books.filter(b => b.id !== book.id);
-                this.renderBooks();
-
-                alert(data.message || 'Book removed successfully');
-              } else {
-                alert(data.error || 'Error removing book. Please try again later.');
-              }
-            })
-            .catch(err => {
-              console.error('Error updating book list:', err);
-              alert(err.message || 'Error removing book. Please try again later.');
-            });
-
-          this.closeBookControl();
+        this.books = this.books.filter(b => b.id !== book.id);
+        const token = getToken();
+        if (!token) {
+          console.error('No token found. User might not be logged in.');
         }
+
+        fetch('/api/book/list/user/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ action: 'remove', book_id: book.id })
+        })
+          .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Network error');
+            return data;
+          })
+          .then(data => {
+            if (data.success) {
+              console.log('Book removed from shelf:', data);
+              this.filteredBooks = this.filteredBooks.filter(b => b.id !== book.id);
+              this.books = this.books.filter(b => b.id !== book.id);
+              this.renderBooks();
+              alert(data.message || 'Book removed successfully');
+            } else {
+              alert(data.error || 'Error removing book.');
+            }
+          })
+          .catch(err => {
+            console.error('Error updating book list:', err);
+            alert(err.message || 'Error removing book.');
+          });
+
+        this.closeBookControl();
       };
     }
   }

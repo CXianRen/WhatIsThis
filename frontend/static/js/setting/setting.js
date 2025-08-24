@@ -1,7 +1,7 @@
+// ================== SettingPanel Class (ESM) ==================
 import { toPath } from '../router/router.js';
 import { getUserInfo, logout } from '../user/login.js';
 
-// temporary setting.js file for frontend static JS settings component
 const settingConfig = [
   {
     panelTitle: 'General',
@@ -9,7 +9,7 @@ const settingConfig = [
       {
         type: 'checkbox',
         id: 'enable-feature',
-        label: 'Enable Feature'
+        label: 'Enable Feature',
       },
       {
         type: 'select',
@@ -17,10 +17,10 @@ const settingConfig = [
         label: 'Theme',
         options: [
           { value: 'light', text: 'Light' },
-          { value: 'dark', text: 'Dark' }
-        ]
-      }
-    ]
+          { value: 'dark', text: 'Dark' },
+        ],
+      },
+    ],
   },
   {
     panelTitle: 'Notifications',
@@ -28,110 +28,164 @@ const settingConfig = [
       {
         type: 'checkbox',
         id: 'enable-notifications',
-        label: 'Enable Notifications'
-      }
-    ]
-  }
+        label: 'Enable Notifications',
+      },
+    ],
+  },
 ];
 
-export function renderSettingComponent() {
-  // User Info Area
-  const container = document.createElement('div');
-  container.id = 'setting-container';
+export default class SettingPanel {
+  constructor(container) {
+    this.container = container;
+    this.panelElement = null;
+    this.eventHandlers = [];
+  }
 
-  // User Info
-  const userInfo = document.createElement('div');
-  userInfo.id = 'user-info';
+  // 渲染 DOM
+  async render() {
+    if (!this.container) return null;
 
-  const avatar = document.createElement('img');
-  avatar.id = 'user-avatar';
-  avatar.src = window.user && window.user.avatar ? window.user.avatar : '/static/imgs/default-avatar.png';
-  avatar.alt = 'User Avatar';
-  avatar.width = 48;
-  avatar.height = 48;
+    if (this.panelElement) {
+      this.panelElement.innerHTML = '';
+    } else {
+      this.panelElement = document.createElement('div');
+      this.panelElement.id = 'setting-container';
+      this.container.appendChild(this.panelElement);
+    }
 
-  getUserInfo()
-    .then(user => {
+    // User Info
+    const userInfo = document.createElement('div');
+    userInfo.id = 'user-info';
+
+    const avatar = document.createElement('img');
+    avatar.id = 'user-avatar';
+    avatar.src = window.user && window.user.avatar ? window.user.avatar : '/static/imgs/default-avatar.png';
+    avatar.alt = 'User Avatar';
+    avatar.width = 48;
+    avatar.height = 48;
+
+    try {
+      const user = await getUserInfo();
       const div = document.createElement('div');
       div.id = 'user-details';
+
       const userId = document.createElement('span');
       userId.id = 'user-id';
       userId.textContent = user.username || user.email || 'Unknown User';
+
       const logoutBtn = document.createElement('button');
       logoutBtn.id = 'logout-btn';
       logoutBtn.textContent = 'Logout';
-      logoutBtn.onclick = () => {
-        logout().then(() => {
-          window.location.reload();
-        });
-      };
+
+      this.addEvent(logoutBtn, 'click', async () => {
+        await logout();
+        window.location.reload();
+      });
+
       userInfo.appendChild(avatar);
       div.appendChild(userId);
       div.appendChild(logoutBtn);
       userInfo.appendChild(div);
-    })
-    .catch(() => {
+    } catch {
       const loginBtn = document.createElement('button');
       loginBtn.id = 'login-btn';
       loginBtn.textContent = 'Login';
-      loginBtn.onclick = () => {
+
+      this.addEvent(loginBtn, 'click', () => {
         toPath('login');
-      };
+      });
+
       userInfo.appendChild(avatar);
       userInfo.appendChild(loginBtn);
+    }
+
+    // Settings Panels
+    const panels = document.createElement('div');
+    panels.id = 'setting-panels';
+
+    settingConfig.forEach(panelCfg => {
+      const panel = document.createElement('div');
+      panel.className = 'setting-panel';
+
+      const h2 = document.createElement('h2');
+      h2.textContent = panelCfg.panelTitle;
+      panel.appendChild(h2);
+
+      panelCfg.settings.forEach(setting => {
+        const label = document.createElement('label');
+
+        if (setting.type === 'checkbox') {
+          const input = document.createElement('input');
+          input.type = 'checkbox';
+          input.id = setting.id;
+          label.appendChild(document.createTextNode(' ' + setting.label));
+          label.appendChild(input);
+        } else if (setting.type === 'select') {
+          const select = document.createElement('select');
+          select.id = setting.id;
+          setting.options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            select.appendChild(option);
+          });
+          label.appendChild(document.createTextNode(' ' + setting.label));
+          label.appendChild(select);
+        }
+
+        panel.appendChild(label);
+      });
+
+      panels.appendChild(panel);
     });
 
-  // Settings Panels
-  const panels = document.createElement('div');
-  panels.id = 'setting-panels';
+    // Clear Settings Button
+    const clearBtn = document.createElement('button');
+    clearBtn.id = 'clear-settings-btn';
+    clearBtn.textContent = 'Clear Settings';
 
-  // Create each settings panel based on the configuration
-  settingConfig.forEach(panelCfg => {
-    const panel = document.createElement('div');
-    panel.className = 'setting-panel';
-    const h2 = document.createElement('h2');
-    h2.textContent = panelCfg.panelTitle;
-    panel.appendChild(h2);
-
-    panelCfg.settings.forEach(setting => {
-      const label = document.createElement('label');
-      if (setting.type === 'checkbox') {
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.id = setting.id;
-
-        label.appendChild(document.createTextNode(' ' + setting.label));
-        label.appendChild(input);
-      } else if (setting.type === 'select') {
-        const select = document.createElement('select');
-        select.id = setting.id;
-        setting.options.forEach(opt => {
-          const option = document.createElement('option');
-          option.value = opt.value;
-          option.textContent = opt.text;
-          select.appendChild(option);
-        });
-
-        label.appendChild(document.createTextNode(' ' + setting.label));
-        label.appendChild(select);
-      }
-      panel.appendChild(label);
+    this.addEvent(clearBtn, 'click', () => {
+      console.log('Settings cleared!');
+      // 这里可以加清空 localStorage 或重置逻辑
     });
 
-    panels.appendChild(panel);
-  });
+    this.panelElement.appendChild(userInfo);
+    this.panelElement.appendChild(panels);
+    this.panelElement.appendChild(clearBtn);
 
-  // Clear Settings Button
-  const clearBtn = document.createElement('button');
-  clearBtn.id = 'clear-settings-btn';
-  clearBtn.textContent = 'Clear Settings';
-  clearBtn.onclick = () => {
-    // clear settings logic here
-  };
+    return this.panelElement;
+  }
 
-  container.appendChild(userInfo);
-  container.appendChild(panels);
-  container.appendChild(clearBtn);
+  // 生命周期
+  async mount() {
+    await this.render();
+    this.onMount?.();
+  }
 
-  return container;
+  unmount() {
+    this.removeAllEvents();
+    if (this.panelElement && this.container.contains(this.panelElement)) {
+      this.container.removeChild(this.panelElement);
+    }
+    this.panelElement = null;
+    this.onUnMount?.();
+  }
+
+  // hooks
+  onMount() { }
+  onUnMount() { }
+
+  // 事件管理
+  addEvent(el, type, handler) {
+    if (!el) return;
+    el.addEventListener(type, handler);
+    this.eventHandlers.push({ el, type, handler });
+  }
+
+  removeAllEvents() {
+    this.eventHandlers.forEach(({ el, type, handler }) => {
+      el.removeEventListener(type, handler);
+    });
+    this.eventHandlers = [];
+  }
 }

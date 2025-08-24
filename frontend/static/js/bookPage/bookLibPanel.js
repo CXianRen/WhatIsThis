@@ -1,4 +1,4 @@
-// ========== Main App Controller (ESM, Class Version) ==========
+// ================== BookLibraryPanel (Factory Class Version) ==================
 import { toPath } from '../router/router.js';
 import BookFilter from './filter.js';
 import BookList from './bookList.js';
@@ -7,6 +7,7 @@ import { getToken } from '../user/login.js';
 export default class BookLibraryPanel {
   constructor(container) {
     this.container = container;
+
     this.books = [];
     this.filteredBooks = [];
     this.currentFilters = {
@@ -20,31 +21,72 @@ export default class BookLibraryPanel {
     this.myBookFilter = null;
     this.myBookList = null;
 
-    if (this.container) {
-      this.init();
-    }
+    // DOM
+    this.panelContainer = null;
+    this.emptyState = null;
+    this.loadingState = null;
+    this.overlay = null;
+
+    // event handlers
+    this.eventHandlers = [];
   }
 
-  // ========= Initialization =========
-  init() {
-    this.container.innerHTML = '';
+  // ================== Event Helpers ==================
+  addEvent(el, type, handler) {
+    if (!el) return;
+    el.addEventListener(type, handler);
+    this.eventHandlers.push({ el, type, handler });
+  }
 
-    // panel container
-    this.panelContainer = document.createElement('div');
-    this.panelContainer.className = 'book-shelf-panel';
+  removeAllEvents() {
+    this.eventHandlers.forEach(({ el, type, handler }) => {
+      el.removeEventListener(type, handler);
+    });
+    this.eventHandlers = [];
+  }
 
-    // header section
+  // ================== Lifecycle ==================
+  async mount() {
+    await this.render();
+    this.onMount?.();
+    this.loadAllBooks();
+  }
+
+  unmount() {
+    this.removeAllEvents();
+    if (this.panelContainer && this.container.contains(this.panelContainer)) {
+      this.container.removeChild(this.panelContainer);
+    }
+    this.panelContainer = null;
+    this.onUnMount?.();
+  }
+
+  onMount() {}
+  onUnMount() {}
+
+  // ================== Render ==================
+  async render() {
+    if (!this.container) return null;
+
+    if (!this.panelContainer) {
+      this.panelContainer = document.createElement('div');
+      this.panelContainer.className = 'book-shelf-panel';
+      this.container.appendChild(this.panelContainer);
+    }
+    this.panelContainer.innerHTML = '';
+
+    // Header
     const header = document.createElement('div');
     header.className = 'bookshelf-header';
     header.innerHTML = `<h2>Library</h2>`;
     this.panelContainer.appendChild(header);
 
-    // Filter section
+    // Filter container
     const filterDiv = document.createElement('div');
     filterDiv.id = 'book-filter';
     filterDiv.className = 'filter-container';
 
-    // Books list
+    // List container
     const listDiv = document.createElement('div');
     listDiv.id = 'book-list';
     listDiv.className = 'books-grid';
@@ -69,7 +111,7 @@ export default class BookLibraryPanel {
       <p>Loading books...</p>
     `;
 
-    // book control overlay
+    // Overlay for book control
     this.overlay = document.createElement('div');
     this.overlay.className = 'overlay';
     this.overlay.id = 'book-control-panel-overlay';
@@ -83,23 +125,21 @@ export default class BookLibraryPanel {
     `;
     this.overlay.appendChild(bookControlPanel);
 
-    // Append all to container
+    // Append all
     this.panelContainer.appendChild(filterDiv);
     this.panelContainer.appendChild(listDiv);
     this.panelContainer.appendChild(this.emptyState);
     this.panelContainer.appendChild(this.loadingState);
-    this.container.appendChild(this.panelContainer);
-    this.container.appendChild(this.overlay);
+    this.panelContainer.appendChild(this.overlay);
 
-    // Setup
+    // Initialize components and events
     this.initializeComponents();
-    this.loadAllBooks();
     this.setupEventListeners();
 
-    console.log('✅ Bookshelf Panel ready!');
+    return this.panelContainer;
   }
 
-  // ========= Components =========
+  // ================== Components ==================
   initializeComponents() {
     const filterContainer = this.container.querySelector('#book-filter');
     const listContainer = this.container.querySelector('#book-list');
@@ -113,55 +153,47 @@ export default class BookLibraryPanel {
   }
 
   setupEventListeners() {
-    if (this.overlay) {
-      this.overlay.addEventListener('click', (e) => {
-        if (e.target === this.overlay) {
-          this.closeBookControl();
-        }
-      });
+    // Overlay click to close
+    this.addEvent(this.overlay, 'click', e => {
+      if (e.target === this.overlay) this.closeBookControl();
+    });
+  }
+
+  // ================== Data ==================
+  async loadAllBooks() {
+    this.showLoading(true);
+
+    try {
+      const res = await fetch('/api/book/list', { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+      if (!res.ok) throw new Error('Network error');
+      const data = await res.json();
+
+      this.books = data.map(book => ({
+        id: book.book_id,
+        title: book.book_name,
+        subtitle: book.subtitle || '',
+        description: book.description || '',
+        cover: '/static/imgs/book-placeholder.svg',
+        languages: book.support_language || [],
+        chapters: book.total_chapters || 0,
+        totalWords: 0,
+        progress: 0,
+        featured: false,
+        new: false,
+        lastRead: null
+      }));
+
+      this.filteredBooks = [...this.books];
+      this.renderBooks();
+      this.showLoading(false);
+    } catch (err) {
+      console.error('Error fetching books:', err);
+      alert('Error loading books. Please try again later.');
+      this.showLoading(false);
     }
   }
 
-  // ========= Data =========
-  loadAllBooks() {
-
-    fetch('/api/book/list', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Network error');
-        return res.json();
-      })
-      .then(data => {
-        this.books = data.map(book => ({
-          id: book.book_id,
-          title: book.book_name,
-          subtitle: book.subtitle || '',
-          description: book.description || '',
-          cover: '/static/imgs/book-placeholder.svg',
-          languages: book.support_language || [],
-          chapters: book.total_chapters || 0,
-          totalWords: 0,
-          progress: 0,
-          featured: false,
-          new: false,
-          lastRead: null
-        }));
-        this.filteredBooks = [...this.books];
-        this.renderBooks();
-        this.showLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching books:', err);
-        alert('Error loading books. Please try again later.');
-        this.showLoading(false);
-      });
-  }
-
-  // ========= Filters =========
+  // ================== Filters ==================
   handleFilterChange(filters) {
     this.currentFilters = filters;
     this.applyFilters();
@@ -190,14 +222,10 @@ export default class BookLibraryPanel {
     this.renderBooks();
   }
 
-  // ========= Rendering =========
+  // ================== Rendering ==================
   renderBooks() {
-    if (this.myBookList) {
-      this.myBookList.render(this.filteredBooks);
-    }
-    if (this.myBookFilter) {
-      this.myBookFilter.updateSummary(this.filteredBooks.length, this.books.length);
-    }
+    if (this.myBookList) this.myBookList.render(this.filteredBooks);
+    if (this.myBookFilter) this.myBookFilter.updateSummary(this.filteredBooks.length, this.books.length);
     this.toggleEmptyState(this.filteredBooks.length === 0 && !this.isLoading);
   }
 
@@ -214,7 +242,7 @@ export default class BookLibraryPanel {
     if (list) list.style.display = show ? 'none' : 'grid';
   }
 
-  // ========= Book Control =========
+  // ================== Book Control ==================
   handleBookClick(book) {
     this.showBookControl(book);
   }
@@ -223,46 +251,33 @@ export default class BookLibraryPanel {
     if (this.overlay) this.overlay.style.display = 'flex';
 
     const addButton = this.container.querySelector('#add-book-btn');
+    if (!addButton) return;
 
-    if (addButton) {
-      addButton.onclick = () => {
-        console.log(`Reading book: ${book.title}`);
-        
-        // update user book list
-        const token = getToken();
-        if (!token) {
-          alert('Please log in to add books to your shelf.');
-        }
+    addButton.onclick = async () => {
+      const token = getToken();
+      if (!token) {
+        alert('Please log in to add books to your shelf.');
+        return;
+      }
 
-        fetch('/api/book/list/user/update', {
+      try {
+        const res = await fetch('/api/book/list/user/update', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ book_id: book.id, action: 'add' })
-        })
-        .then(res => {
-          if (!res.ok) throw new Error('Network error');
-          return res.json();
-        })
-        .then(data => {
-          if (data.error) {
-            alert(`Error: ${data.error}`);
-          } else {
-            alert(`Book "${book.title}" added to your shelf!`);
-            // Optionally, refresh the user's book list here
-          }
-        })
-        .catch(err => {
-          console.error('Error updating user book list:', err);
-          alert('Error adding book to your shelf. Please try again later.');
         });
 
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || 'Network error');
+
+        alert(`Book "${book.title}" added to your shelf!`);
+      } catch (err) {
+        console.error('Error updating user book list:', err);
+        alert('Error adding book to your shelf. Please try again later.');
+      } finally {
         this.closeBookControl();
-      
-      };
-    }
+      }
+    };
   }
 
   closeBookControl() {

@@ -24,7 +24,9 @@ class SidebarComponent {
     this.isVisible = false;
     this.customContent = [];
     this.eventHandlers = {};
-    
+
+    this.container = null;
+
     this.init();
   }
 
@@ -41,8 +43,8 @@ class SidebarComponent {
    * 创建HTML结构
    */
   createStructure() {
-    const container = document.getElementById(this.options.containerId);
-    if (!container) {
+    this.container = document.getElementById(this.options.containerId);
+    if (!this.container) {
       console.error(`Container with id "${this.options.containerId}" not found`);
       return;
     }
@@ -53,14 +55,14 @@ class SidebarComponent {
       this.toggleButton.className = this.options.toggleButtonClass;
       this.toggleButton.innerHTML = this.getToggleButtonIcon();
       this.toggleButton.setAttribute('aria-label', '切换面板');
-      container.appendChild(this.toggleButton);
+      this.container.appendChild(this.toggleButton);
     }
 
     // 创建遮罩层
     if (this.options.enableOverlay) {
       this.overlay = document.createElement('div');
       this.overlay.className = this.options.overlayClass;
-      document.body.appendChild(this.overlay);
+      this.container.appendChild(this.overlay);
     }
 
     // 创建面板主体
@@ -95,8 +97,7 @@ class SidebarComponent {
     this.contentContainer.className = 'sidebar-content';
     this.sidebar.appendChild(this.contentContainer);
 
-    // 将面板添加到body
-    document.body.appendChild(this.sidebar);
+    this.container.appendChild(this.sidebar);
   }
 
   /**
@@ -134,7 +135,7 @@ class SidebarComponent {
         console.warn('无法加载外部CSS文件, 使用内联样式');
       };
       
-      document.head.appendChild(cssLink);
+      this.container.appendChild(cssLink);
     }
   }
 
@@ -182,7 +183,7 @@ class SidebarComponent {
     if (this.overlay) {
       this.overlay.style.display = 'block';
     }
-    document.body.style.overflow = 'hidden';
+    this.container.style.overflow = 'hidden';
     this.isVisible = true;
     
     this.trigger('show');
@@ -198,7 +199,7 @@ class SidebarComponent {
     if (this.overlay) {
       this.overlay.style.display = 'none';
     }
-    document.body.style.overflow = 'auto';
+    this.container.style.overflow = 'auto';
     this.isVisible = false;
     
     this.trigger('hide');

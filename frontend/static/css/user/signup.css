@@ -1,7 +1,7 @@
 /* ===== 手机默认布局 Sign Up Form（含错误提示） ===== */
 
 /* 容器 */
-signup-div {
+.signup-panel {
   height: inherit;
   display: flex;
   flex-direction: column;
@@ -77,7 +77,7 @@ signup-div {
 }
 
 /* 登录链接 */
-signup-div>div a {
+.signup-panel>div a {
   display: block;
   margin-top: 10px;
   font-size: 13px;
@@ -86,6 +86,6 @@ signup-div>div a {
   text-align: center;
 }
 
-signup-div>div a:hover {
+.signup-panel>div a:hover {
   opacity: 0.8;
 }

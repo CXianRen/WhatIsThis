@@ -15,55 +15,56 @@ function registerPath(path, config = {}) {
 }
 
 function toPath(path, data = null, pushHistory = true) {
-
   console.log(`Navigating to path: ${path}`);
 
-  //  check if path is registered
-  if (!register_path.some(p => p.path === path)) {
+  // check if path is registered
+  const page = register_path.find(p => p.path === path);
+  if (!page) {
     console.error(`Path ${path} is not registered.`);
     alert(`Error: Page ${path} is not registered.`);
     return;
   }
 
-  // check if path requires login
-  const pathConfig = register_path.find(p => p.path === path).config;
+  const pathConfig = page.config;
+
+  // 默认需要登录
   if (!('requiresLogin' in pathConfig)) {
-    pathConfig.requiresLogin = true; // default to true
+    pathConfig.requiresLogin = true;
   }
-
-
   if (pathConfig.requiresLogin && !isLoggedIn()) {
     toPath('login');
     return;
   }
 
+  // --- 调用上一个页面的 unmount ---
+  if (currentPath) {
+    const prevPage = register_path.find(p => p.path === currentPath);
+    if (prevPage && prevPage.config.onUnmount) {
+      prevPage.config.onUnmount();
+    }
+  }
+
   currentPath = path;
 
-  // if data is not null, saive it to stateStore
+  // 存储数据
   if (data !== null) {
     stateStore[path] = data;
   }
 
-  // update the URL hash
+  // 更新 URL hash
   if (pushHistory) {
-
     let url = '#' + path;
-    // if (data && data.id !== undefined) {
-    //   // if data has an id, append it to the URL
-    //   // and encodeURIComponent to handle special characters
-    //   url += `?id=${encodeURIComponent(data.id)}`;
-    // }
     location.hash = url;
     console.log(`Updating URL hash to: #${path}`);
   }
 
-  // switch display of registered paths
-  register_path.forEach(page => {
-    const el = document.querySelector(`.${page.path}`);
+  // 切换 DOM display
+  register_path.forEach(p => {
+    const el = document.querySelector(`.${p.path}`);
     if (el) {
-      el.style.display = page.path === path ? 'flex' : 'none';
-      if (page.path === path) {
-        if (page.config.fullscreen === true) {
+      el.style.display = p.path === path ? 'flex' : 'none';
+      if (p.path === path) {
+        if (p.config.fullscreen === true) {
           navbar.style.display = 'none';
           console.log(`Hiding navbar for full-screen path: ${path}`);
         } else {
@@ -72,18 +73,22 @@ function toPath(path, data = null, pushHistory = true) {
       }
     }
   });
+
+  // --- 调用新页面的 mount ---
+  if (pathConfig.onMount) {
+    pathConfig.onMount(stateStore[path] || null);
+  }
 }
 
 function registerNavBar(bar) {
   navbar = bar;
 }
 
-// getPathData(path) returns the data for the given path
 function getPathData(path = currentPath) {
   return stateStore[path] || null;
 }
 
-// listen for hash changes to handle navigation
+// hashchange
 window.addEventListener('hashchange', () => {
   const hash = location.hash.slice(1);
   if (!hash) return;
@@ -94,16 +99,13 @@ window.addEventListener('hashchange', () => {
     query = Object.fromEntries(new URLSearchParams(queryStr));
   }
 
-  // if the path exists in stateStore, 
-  // use that data; otherwise use query
   const data = stateStore[path] || query;
-
   if (path && path !== currentPath) {
     toPath(path, data, false);
   }
 });
 
-// initial load handling
+// initial load
 window.addEventListener('load', () => {
   const hash = location.hash.slice(1);
   if (!hash && register_path.length > 0) {

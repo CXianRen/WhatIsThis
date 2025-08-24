@@ -1,55 +1,100 @@
-// ================== learn Panel Component (ESM) ==================
+// ================== LearnPanel Class (ESM) ==================
 
-let panelElement = null;
-
-function createLearnPanel(
-  container,
-  apps = [
+export default class LearnPanel {
+  constructor(container, apps = [
     {
       href: "/#wordcard",
       icon: "🎴",
       title: "Word Cards",
       description: "Review your vocabulary",
     }
-  ]
-) {
-  if (!container) return;
-
-  // 如果之前已經創建過，清空內容
-  if (panelElement) {
-    panelElement.innerHTML = '';
-  } else {
-    panelElement = document.createElement('div');
-    panelElement.className = 'learn-panel';
-    container.appendChild(panelElement);
+  ]) {
+    this.container = container;
+    this.apps = apps;
+    this.panelElement = null;
+    this.eventHandlers = []; // [{el, type, handler}]
   }
 
-  // 遍歷 apps 列表生成卡片
-  apps.forEach(app => {
-    const card = document.createElement('a');
-    card.className = 'learn-card';
-    card.href = app.href;
+  // 工厂: 渲染 DOM 内容
+  async render() {
+    if (!this.container) return null;
 
-    const icon = document.createElement('span');
-    icon.className = 'learn-icon';
-    icon.textContent = app.icon;
+    // 如果之前已經創建過，清空內容
+    if (this.panelElement) {
+      this.panelElement.innerHTML = "";
+    } else {
+      this.panelElement = document.createElement("div");
+      this.panelElement.className = "learn-panel";
+      this.container.appendChild(this.panelElement);
+    }
 
-    const title = document.createElement('h3');
-    title.className = 'learn-title';
-    title.textContent = app.title;
+    // 遍歷 apps 列表生成卡片
+    this.apps.forEach(app => {
+      const card = document.createElement("a");
+      card.className = "learn-card";
+      card.href = app.href;
 
-    const desc = document.createElement('p');
-    desc.className = 'learn-desc';
-    desc.textContent = app.description;
+      const icon = document.createElement("span");
+      icon.className = "learn-icon";
+      icon.textContent = app.icon;
 
-    card.appendChild(icon);
-    card.appendChild(title);
-    card.appendChild(desc);
+      const title = document.createElement("h3");
+      title.className = "learn-title";
+      title.textContent = app.title;
 
-    panelElement.appendChild(card);
-  });
+      const desc = document.createElement("p");
+      desc.className = "learn-desc";
+      desc.textContent = app.description;
 
-  return panelElement;
+      card.appendChild(icon);
+      card.appendChild(title);
+      card.appendChild(desc);
+
+      this.panelElement.appendChild(card);
+    });
+
+    return this.panelElement;
+  }
+
+  // 生命周期: mount
+  async mount() {
+    await this.render();
+    this.onMount?.();
+  }
+
+  // 生命周期: unmount
+  unmount() {
+    this.removeAllEvents();
+
+    if (this.panelElement && this.container.contains(this.panelElement)) {
+      this.container.removeChild(this.panelElement);
+    }
+    this.panelElement = null;
+
+    this.onUnMount?.();
+  }
+
+  // hooks
+  onMount() {
+    // 可由外部覆盖
+  }
+
+  onUnMount() {
+    // 可由外部覆盖
+  }
+
+  // 事件绑定
+  addEvent(el, type, handler) {
+    if (!el) return;
+    el.addEventListener(type, handler);
+    this.eventHandlers.push({ el, type, handler });
+  }
+
+  // 清理所有事件
+  removeAllEvents() {
+    this.eventHandlers.forEach(({ el, type, handler }) => {
+      el.removeEventListener(type, handler);
+    });
+    this.eventHandlers = [];
+  }
 }
-
-export { createLearnPanel };

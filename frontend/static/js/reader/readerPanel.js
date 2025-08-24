@@ -1,4 +1,4 @@
-import { getToken, getPathData } from '../user/login.js';
+import { getToken } from '../user/login.js';
 
 import SidebarComponent from '../common/sidebar-component.js';
 import ToolBarModule from './toolbarModule.js';

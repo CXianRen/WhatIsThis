@@ -1,202 +1,192 @@
+// ================== Login & SignUp Panels ==================
 
+class BasePanel {
+  constructor(container) {
+    this.container = container;
+    this.panelElement = null;
+    this.eventHandlers = [];
+  }
 
+  addEvent(el, type, handler) {
+    if (!el) return;
+    el.addEventListener(type, handler);
+    this.eventHandlers.push({ el, type, handler });
+  }
 
-export function renderLoginComponent() {
-  // generate the HTML elements for the login form
-  const loginForm = `
-    <form id="loginForm">
-      <div>
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-      </div>
-      <div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-      </div>
-      <button type="submit">Login</button>
-    </form>
-    <div>
-      <a href="/#signup">Don't have an account? Sign up</a>
-      <a id="guest-login">Start as a guest</a>
-    </div>
-  `;
-  let container = document.createElement('login-div');
-  container.innerHTML = loginForm;
+  removeAllEvents() {
+    this.eventHandlers.forEach(({ el, type, handler }) => {
+      el.removeEventListener(type, handler);
+    });
+    this.eventHandlers = [];
+  }
 
-  // Add event listener for form submission
-  container.querySelector('#loginForm').addEventListener(
-    'submit', function(event) {
-    event.preventDefault(); // Prevent the default form submission
-    const username = document.querySelector('#username').value;
-    const password = document.querySelector('#password').value;
-    // Here you would typically handle the login logic, e.g., sending a request to the server
-    console.log('Username:', username);
-    console.log('Password:', password);
-    login(username, password)
-      .then(data => {
-        console.log('Login successful:', data);
-        // Redirect to the main page or show a success message
-        window.location.href = '/#home'; // Redirect to the main page after successful login
-      })
-      .catch(error => {
-        console.error('Login failed:', error);
-        // Show error message to the user
-        alert('Login failed: ' + error.message);
-      });
+  async mount() {
+    await this.render();
+    this.onMount?.();
+  }
+
+  unmount() {
+    this.removeAllEvents();
+    if (this.panelElement && this.container.contains(this.panelElement)) {
+      this.container.removeChild(this.panelElement);
     }
-  );
+    this.panelElement = null;
+    this.onUnMount?.();
+  }
 
-  // Guest login
-  container.querySelector('#guest-login').addEventListener('click', function() {
-    // Handle guest login logic here
-    console.log('Guest login');
-    // warning user that guest login has limited access and get yes/no confirmation
-
-    if (confirm('Guest login has limited access. Do you want to continue?')) {
-      // Proceed with guest login
-      loginAsGuest()
-        .then(data => {
-          console.log('Guest login successful:', data);
-          // Redirect to the main page or show a success message
-          window.location.href = '/#home'; // Redirect to the main page after successful login
-        }
-        )
-        .catch(error => {
-          console.error('Guest login failed:', error);
-          // Show error message to the user
-          alert('Guest login failed: ' + error.message);
-        }
-      );
-    }
-
-  });
-
-
-  return container;
+  onMount() { }
+  onUnMount() { }
 }
 
-export function renderSignUpComponent() {
-  // generate the HTML elements for the signup form
-  const signUpForm = `
-    <form id="signUpForm">
-      <div>
-        <label for="newUsername">Username:</label>
-        <input type="text" id="newUsername" name="newUsername" required>
-        <span id="usernameError" style="color:red; font-size:12px; display:none;"></span>
-      </div>
-      <div>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-        <span id="emailError" style="color:red; font-size:12px; display:none;"></span>
-      </div>
-      <div>
-        <label for="newPassword">Password:</label>
-        <input type="password" id="newPassword" name="newPassword" required>
-      </div>
-      <div>
-        <label for="confirmPassword">Confirm Password:</label>
-        <input type="password" id="confirmPassword" name="confirmPassword" required>
-        <span id="passwordError" style="color:red; font-size:12px; display:none;"></span>
-      </div>
-      <button type="submit">Sign Up</button>
-    </form>
-    <div>
-      <a href="/#login">Already have an account? Login</a>
-    </div>
-  `;
-  let container = document.createElement('signup-div');
-  container.innerHTML = signUpForm;
+// ================== LoginPanel ==================
+class LoginPanel extends BasePanel {
+  async render() {
+    if (!this.container) return null;
 
-  // Username existence check (simulate async check)
-  const usernameInput = container.querySelector('#newUsername');
-  const usernameError = container.querySelector('#usernameError');
-  usernameInput.addEventListener('blur', async function() {
-    const username = usernameInput.value.trim();
-    if (!username) {
-      usernameError.textContent = 'Username is required.';
-      usernameError.style.display = 'block';
-      return;
-    }
-    // Simulate async existence check (replace with real API call)
-    const exists = false; // Assume username does not exist
-    if (exists) {
-      usernameError.textContent = 'Username already exists.';
-      usernameError.style.display = 'block';
+    if (this.panelElement) {
+      this.panelElement.innerHTML = '';
     } else {
-      usernameError.textContent = '';
-      usernameError.style.display = 'none';
+      this.panelElement = document.createElement('div');
+      this.panelElement.className = 'login-panel';
+      this.container.appendChild(this.panelElement);
     }
-  });
 
-  // Email format check
-  const emailInput = container.querySelector('#email');
-  const emailError = container.querySelector('#emailError');
-  function isEmailValid(email) {
-    // Simple email regex
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    this.panelElement.innerHTML = `
+      <form id="loginForm">
+        <div>
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Login</button>
+      </form>
+      <div>
+        <a href="/#signup">Don't have an account? Sign up</a>
+        <a id="guest-login">Start as a guest</a>
+      </div>
+    `;
+
+    const form = this.panelElement.querySelector('#loginForm');
+    this.addEvent(form, 'submit', async e => {
+      e.preventDefault();
+      const username = this.panelElement.querySelector('#username').value;
+      const password = this.panelElement.querySelector('#password').value;
+      try {
+        const data = await login(username, password);
+        console.log('Login success:', data);
+        window.location.href = '/#home';
+      } catch (err) {
+        alert('Login failed: ' + err.message);
+      }
+    });
+
+    const guestBtn = this.panelElement.querySelector('#guest-login');
+    this.addEvent(guestBtn, 'click', async () => {
+      if (confirm('Guest login has limited access. Continue?')) {
+        try {
+          const data = await loginAsGuest();
+          console.log('Guest login success:', data);
+          window.location.href = '/#home';
+        } catch (err) {
+          alert('Guest login failed: ' + err.message);
+        }
+      }
+    });
+
+    return this.panelElement;
   }
-  emailInput.addEventListener('blur', function() {
-    const email = emailInput.value.trim();
-    if (!email) {
-      emailError.textContent = 'Email is required.';
-      emailError.style.display = 'block';
-    } else if (!isEmailValid(email)) {
-      emailError.textContent = 'Invalid email format.';
-      emailError.style.display = 'block';
+}
+
+// ================== SignUpPanel ==================
+class SignUpPanel extends BasePanel {
+  async render() {
+    if (!this.container) return null;
+
+    if (this.panelElement) {
+      this.panelElement.innerHTML = '';
     } else {
-      emailError.textContent = '';
-      emailError.style.display = 'none';
+      this.panelElement = document.createElement('div');
+      this.panelElement.className = 'signup-panel';
+      this.container.appendChild(this.panelElement);
     }
-  });
 
-  // Password security check
-  function isPasswordSecure(password) {
-    // At least 8 chars, 1 uppercase, 1 lowercase, 1 number
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
-  }
+    this.panelElement.innerHTML = `
+      <form id="signUpForm">
+        <div>
+          <label for="newUsername">Username:</label>
+          <input type="text" id="newUsername" name="newUsername" required>
+          <span id="usernameError" style="color:red; font-size:12px; display:none;"></span>
+        </div>
+        <div>
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required>
+          <span id="emailError" style="color:red; font-size:12px; display:none;"></span>
+        </div>
+        <div>
+          <label for="newPassword">Password:</label>
+          <input type="password" id="newPassword" name="newPassword" required>
+        </div>
+        <div>
+          <label for="confirmPassword">Confirm Password:</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required>
+          <span id="passwordError" style="color:red; font-size:12px; display:none;"></span>
+        </div>
+        <button type="submit">Sign Up</button>
+      </form>
+      <div>
+        <a href="/#login">Already have an account? Login</a>
+      </div>
+    `;
 
-  // Add event listener for form submission
-  container.querySelector('#signUpForm').addEventListener(
-    'submit', function(event) {
-      event.preventDefault();
-      const newUsername = usernameInput.value.trim();
-      const email = emailInput.value.trim();
-      const newPassword = container.querySelector('#newPassword').value;
-      const confirmPassword = container.querySelector('#confirmPassword').value;
-      let valid = true;
-
-      // Username check
-      if (!newUsername) {
+    const usernameInput = this.panelElement.querySelector('#newUsername');
+    const usernameError = this.panelElement.querySelector('#usernameError');
+    this.addEvent(usernameInput, 'blur', async () => {
+      const username = usernameInput.value.trim();
+      if (!username) {
         usernameError.textContent = 'Username is required.';
         usernameError.style.display = 'block';
-        valid = false;
       } else {
         usernameError.textContent = '';
         usernameError.style.display = 'none';
       }
+      // TODO: 调用 API 检查用户名是否存在
+    });
 
-      // Email check
+    const emailInput = this.panelElement.querySelector('#email');
+    const emailError = this.panelElement.querySelector('#emailError');
+    this.addEvent(emailInput, 'blur', () => {
+      const email = emailInput.value.trim();
       if (!email) {
         emailError.textContent = 'Email is required.';
         emailError.style.display = 'block';
-        valid = false;
-      } else if (!isEmailValid(email)) {
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         emailError.textContent = 'Invalid email format.';
         emailError.style.display = 'block';
-        valid = false;
       } else {
         emailError.textContent = '';
         emailError.style.display = 'none';
       }
+    });
 
-      // Password match and security check
-      const passwordError = container.querySelector('#passwordError');
+    const form = this.panelElement.querySelector('#signUpForm');
+    this.addEvent(form, 'submit', async e => {
+      e.preventDefault();
+      const newUsername = usernameInput.value.trim();
+      const email = emailInput.value.trim();
+      const newPassword = this.panelElement.querySelector('#newPassword').value;
+      const confirmPassword = this.panelElement.querySelector('#confirmPassword').value;
+      const passwordError = this.panelElement.querySelector('#passwordError');
+
+      let valid = true;
       if (newPassword !== confirmPassword) {
         passwordError.textContent = 'Passwords do not match.';
         passwordError.style.display = 'block';
         valid = false;
-      } else if (!isPasswordSecure(newPassword)) {
-        passwordError.textContent = 'Password must be at least 8 characters, include uppercase, lowercase, and a number.';
+      } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(newPassword)) {
+        passwordError.textContent = 'Password must be at least 8 characters, include upper/lowercase and a number.';
         passwordError.style.display = 'block';
         valid = false;
       } else {
@@ -206,140 +196,63 @@ export function renderSignUpComponent() {
 
       if (!valid) return;
 
-      // Here you would typically handle the signup logic, e.g., sending a request to the server
-      console.log('New Username:', newUsername);
-      console.log('Email:', email);
-      console.log('New Password:', newPassword);
-      
-      signup(newUsername, email, newPassword)
-        .then(data => {
-          console.log('Signup successful:', data);
-          // Redirect to login or show success message
-          window.location.href = '/#login';
-        }
-        )
-        .catch(error => {
-          console.error('Signup failed:', error);
-          // Show error message to the user
-          alert('Signup failed: ' + error.message);
-        }
-      );
-    }
-  );
+      try {
+        const data = await signup(newUsername, email, newPassword);
+        console.log('Signup success:', data);
+        window.location.href = '/#login';
+      } catch (err) {
+        alert('Signup failed: ' + err.message);
+      }
+    });
 
-  return container;
+    return this.panelElement;
+  }
 }
 
-
+// ================== API helpers (保持原有逻辑) ==================
 function signup(username, email, password) {
-  // API: POST /api/user/signup
   return fetch('/api/user/signup', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      username: username,
-      useremail: email,
-      userpassword: password
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, useremail: email, userpassword: password })
   })
-  .then(response => {
-    if (!response.ok) {
-      return response.json().then(err => {
-        throw new Error(err.error || 'Signup failed');
-      });
-    }   return response.json();
-  }
-  )
-  .then(data => {
-    console.log('Signup successful:', data);
-    return data;
-  }
-  )
-  .catch(error => {
-    console.error('Error during signup:', error);
-    throw error;
-  }
-  );
+    .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error); }))
 }
 
-
 function login(username, password) {
-  // API: POST /api/user/login
   return fetch('/api/user/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      username: username,
-      userpassword: password
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, userpassword: password })
   })
-  .then(response => {
-    if (!response.ok) {
-      return response.json().then(err => {
-        throw new Error(err.error || 'Login failed');
-      });
-    }
-    return response.json();
-  }
-  )
-  .then(data => {
-    console.log('Login successful:', data);
-    // Store the token in localStorage or sessionStorage
-    localStorage.setItem('token', data.token);
-    return data;
-  }
-  )
-  .catch(error => {
-    console.error('Error during login:', error);
-    throw error;
-  }
-  );
+    .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error); }))
+    .then(data => {
+      localStorage.setItem('token', data.token);
+      return data;
+    });
 }
 
 function loginAsGuest() {
-  // API: POST /api/user/login
   return fetch('/api/user/guest_login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   })
-  .then(response => {
-    if (!response.ok) {
-      return response.json().then(err => {
-        throw new Error(err.error || 'Login failed');
-      });
-    }
-    return response.json();
-  }
-  )
-  .then(data => {
-    console.log('Login successful:', data);
-    // Store the token in localStorage or sessionStorage
-    localStorage.setItem('token', data.token);
-    return data;
-  }
-  )
-  .catch(error => {
-    console.error('Error during login:', error);
-    throw error;
-  }
-  );
+    .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error); }))
+    .then(data => {
+      localStorage.setItem('token', data.token);
+      return data;
+    });
 }
 
-export function logout() {
-  // just remove the token from storage
+function logout() {
   localStorage.removeItem('token');
-  console.log('Logged out successfully');
-  return Promise.resolve({ message: 'Logout successful' });
 }
 
+function isLoggedIn() {
+  return !!localStorage.getItem('token');
+}
 
-export function getUserInfo() {
+function getUserInfo() {
   // return local information from localStorage
   const token = localStorage.getItem('token');
   if (!token) {
@@ -353,10 +266,9 @@ export function getUserInfo() {
   });
 }
 
-export function getToken() {
+function getToken() {
   return localStorage.getItem('token');
 }
 
-export function isLoggedIn() {
-  return !!localStorage.getItem('token');
-}
+// ================== Export ==================
+export { LoginPanel, SignUpPanel, logout, isLoggedIn, getUserInfo, getToken };

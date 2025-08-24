@@ -1,7 +1,7 @@
 /* ===== 手机默认布局 Login Form ===== */
 
 /* 容器 */
-login-div {
+.login-panel {
   height: inherit;
   display: flex;
   flex-direction: column;
@@ -65,7 +65,7 @@ login-div {
 }
 
 /* 注册链接 */
-login-div > div a {
+.login-panel > div a {
   display: block;
   margin-top: 10px;
   font-size: 13px;
@@ -74,6 +74,6 @@ login-div > div a {
   text-align: center;
 }
 
-login-div > div a:hover {
+.login-panel > div a:hover {
   opacity: 0.8;
 }
