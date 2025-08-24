@@ -147,6 +147,16 @@ def init_user_db():
             conn.commit()
     else:
         print(f"User database already exists at {user_db_path}")
+    # add a new column  book_list to store user's book list
+    with sqlite3.connect(user_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(users)")
+        columns = [info[1] for info in cursor.fetchall()]
+        if 'book_list' not in columns:
+            cursor.execute('''
+                ALTER TABLE users ADD COLUMN book_list TEXT
+            ''')
+            conn.commit()
 
 
 def is_email_registered(useremail):
@@ -258,7 +268,7 @@ def init_book_db():
     else:
         print(f"Book database already exists at {book_db_path}")
 
-    
+# get all books in the database 
 def get_all_books():
     """
     Get all books in the database.
@@ -284,6 +294,7 @@ def get_all_books():
             })
         return books
 
+# get all books uploaded by a specific user
 def get_books_by_user(user_id):
     """
     Get all books for a specific user.
@@ -308,3 +319,104 @@ def get_books_by_user(user_id):
                 'chapter_id': json.loads(row[8])
             })
         return books
+
+# get book list from user table (user added books from library)  
+def get_user_book_list(user_id):
+    """
+    Get the book list for a specific user.
+    Returns a list of book IDs or an empty list if none found.
+    """
+    user_db_path = os.path.join(DATA_DIR, "user_db.sqlite")
+    with sqlite3.connect(user_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT book_list FROM users WHERE userid=?', (user_id,))
+        row = cursor.fetchone()
+        if row and row[0]:
+            return json.loads(row[0])
+        return []
+
+# get book details by a list of book ids  
+def get_books_by_ids(book_ids):
+    """
+    Get book details for a list of book IDs.
+    Returns a list of dictionaries with book information.
+    """
+    if not book_ids:
+        return []
+    
+    book_db_path = os.path.join(DATA_DIR, "book_db.sqlite")
+    placeholders = ','.join('?' for _ in book_ids)
+    query = f'SELECT * FROM books WHERE book_id IN ({placeholders})'
+    
+    with sqlite3.connect(book_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(query, book_ids)
+        rows = cursor.fetchall()
+        books = []
+        for row in rows:
+            books.append({
+                'book_id': row[0],
+                'book_name': row[1],
+                'author': row[2],
+                'user_id': row[3],
+                'cover_page': row[4],
+                'org_lang': row[5],
+                'total_chapters': row[6],
+                'support_language': json.loads(row[7]),
+                'chapter_id': json.loads(row[8])
+            })
+        return books
+
+# get all books associated with a user (uploaded + added)    
+def get_user_all_books(user_id):
+    """
+    Get all books associated with a user, including uploaded and added books.
+    Returns a list of dictionaries with book information.
+    """
+    user_uploaded_books = get_books_by_user(user_id)
+    user_book_list_ids = get_user_book_list(user_id)
+    user_added_books = get_books_by_ids(user_book_list_ids)
+    
+    # Combine and remove duplicates based on book_id
+    all_books_dict = {book['book_id']: book for book in user_uploaded_books + user_added_books}
+    
+    return list(all_books_dict.values())
+
+# add or remove book id to/from user book list  
+def append_user_book_list(user_id, book_id):
+    """
+    Append a book ID to the user's book list.
+    """
+    user_db_path = os.path.join(DATA_DIR, "user_db.sqlite")
+    with sqlite3.connect(user_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT book_list FROM users WHERE userid=?', (user_id,))
+        row = cursor.fetchone()
+        if row and row[0]:
+            book_list = json.loads(row[0])
+            if book_id not in book_list:
+                book_list.append(book_id)
+        else:
+            book_list = [book_id]
+        cursor.execute('UPDATE users SET book_list=? WHERE userid=?', (json.dumps(book_list), user_id))
+        conn.commit()
+
+def remove_user_book_list(user_id, book_id):
+    """
+    Remove a book ID from the user's book list.
+    """
+    user_db_path = os.path.join(DATA_DIR, "user_db.sqlite")
+    with sqlite3.connect(user_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT book_list FROM users WHERE userid=?', (user_id,))
+        row = cursor.fetchone()
+        if row and row[0]:
+            book_list = json.loads(row[0])
+            if book_id in book_list:
+                book_list.remove(book_id)
+                cursor.execute('UPDATE users SET book_list=? WHERE userid=?', (json.dumps(book_list), user_id))
+                conn.commit()
+
+# get user book:
+#  user uploaded book
+#  user added book from library

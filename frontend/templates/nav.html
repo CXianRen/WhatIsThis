@@ -102,7 +102,7 @@
   <div class="page-panel login" style="display: none;"></div>
   <div class="page-panel signup" style="display: none;"></div>
   <div class="page-panel setting" style="display: none;"></div>
-  <div class="page-panel libary" style="display: none;"></div>
+  <div class="page-panel library" style="display: none;"></div>
 
   <div class="nav-bar-container"></div>
   <script type="module">
@@ -110,8 +110,8 @@
     import { createNavigationBar } from '/static/js/navBar.js';
     import { createInfoPanel } from '/static/js/infoPanel.js';
     import { createLearnPanel } from '/static/js/learnPanel.js';
-    import { createBookShelfPanel } from '/static/js/bookPage/bookShelfPanel.js';
-    import { createBookLibraryPanel } from '/static/js/bookPage/bookLibPanel.js';
+    import BookShelfPanel from '/static/js/bookPage/bookShelfPanel.js';
+    import BookLibraryPanel from '/static/js/bookPage/bookLibPanel.js';
     import { createReaderPanel } from '/static/js/reader/readerPanel.js';
     import { createWordCardPanel } from '/static/js/wordcard/wordcardPanel.js';
     import { renderLoginComponent, renderSignUpComponent } from '/static/js/user/login.js';
@@ -130,7 +130,7 @@
     registerPath('home');
     registerPath('learn');
     registerPath('shelf');
-    registerPath('libary');
+    registerPath('library');
 
     registerPath('reader', {
       fullscreen: true
@@ -191,9 +191,10 @@
 
       createLearnPanel(document.querySelector('.learn'));
 
-      createBookShelfPanel(document.querySelector('.shelf'));
+      new BookShelfPanel(document.querySelector('.shelf'));
 
-      createBookLibraryPanel(document.querySelector('.libary'));
+      // createBookLibraryPanel(document.querySelector('.library'));
+      new BookLibraryPanel(document.querySelector('.library'));
 
       createReaderPanel(document.querySelector('.reader'));
 

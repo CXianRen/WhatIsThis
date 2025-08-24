@@ -89,6 +89,7 @@
   }
 }
 
+#add-book-btn,
 #read-book-btn,
 #remove-book-btn {
   width: 200px;
@@ -104,11 +105,15 @@
 }
 
 /* 主按鈕 - 閱讀 */
+#add-book-btn,
+#add-book-btn,
 #read-book-btn {
   background-color: #4f8ef7;
   color: #fff;
 }
 
+#add-book-btn:hover,
+#add-book-btn:focus,
 #read-book-btn:hover,
 #read-book-btn:focus {
   background-color: #3a6fd1;

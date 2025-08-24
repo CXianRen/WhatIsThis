@@ -1,3 +1,4 @@
+import { getToken, getPathData } from '../user/login.js';
 
 import SidebarComponent from '../common/sidebar-component.js';
 import ToolBarModule from './toolbarModule.js';
@@ -5,10 +6,13 @@ import WordModule from './wordModule.js';
 import YouglishModule from './youglishModule.js';
 import TagModule from './tagModule.js';
 
-let novelData = [];
-let currentNovel = null;
-let currentChapter = null;
-let currentContent = null;
+// let novelData = [];
+let chapterData = [];
+let currentChapterIndex = 0;
+
+let currentSrcContent = null;
+let currentDstContent = null;
+
 let sentenceStates = {}; // {chapterPath: {sentenceIndex: 'dest'|'source'}}
 let sidebar = null;
 let longPressTimer = null;
@@ -92,87 +96,73 @@ function renderHTML(container) {
 }
 
 // load the novel list from the server
-async function loadNovelList() {
+async function loadNovelList(book) {
   try {
-    const response = await fetch('/novel/list');
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    const token = getToken();
+    if (!token) {
+      alert('You should login first');
+      return;
     }
+    // if (book == null) {
+    //   alert('No book selected');
+    //   return;
+    // }
 
-    const novels = await response.json();
+    const book = { id: '000001' };
 
-    // 为每个小说加载章节信息
-    novelData = [];
-    for (const novel of novels) {
-      try {
-        const chaptersResponse = await fetch(`/novel/${novel.name}/chapters`);
-        if (chaptersResponse.ok) {
-          const chapters = await chaptersResponse.json();
-          novelData.push({
-            name: novel.name,
-            display_name: novel.display_name,
-            chapters: chapters
-          });
-        } else {
-          // 如果获取章节失败，仍然添加小说，但章节为空
-          novelData.push({
-            name: novel.name,
-            display_name: novel.display_name,
-            chapters: []
-          });
-        }
-      } catch (chapterError) {
-        console.error(`加载小说 ${novel.name} 的章节失败:`, chapterError);
-        novelData.push({
-          name: novel.name,
-          display_name: novel.display_name,
-          chapters: []
-        });
+    console.log("Fetch chapters for book:", book);
+    // fetch the chapter list of the specified book
+    fetch(`/api/book/chapters`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        // "book_id": book.id,
+        book_id: '000001',
+        "lang": "en",
+        "level": "b2"
+      })
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    }
+      return response.json();
+    }).then(data => {
+      chapterData = data;
+      console.log('Novel chapter list loaded:', chapterData);
 
+      if (sidebar) {
+        sidebar.clearContent();
+        sidebar.addContent(renderNovelList(), 'novelList');
+      }
+    }).catch(error => {
+      console.error('加载小说章节列表失败:', error);
+      if (sidebar) {
+        sidebar.clearContent();
+        sidebar.addContent(`<div class="error">加载失败: ${error.message}</div>`, 'error');
+      }
+    });
+
+  } catch (e) {
     if (sidebar) {
       sidebar.clearContent();
-      renderNovelList('novelList');
-      sidebar.addContent(renderNovelList(), 'novelList');
-
-    }
-
-  } catch (error) {
-    console.error('加载小说列表失败:', error);
-    if (sidebar) {
-      sidebar.clearContent();
-      sidebar.addContent(`<div class="error">加载失败: ${error.message}</div>`, 'error');
+      sidebar.addContent(`<div class="error">加载失败: </div>`, 'error');
     }
   }
 }
 
 // generate the HTML content for the novel list
 function createNovelListContent() {
-  if (novelData.length === 0) {
-    return '<div class="loading">没有找到小说</div>';
+  if (chapterData.length === 0) {
+    return '<div class="loading">No chapter found</div>';
   }
 
-  let html = '<ul class="novel-list">';
+  let html = '<ul class="chapter-list">';
 
-  novelData.forEach((novel, novelIndex) => {
-    html += `
-      <li class="novel-item">
-        <div class="novel-title" data-novel-index="${novelIndex}">
-          ${novel.name}
-        </div>
-        <ul class="chapter-list collapsed">
-    `;
-
-    novel.chapters.forEach((chapter, chapterIndex) => {
-      html += `
-        <li class="chapter-item" data-novel-index="${novelIndex}" data-chapter-index="${chapterIndex}">
-          ${chapter.title}
-        </li>
-      `;
-    });
-
-    html += `</ul></li>`;
+  chapterData.forEach((chapter, chapterIndex) => {
+    html += `<li class="chapter-item" data-chapter-index="${chapterIndex}">${chapter.chapter_title}</li>`;
   });
 
   html += '</ul>';
@@ -184,47 +174,31 @@ function renderNovelList() {
   const container = document.createElement('div');
   container.innerHTML = createNovelListContent();
 
-  // 绑定小说标题点击事件
-  container.querySelectorAll('.novel-title').forEach((titleEl) => {
-    titleEl.addEventListener('click', () => {
-      const novelIndex = parseInt(titleEl.dataset.novelIndex);
-      toggleNovel(novelIndex, titleEl);
-    });
-  });
 
   // 绑定章节点击事件
   container.querySelectorAll('.chapter-item').forEach((chapterEl) => {
     chapterEl.addEventListener('click', (event) => {
       event.stopPropagation(); // 阻止冒泡到小说标题
-      const novelIndex = parseInt(chapterEl.dataset.novelIndex);
+      // const book_id = parseInt(chapterEl.dataset.bookId);
+      // const chapter_id = parseInt(chapterEl.dataset.chapterId);
       const chapterIndex = parseInt(chapterEl.dataset.chapterIndex);
-      selectChapter(novelIndex, chapterIndex, chapterEl, event);
+      selectChapter(chapterIndex, chapterEl, event);
     });
   });
   return container;
 }
 
-// toggle the visibility of the chapter list
-function toggleNovel(novelIndex, titleElement) {
-  const chapterList = titleElement.parentElement.querySelector('.chapter-list');
-
-  if (chapterList.classList.contains('collapsed')) {
-    chapterList.classList.replace('collapsed', 'expanded');
-    titleElement.classList.add('expanded');
-  } else {
-    chapterList.classList.replace('expanded', 'collapsed');
-    titleElement.classList.remove('expanded');
-  }
-}
 
 // chapter selection handler
-async function selectChapter(novelIndex, chapterIndex, chapterElement, event) {
+async function selectChapter(chapterIndex, chapterElement, event) {
   event.stopPropagation();
+  currentChapterIndex = chapterIndex;
+  const chapter = chapterData[chapterIndex];
 
-  const novel = novelData[novelIndex];
-  const chapter = novel.chapters[chapterIndex];
-  console.log(novel.chapters)
-  console.log(`Select chapter: ${novel.name} - ${chapter.title}`);
+  // const novel = novelData[novelIndex];
+  // const chapter = novel.chapters[chapterIndex];
+  // console.log(novel.chapters)
+  // console.log(`Select chapter: ${novel.name} - ${chapter.title}`);
 
   // close the sidebar if it is open
   sidebar?.hide();
@@ -234,38 +208,68 @@ async function selectChapter(novelIndex, chapterIndex, chapterElement, event) {
   chapterElement.classList.add('active');
 
   // update the current chapter and content area
-  currentNovel = novel;
-  currentChapter = chapter;
-  currentChapterElement.textContent = `${novel.name} - ${chapter.title}`;
+  // currentNovel = novel;
+  // currentChapter = chapter_id;
+  currentChapterElement.textContent = `${chapter.chapter_title}`;
   chapterInfoElement.textContent = 'Loading...';
   contentAreaElement.innerHTML = '<div class="loading">Loading...</div>';
 
-  const url = `/novel/${novel.name}/chapters/${chapter.cid}/en`;
+  const url = `/api/book/content`;
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    async function fetchChapterContent(url, data = {
+      "book_id": '000001',
+      "chapter_id": chapter.chapter_id,
+      "lang": "en",
+      "level": "b2"
+    }
+    ) {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
     }
 
-    currentContent = await response.json();
-    console.log('Chapter content loaded successfully:', currentContent);
+    currentSrcContent = await fetchChapterContent(url, {
+      "book_id": '000001',
+      "chapter_id": chapter.chapter_id,
+      "lang": "zh",
+      "level": "c2"
+    });
+
+    currentDstContent = await fetchChapterContent(url, {
+      "book_id": '000001',
+      "chapter_id": chapter.chapter_id,
+      "lang": "en",
+      "level": "b2"
+    });
+
+    //  check data 
+    if (currentSrcContent.total_sentence !== currentDstContent.total_sentence) {
+      throw new Error('Source and target content sentence count mismatch');
+    }
+
+    console.log('Chapter content loaded successfully:', currentSrcContent,
+      currentDstContent);
 
     // Initialize sentence state for this chapter
-    const chapterPath = `${novel.name}/${chapter.title}`;
-    if (!sentenceStates[chapterPath]) {
-      sentenceStates[chapterPath] = {};
-    }
+    sentenceStates = {};
 
     // Initialize each sentence state (default to English)
-    if (currentContent.content) {
-      currentContent.content.forEach((_, index) => {
-        if (!(index in sentenceStates[chapterPath])) {
-          sentenceStates[chapterPath][index] = 'dest';
-        }
+    if (currentDstContent.content) {
+      currentDstContent.content.forEach((_, index) => {
+        sentenceStates[index] = 'dest';
       });
     }
 
-    renderChapterContent(currentContent, chapterPath);
+    renderChapterContent();
 
   } catch (error) {
     console.error('Failed to load chapter content:', error);
@@ -274,21 +278,46 @@ async function selectChapter(novelIndex, chapterIndex, chapterElement, event) {
 }
 
 // Render chapter content
-function renderChapterContent(content, chapterPath) {
-  const sentences = content.content || [];
-  chapterInfoElement.textContent = `Total ${sentences.length} sentences`;
+function renderChapterContent() {
+  const srcSentences = currentSrcContent.content;
+  const dstSentences = currentDstContent.content;
 
-  const sentenceHTML = sentences.map((sentence, index) => {
-    const currentState = sentenceStates[chapterPath][index] || 'dest';
+  chapterInfoElement.textContent = `Total ${dstSentences.length} sentences`;
+
+  // const sentenceHTML = sentences.map((sentence, index) => {
+  //   const currentState = sentenceStates[chapterPath][index] || 'dest';
+  //   const isSource = currentState === 'source';
+  //   const cssClass = isSource ? 'source-text' : 'dest-text';
+  //   const text = isSource ? sentence.src : sentence.target;
+
+  //   const toggleIcon = isSource ? 'src' : 'dst';
+  //   const toggleTitle = isSource ? 'Switch to English' : 'Switch to Chinese';
+
+  //   return `
+  //     <div class="sentence ${isSource ? 'source' : ''}" data-index="${index}" data-chapter-path="${chapterPath}">
+  //       <div class="language-toggle" title="${toggleTitle}">
+  //         ${toggleIcon}
+  //       </div>
+  //       <div class="sentence-text">
+  //         <div class="${cssClass}">${text}</div>
+  //       </div>
+  //     </div>
+  //   `;
+  // }).join('');
+
+  const sentenceHTML = srcSentences.map((_, index) => {
+    const currentState = sentenceStates[index] || 'dest';
     const isSource = currentState === 'source';
     const cssClass = isSource ? 'source-text' : 'dest-text';
-    const text = isSource ? sentence.src : sentence.target;
+    const text = isSource ? srcSentences[index].sentence : dstSentences[index].sentence;
 
     const toggleIcon = isSource ? 'src' : 'dst';
-    const toggleTitle = isSource ? 'Switch to English' : 'Switch to Chinese';
+    const toggleTitle = isSource ? 'Switch to dst language' : 'Switch to src language';
 
     return `
-      <div class="sentence ${isSource ? 'source' : ''}" data-index="${index}" data-chapter-path="${chapterPath}">
+      <div class="sentence ${isSource ? 'source' : ''}" 
+            data-index="${index}" 
+           >
         <div class="language-toggle" title="${toggleTitle}">
           ${toggleIcon}
         </div>
@@ -299,16 +328,17 @@ function renderChapterContent(content, chapterPath) {
     `;
   }).join('');
 
+
   contentAreaElement.innerHTML = `<div class="sentence-container font-size-${fontSizes[currentFontSize]}">${sentenceHTML}</div>`;
 
   // 绑定事件
   contentAreaElement.querySelectorAll('.sentence').forEach(sentenceEl => {
     const index = parseInt(sentenceEl.dataset.index);
-    const path = sentenceEl.dataset.chapterPath;
+    // const path = sentenceEl.dataset.chapterPath;
 
     // 切换语言
     const toggleEl = sentenceEl.querySelector('.language-toggle');
-    toggleEl.addEventListener('click', () => toggleSentence(index, path));
+    toggleEl.addEventListener('click', () => toggleSentence(index));
 
     // 鼠标/触摸事件
     const textEl = sentenceEl.querySelector('.sentence-text');
@@ -322,14 +352,14 @@ function renderChapterContent(content, chapterPath) {
 }
 
 // Toggle sentence language display
-function toggleSentence(sentenceIndex, chapterPath) {
+function toggleSentence(sentenceIndex) {
   event.stopPropagation(); // Prevent event bubbling
 
-  const currentState = sentenceStates[chapterPath][sentenceIndex] || 'dest';
-  sentenceStates[chapterPath][sentenceIndex] = currentState === 'source' ? 'dest' : 'source';
+  const currentState = sentenceStates[sentenceIndex] || 'dest';
+  sentenceStates[sentenceIndex] = currentState === 'source' ? 'dest' : 'source';
 
-  if (currentContent) {
-    renderChapterContent(currentContent, chapterPath);
+  if (currentSrcContent && currentDstContent) {
+    renderChapterContent();
   }
 }
 
