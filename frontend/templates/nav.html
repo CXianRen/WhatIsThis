@@ -204,7 +204,6 @@
       });
 
       const learn_panel = new LearnPanel(document.querySelector('.learn'));
-
       registerPath('learn', {
         onMount: () => {
           learn_panel.mount?.();
@@ -213,7 +212,6 @@
           learn_panel.unmount?.();
         }
       });
-
 
       const shelf_panel = new BookShelfPanel(document.querySelector('.shelf'));
       registerPath('shelf', {
@@ -255,7 +253,6 @@
           wordcard_panel.unmount();
         }
       });
-
 
       const setting_panel = new SettingPanel(document.querySelector('.setting'));
       registerPath('setting', {

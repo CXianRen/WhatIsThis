@@ -252,7 +252,7 @@ export default class WordCardPanel {
     document.getElementById('wc-wordTitle').textContent = this.currentWord.word;
 
     const images = await this.fetchWordImages(this.currentWord.word);
-    ImageViewer.setImages(images);
+    this.imageViewer.setImages(images);
 
     document.getElementById('wc-prevBtn').disabled = this.currentWordIndex === 0;
     document.getElementById('wc-nextBtn').disabled = this.currentWordIndex === this.words.length - 1;

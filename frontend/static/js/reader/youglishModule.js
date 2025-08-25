@@ -1,207 +1,92 @@
-// youglishModule.js (ES Module)
+// YouglishPanel.js (ESM)
+import YouglishWidget from "./youglishWidget.js";
 
-let isInitialized = false;
+export default class YouglishPanel {
+  constructor({
+    container = document.body,
+    cssUrl = null,
+    containerId = "youglish-widget-container",
+    scriptUrl,
+    onClose = null
+  } = {}) {
+    this.container = container;
+    this.cssUrl = cssUrl;
+    this.containerId = containerId;
+    this.scriptUrl = scriptUrl;
+    this.closeCallback = onClose;
 
-let youglishWidget = null;
-let youglishAPIReady = false;
-let youglishTimer = null;
-let youglishStatus, youglishWord, youglishOverlay;
+    this.overlay = null;
+    this.wordEl = null;
+    this.statusEl = null;
 
-// callback 函数
-let closeCallback = null;
-
-// ===== 动态插入 HTML =====
-function injectHTML() {
-  if (document.getElementById('youglishOverlay')) return;
-
-  const html = `
-  <div id="youglishOverlay" class="youglish-overlay" style="display:none">
-    <div class="youglish-panel">
-      <div class="youglish-header">
-        <button class="youglish-close">&times;</button>
-        <h3 class="youglish-title">🎵 单词发音</h3>
-        <span class="youglish-word" id="youglishWord">word</span>
-      </div>
-      <div class="youglish-content">
-        <div class="youglish-status" id="youglishStatus">正在初始化...</div>
-        <div id="youglish-widget-container"></div>
-      </div>
-    </div>
-  </div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
-
-  youglishOverlay = document.getElementById('youglishOverlay');
-  youglishWord = document.getElementById('youglishWord');
-  youglishStatus = document.getElementById('youglishStatus');
-
-  // 关闭按钮
-  const closeBtn = youglishOverlay.querySelector('.youglish-close');
-  closeBtn.addEventListener('click', () => close());
-}
-
-// ===== 加载 CSS =====
-function loadCSS(url) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`link[href="${url}"]`)) return resolve();
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = url;
-    link.onload = resolve;
-    link.onerror = () => reject(new Error(`CSS 加载失败: ${url}`));
-    document.head.appendChild(link);
-  });
-}
-
-// ===== 外部脚本加载 =====
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) return resolve();
-    const s = document.createElement('script');
-    s.src = src;
-    s.async = true;
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
-// ===== 初始化模块 =====
-async function init({
-  cssUrl,
-  scriptUrl = "https://youglish.com/public/emb/widget.js",
-  ccb = null
-}) {
-  if (isInitialized) return;
-
-  closeCallback = ccb;
-
-  injectHTML();
-  if (cssUrl) await loadCSS(cssUrl);
-
-  // 挂载全局回调（YouGlish 必须用全局的）
-  window.onYouglishAPIReady = onYouglishAPIReady;
-
-  isInitialized = true;
-  await loadScript(scriptUrl);
-}
-
-// ===== YouGlish API 准备就绪 =====
-function onYouglishAPIReady() {
-  youglishAPIReady = true;
-  updateStatus("YouGlish API 已加载，正在初始化...");
-
-  try {
-    youglishWidget = new YG.Widget("youglish-widget-container", {
-      width: 640,
-      height: 550,
-      components: 88,
-      events: {
-        onFetchDone,
-        onCaptionConsumed,
-        onVideoReady,
-        onError
-      }
+    this.widget = new YouglishWidget({
+      containerId: this.containerId,
+      scriptUrl: this.scriptUrl,
+      onStatus: (msg) => this.updateStatus(msg)
     });
-    updateStatus("Widget 已创建，可以开始搜索");
-  } catch (e) {
-    console.error("Widget 创建失败:", e);
-    updateStatus("Widget 创建失败: " + e.message);
+  }
+
+  async init() {
+    this.injectHTML();
+    if (this.cssUrl) await this.loadCSS(this.cssUrl);
+    await this.widget.init();
+  }
+
+  injectHTML() {
+    if (document.getElementById("youglishOverlay")) return;
+
+    const html = `
+      <div id="youglishOverlay" class="youglish-overlay" style="display:none">
+        <div class="youglish-panel">
+          <div class="youglish-header">
+            <button class="youglish-close">&times;</button>
+            <h3 class="youglish-title">🎵 单词发音</h3>
+            <span class="youglish-word" id="youglishWord">word</span>
+          </div>
+          <div class="youglish-content">
+            <div class="youglish-status" id="youglishStatus">正在初始化...</div>
+            <div id="${this.containerId}"></div>
+          </div>
+        </div>
+      </div>`;
+    this.container.insertAdjacentHTML("beforeend", html);
+
+    this.overlay = document.getElementById("youglishOverlay");
+    this.wordEl = document.getElementById("youglishWord");
+    this.statusEl = document.getElementById("youglishStatus");
+
+    const closeBtn = this.overlay.querySelector(".youglish-close");
+    closeBtn.addEventListener("click", () => this.close());
+  }
+
+  loadCSS(url) {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`link[href="${url}"]`)) return resolve();
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = url;
+      link.onload = resolve;
+      link.onerror = () => reject(new Error(`CSS 加载失败: ${url}`));
+      document.head.appendChild(link);
+    });
+  }
+
+  updateStatus(msg) {
+    if (this.statusEl) this.statusEl.textContent = msg;
+  }
+
+  // === 对外 API ===
+  show(word) {
+    if (!word) return;
+    this.wordEl.textContent = word;
+    this.overlay.style.display = "flex";
+    this.widget.search(word);
+  }
+
+  close() {
+    this.overlay.style.display = "none";
+    this.widget.pause();
+    if (this.closeCallback) this.closeCallback();
   }
 }
 
-// ===== 事件回调 =====
-function onFetchDone(event) {
-  if (event.totalResult === 0) {
-    updateStatus("没有找到结果");
-  } else {
-    updateStatus(`找到 ${event.totalResult} 个发音示例`);
-  }
-}
-
-function onCaptionConsumed() {
-  if (youglishWidget) {
-    youglishWidget.pause();
-    youglishTimer = setTimeout(() => {
-      if (youglishWidget) youglishWidget.replay();
-    }, 2000);
-  }
-}
-
-function onVideoReady() {
-  updateStatus("播放器已准备就绪");
-}
-
-function onError(event) {
-  updateStatus("发生错误：" + event.code);
-}
-
-// ===== 工具函数 =====
-function updateStatus(msg) {
-  if (youglishStatus) {
-    youglishStatus.textContent = msg;
-  }
-}
-
-// ===== 对外功能 =====
-function show(word) {
-  if (!word) return;
-  youglishWord.textContent = word;
-  youglishOverlay.style.display = "flex";
-
-  if (!youglishAPIReady) {
-    updateStatus("等待 YouGlish API 加载...");
-    const checkAPI = setInterval(() => {
-      if (typeof YG !== "undefined" && youglishAPIReady) {
-        clearInterval(checkAPI);
-        search(word);
-      }
-    }, 500);
-
-    setTimeout(() => {
-      if (!youglishAPIReady) {
-        clearInterval(checkAPI);
-        updateStatus("YouGlish API 加载超时，请刷新页面重试");
-      }
-    }, 10000);
-  } else {
-    search(word);
-  }
-}
-
-function search(word) {
-  if (!youglishWidget) {
-    updateStatus("Widget 未初始化");
-    return;
-  }
-  updateStatus("正在搜索: " + word);
-  try {
-    youglishWidget.fetch(word, "english");
-  } catch (e) {
-    console.error("搜索失败:", e);
-    updateStatus("搜索失败: " + e.message);
-  }
-}
-
-function close() {
-  youglishOverlay.style.display = "none";
-  if (youglishWidget) {
-    try {
-      youglishWidget.pause();
-    } catch { }
-    if (youglishTimer) {
-      clearTimeout(youglishTimer);
-      youglishTimer = null;
-    }
-  }
-  if (closeCallback && typeof closeCallback === "function") {
-    closeCallback();
-  }
-}
-
-// ===== 导出 API =====
-export default {
-  init,
-  show,
-  close,
-  search
-};

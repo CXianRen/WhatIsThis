@@ -2,8 +2,8 @@ import { getToken } from '../user/login.js';
 
 import SidebarComponent from '../common/sidebar-component.js';
 import ToolBarModule from './toolbarModule.js';
-import WordModule from './wordModule.js';
-import YouglishModule from './youglishModule.js';
+import WordPanel from './wordModule.js';
+import YouglishPanel from './youglishModule.js';
 import TagModule from './tagModule.js';
 
 // let novelData = [];
@@ -24,12 +24,18 @@ let currentFontSize = 2;
 const fontSizes = ['small', 'medium', 'large', 'extra-large', 'huge'];
 const fontSizeNames = ['small', 'medium', 'large', 'extra-large', 'huge'];;
 
+// componet 
+let WordModule = null;
+let youglishModule = null;
+
+
 // word tag related variables
 let allowTagList = [];
 let wordTags = [];
 let tempTagList = [];
 
 // DOM elements cached for performance
+let mainContainerElement = null;
 let currentChapterElement = null;
 let chapterInfoElement = null;
 let contentAreaElement = null;
@@ -62,6 +68,8 @@ function renderHTML(container) {
   `;
   container.innerHTML = htmlContent;
 
+  mainContainerElement = document.getElementById('main-content');
+
   currentChapterElement = document.getElementById('currentChapter');
   chapterInfoElement = document.getElementById('chapterInfo');
   contentAreaElement = document.getElementById('contentArea');
@@ -92,6 +100,18 @@ function renderHTML(container) {
     enableOverlay: true,
     autoHide: true
   });
+
+  WordModule = new WordPanel({
+    container: mainContainerElement
+  }
+  );
+  WordModule.init();
+
+  youglishModule = new YouglishPanel({
+    container: mainContainerElement,
+    cssUrl: '/static/css/reader/youglish_panel.css',
+  });
+  youglishModule.init();
 
 }
 
@@ -572,7 +592,7 @@ function openYouglish() {
     console.log('tool 2 - YouGlish:', selectedWord);
     ToolBarModule.close()
     clearWordSelection();
-    YouglishModule.show(selectedWord);
+    youglishModule.show(selectedWord);
   }
 }
 
@@ -638,13 +658,13 @@ function createReaderPanel(container) {
 
   loadNovelList();
 
-  YouglishModule.init({
-    cssUrl: '/static/css/reader/youglish_panel.css',
-    ccb: () => {
-      clearWordSelection();
-      ToolBarModule.close()
-    }
-  });
+  // YouglishModule.init({
+  //   cssUrl: '/static/css/reader/youglish_panel.css',
+  //   ccb: () => {
+  //     clearWordSelection();
+  //     ToolBarModule.close()
+  //   }
+  // });
 
   // 初始化单词详情面板
   WordModule.init({

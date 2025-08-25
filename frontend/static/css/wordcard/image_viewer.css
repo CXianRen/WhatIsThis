@@ -13,6 +13,7 @@
   height: 100%;
   object-fit: cover;
   display: none;
+  object-fit: contain;
 }
 
 .image-slide.active {

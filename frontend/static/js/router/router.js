@@ -11,11 +11,11 @@ function registerPath(path, config = {}) {
     return;
   }
   register_path.push({ path, config });
-  console.log(`Path ${path} registered successfully.`);
+  // console.log(`Path ${path} registered successfully.`);
 }
 
 function toPath(path, data = null, pushHistory = true) {
-  console.log(`Navigating to path: ${path}`);
+  // console.log(`Navigating to path: ${path}`);
 
   // check if path is registered
   const page = register_path.find(p => p.path === path);
