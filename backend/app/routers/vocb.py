@@ -93,8 +93,8 @@ def filter_words_by_tags():
 #### AI explaination of a word/ a pharese/ a sentence ####
 
 
-@vocb_bp.route('/word/<word>', methods=['GET'])
-def get_word_detail(word):
+@vocb_bp.route('/word', methods=['POST'])
+def get_word_detail():
     """ example response:
     get the word details from AI
     {
@@ -118,9 +118,11 @@ def get_word_detail(word):
         "synonyms": ["hi", "greetings"]
     }
     """
-    target_lang = request.args.get('lang', 'en')
-    native_lang = request.args.get('native_lang', 'zh')
-
+    data = request.get_json()
+    word = data.get('word', None)
+    target_lang = data.get('lang', 'en')
+    native_lang = data.get('native_lang', 'zh')
+    print(f"Request word detail: {word} in {target_lang}, native: {native_lang}")
     res = AI_Dictionary(word, target_lang, native_lang)
     res = json.loads(res)
     return jsonify(res)

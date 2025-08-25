@@ -65,7 +65,7 @@ def AI_Dictionary(words, target_lang="en", native_lang="zh"):
     """
 
     # try to get from cache first
-    cached_result = get_word_definition(target_lang, words)
+    cached_result = get_word_definition(target_lang, native_lang, words)
     if cached_result:
         print("Cache hit, returning result directly: ", words)
         print("Cached result:", cached_result)
@@ -75,7 +75,7 @@ def AI_Dictionary(words, target_lang="en", native_lang="zh"):
     else:
         print("Cache miss, calling DeepSeek API to fetch data")
 
-        # DeepSeek API配置
+        # DeepSeek API settings
         api_url = TRANSLATION_API_URL
         headers = {
             "Content-Type": "application/json",
@@ -123,7 +123,7 @@ def AI_Dictionary(words, target_lang="en", native_lang="zh"):
                 print("API return:", content)
 
                 # save to cache
-                save_word_definition(target_lang, words, content)
+                save_word_definition(target_lang, native_lang, words, content)
 
                 return content
             else:

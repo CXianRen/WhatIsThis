@@ -49,13 +49,13 @@ def __init_db_language(db_path):
             )
         ''')
 
-        # Phonetic table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS phonetic (
-                word TEXT PRIMARY KEY,
-                phonetic TEXT
-            )
-        ''')
+        # # Phonetic table
+        # cursor.execute('''
+        #     CREATE TABLE IF NOT EXISTS phonetic (
+        #         word TEXT PRIMARY KEY,
+        #         phonetic TEXT
+        #     )
+        # ''')
 
         # Dictionary table
         cursor.execute('''
@@ -88,14 +88,29 @@ def save_word_phonetic(lang, word, phonetic):
         conn.commit()
 
 
-def save_word_definition(lang, word, definition):
-    """Save definition to database."""
-    print(f"Saving definition for {word} to database")
-    with sqlite3.connect(get_db_path(lang)) as conn:
-        conn.execute(
-            'REPLACE INTO definition (word, definition) VALUES (?, ?)',
-            (word, definition)
-        )
+def save_word_definition(lang, native_lang, word, definition):
+    """
+    Save definition to database.
+    If the column definition_{native_lang} does not exist, add it.
+    Then save the definition to the corresponding column.
+    """
+    db_path = get_db_path(lang)
+    column_name = f'definition_{native_lang}'
+
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        # Check if the column exists
+        cursor.execute("PRAGMA table_info(definition)")
+        columns = [info[1] for info in cursor.fetchall()]
+        if column_name not in columns:
+            cursor.execute(f'ALTER TABLE definition ADD COLUMN {column_name} TEXT')
+            conn.commit()
+        # Insert or update the definition
+        cursor.execute(f'''
+            INSERT INTO definition (word, {column_name})
+            VALUES (?, ?)
+            ON CONFLICT(word) DO UPDATE SET {column_name}=excluded.{column_name}
+        ''', (word, definition))
         conn.commit()
 
 
@@ -116,14 +131,24 @@ def get_word_phonetic(lang, word):
         return row[0] if row else None
 
 
-def get_word_definition(lang, word):
-    """Get definition from database."""
-    with sqlite3.connect(get_db_path(lang)) as conn:
-        cursor = conn.execute(
-            'SELECT definition FROM definition WHERE word=?', (word,))
+def get_word_definition(lang, native_lang, word):
+    """
+    Get definition from database for a specific native language.
+    Returns the definition if found, otherwise None.
+    """
+    db_path = get_db_path(lang)
+    column_name = f'definition_{native_lang}'
+    with sqlite3.connect(db_path) as conn:
+        cursor = conn.cursor()
+        # Check if the column exists
+        cursor.execute("PRAGMA table_info(definition)")
+        columns = [info[1] for info in cursor.fetchall()]
+        if column_name not in columns:
+            return None
+        cursor.execute(
+            f'SELECT {column_name} FROM definition WHERE word=?', (word,))
         row = cursor.fetchone()
-        return row[0] if row else None
-    
+        return row[0] if row and row[0] is not None else None
 
 # user part
 

@@ -6,14 +6,19 @@ export default class WordWidget {
     this.contentEl = contentEl;
   }
 
-  async loadWord(word) {
+  async loadWord(word, lang = 'en', native_lang = 'zh') {
     // 初始化
     this.titleEl.textContent = word;
     this.pronunciationEl.textContent = '';
-    this.contentEl.innerHTML = '<div class="word-loading">正在加载单词信息...</div>';
+    this.contentEl.innerHTML = '<div class="word-loading">Loading, might take some seconds...</div>';
 
     try {
-      const response = await fetch(`/api/vocb/word/${encodeURIComponent(word)}`);
+      const response = await fetch(`/api/vocb/word`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word, lang, native_lang })
+      });
+
       if (!response.ok) throw new Error('网络请求失败');
       const data = await response.json();
       if (data.error) throw new Error(data.error);
@@ -31,42 +36,46 @@ export default class WordWidget {
 
       // 构建详细内容
       let detailHTML = '';
+      const src_explanation_key = "explain_" + native_lang;
+      const dst_explanation_key = "explain_" + lang;
+      // console.log("src_explanation_key:", src_explanation_key);
+      // console.log("dst_explanation_key:", dst_explanation_key);
 
-      if (data.explain_zh?.length) {
-        detailHTML += '<div class="definition-section"><h4>中文解释:</h4><ul>';
-        data.explain_zh.forEach((e) => (detailHTML += `<li>${e}</li>`));
+      if (data[src_explanation_key]?.length) {
+        detailHTML += '<div class="definition-section"><h4>Explanation:</h4><ul>';
+        data[src_explanation_key].forEach((e) => (detailHTML += `<li>${e}</li>`));
         detailHTML += '</ul></div>';
       }
 
-      if (data.explain_en?.length) {
-        detailHTML += '<div class="definition-section"><h4>英文解释:</h4><ul>';
-        data.explain_en.forEach((e) => (detailHTML += `<li>${e}</li>`));
+      if (data[dst_explanation_key]?.length) {
+        detailHTML += '<div class="definition-section"><h4>Explanation:</h4><ul>';
+        data[dst_explanation_key].forEach((e) => (detailHTML += `<li>${e}</li>`));
         detailHTML += '</ul></div>';
       }
 
       if (data.example_sentences?.length) {
-        detailHTML += '<div class="definition-section"><h4>例句:</h4>';
+        detailHTML += '<div class="definition-section"><h4>Example:</h4>';
         data.example_sentences.forEach((ex) => {
           detailHTML += `
             <div class="example-sentence">
               <div class="scenario">${ex.scenario}</div>
-              <div class="en-sentence">${ex.en}</div>
-              <div class="zh-sentence">${ex.zh}</div>
+              <div class="en-sentence">${ex[lang]}</div>
+              <div class="zh-sentence">${ex[native_lang]}</div>
             </div>`;
         });
         detailHTML += '</div>';
       }
 
       if (data.synonyms?.length) {
-        detailHTML += '<div class="definition-section"><h4>同义词:</h4><div class="synonyms">';
+        detailHTML += '<div class="definition-section"><h4>Synonym:</h4><div class="synonyms">';
         data.synonyms.forEach((s) => (detailHTML += `<span class="synonym">${s}</span>`));
         detailHTML += '</div></div>';
       }
 
-      this.contentEl.innerHTML = detailHTML || '<div class="word-error">暂无详细信息</div>';
+      this.contentEl.innerHTML = detailHTML || '<div class="word-error">Cannot find any useful info.</div>';
     } catch (error) {
       console.error('加载单词详细信息失败:', error);
-      this.contentEl.innerHTML = `<div class="word-error">加载失败: ${error.message}</div>`;
+      this.contentEl.innerHTML = `<div class="word-error">Load fail: ${error.message}</div>`;
     }
   }
 }

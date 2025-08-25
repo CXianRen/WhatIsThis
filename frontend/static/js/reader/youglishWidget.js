@@ -47,6 +47,7 @@ export default class YouglishWidget {
         width: this.width,
         height: this.height,
         components: 88,
+        autoStart: 0,
         events: {
           onFetchDone: (e) => this.onFetchDone(e),
           onCaptionConsumed: () => this.onCaptionConsumed(),
@@ -88,14 +89,14 @@ export default class YouglishWidget {
   }
 
   // === API ===
-  search(word) {
+  search(word, lang = "english") {
     if (!this.widget) {
       this.onStatus("Widget 未初始化");
       return;
     }
     this.onStatus("正在搜索: " + word);
     try {
-      this.widget.fetch(word, "english");
+      this.widget.fetch(word, lang);
     } catch (e) {
       console.error("搜索失败:", e);
       this.onStatus("搜索失败: " + e.message);

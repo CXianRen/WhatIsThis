@@ -7,6 +7,18 @@ export default class LearnPanel {
       icon: "🎴",
       title: "Word Cards",
       description: "Review your vocabulary",
+    },
+    {
+      href: "/#AIDict",
+      icon: "🤖",
+      title: "AI Dictionary",
+      description: "Get AI-powered definitions and pronunciations",
+    },
+    {
+      href: "/#sayit",
+      icon: "🗣️",
+      title: "Say It",
+      description: "how to express a idea in any language",
     }
   ]) {
     this.container = container;
@@ -37,6 +49,9 @@ export default class LearnPanel {
       const icon = document.createElement("span");
       icon.className = "learn-icon";
       icon.textContent = app.icon;
+      
+      const detail = document.createElement("div");
+      detail.className = "learn-details";
 
       const title = document.createElement("h3");
       title.className = "learn-title";
@@ -47,9 +62,10 @@ export default class LearnPanel {
       desc.textContent = app.description;
 
       card.appendChild(icon);
-      card.appendChild(title);
-      card.appendChild(desc);
-
+      card.appendChild(detail);
+      detail.appendChild(title);
+      detail.appendChild(desc);
+ 
       this.panelElement.appendChild(card);
     });
 

@@ -44,6 +44,10 @@
   <link rel="stylesheet" href="/static/css/user/login.css">
   <link rel="stylesheet" href="/static/css/user/signup.css">
 
+  <link rel="stylesheet" href="/static/css/reader/word_panel.css">
+  <link rel="stylesheet" href="/static/css/reader/youglish_panel.css">
+  <link rel="stylesheet" href="/static/css/ai_dict/AIDictPanel.css">
+
   <style>
     html {
       background: var(--bg-color);
@@ -104,6 +108,7 @@
   <div class="page-panel setting" style="display: none;"> </div>
   <div class="page-panel login full-screen" style="display: none;"> </div>
   <div class="page-panel signup full-screen" style="display: none;"> </div>
+  <div class="page-panel AIDict" style="display: none;"></div>
 
   <div class="nav-bar-container"></div>
   <script type="module">
@@ -116,6 +121,7 @@
     import { createReaderPanel } from '/static/js/reader/readerPanel.js';
     import WordCardPanel from '/static/js/wordcard/wordcardPanel.js';
     import { LoginPanel, SignUpPanel } from '/static/js/user/login.js';
+    import AIDictPanel from '/static/js/ai_dict/AIDictPanel.js';
 
     import SettingPanel from '/static/js/setting/setting.js';
 
@@ -263,6 +269,17 @@
           setting_panel.unmount();
         }
       });
+
+      const ai_dict_panel = new AIDictPanel({ container: document.querySelector('.AIDict') });
+      registerPath('AIDict', {
+        onMount: () => {
+          ai_dict_panel.mount();
+        },
+        onUnmount: () => {
+          ai_dict_panel.unmount();
+        }
+      });
+
     });
 
 
