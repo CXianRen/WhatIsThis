@@ -6,7 +6,6 @@ import os
 # Create blueprint
 app_bp = Blueprint('app', __name__)
 
-
 # Home navigation
 @app_bp.route('/')
 def nav():
@@ -23,7 +22,9 @@ def render_app_page(page_name):
         'annotation': 'Annotation.html',
         'novel-upload': 'NovelUpload.html',
         'novel-translation': 'NovelTranslation.html',
-        'word-cards': 'WordCards.html'
+        'word-cards': 'WordCards.html',
+        # NEW:
+        'conversation': 'Conversation.html',
     }
     template = page_templates.get(page_name)
     if template:

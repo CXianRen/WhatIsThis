@@ -33,6 +33,14 @@ os.makedirs(ANNOTATION_IMAGES_DIR, exist_ok=True)
 TRANSLATION_API_KEY = "sk-69431a48ab1842b7b3646e6241ecd69e"
 TRANSLATION_API_URL = "https://api.deepseek.com/chat/completions"
 
+# DeepSeek / LLM settings (you already set TRANSLATION_API_KEY/URL)
+DEEPSEEK_MODEL = "deepseek-chat"  # or your preferred model name
+CONVO_TEMPERATURE = 0.2
+
+# CEFR ladder
+CEFR_LEVELS = ["A1","A2","B1","B2","C1","C2"]
+DEFAULT_CEFR = "A2"
+
 # Supported languages configuration
 SUPPORTED_LANGUAGES = {
     'en': {

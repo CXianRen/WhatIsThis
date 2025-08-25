@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Conversational Practice · WhatIsThis</title>
+<style>
+  :root { --bg:#0ea5e9; --bg2:#6366f1; --panel:#fff; --muted:#6b7280; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(135deg,var(--bg),var(--bg2));min-height:100vh;display:grid;place-items:center;padding:20px}
+  .shell{width:100%;max-width:980px;background:#fff;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,.12);overflow:hidden}
+  header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #eef2f7}
+  header h1{margin:0;font-size:1.1rem}
+  main{display:grid;grid-template-columns:1fr 320px;gap:0}
+  @media (max-width:900px){main{grid-template-columns:1fr}}
+  .chat{padding:16px;height:70vh;overflow:auto;background:#f8fafc}
+  .bubble{max-width:80%;padding:10px 12px;border-radius:12px;margin:10px 0;white-space:pre-wrap;line-height:1.4}
+  .ai{background:#fff;border:1px solid #e5e7eb}
+  .me{background:#0ea5e9;color:#fff;margin-left:auto}
+  .composer{display:flex;gap:8px;padding:12px;border-top:1px solid #eef2f7;background:#fff}
+  .composer input{flex:1;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px}
+  .composer button{padding:10px 14px;border:none;border-radius:10px;background:#0ea5e9;color:#fff;cursor:pointer}
+  aside{border-left:1px solid #eef2f7;padding:16px;background:#fff}
+  .row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  select,button.small{padding:8px 10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;cursor:pointer}
+  .muted{color:var(--muted);font-size:.9rem}
+  .section{margin-top:10px}
+  .pill{display:inline-block;padding:2px 8px;border:1px solid #e5e7eb;border-radius:999px;background:#fff;font-size:.85rem}
+
+  /* Typing indicator */
+  .bubble.typing { opacity: 0.85 }
+  .dots { display:inline-block; letter-spacing: 2px; }
+  .dots span { animation: blink 1s infinite; }
+  .dots span:nth-child(2){ animation-delay: .15s }
+  .dots span:nth-child(3){ animation-delay: .30s }
+  @keyframes blink { 0%,20%{opacity:.2} 50%{opacity:1} 100%{opacity:.2} }
+
+  /* Words panel */
+  .wordsPanel h3 { margin: 0 0 8px; font-size: 1rem; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { padding:4px 8px; border-radius:12px; border:1px solid #e5e7eb; font-size:.9rem; }
+  .chip.used   { background:#e6ffed; border-color:#10b981; color:#065f46; }
+  .chip.unused { background:#f3f4f6; color:#374151; }
+  .legend { font-size:.85rem; color:#6b7280; margin-top:6px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <h1>🗣️ Conversational Practice</h1>
+    <span class="pill">AI-driven</span>
+    <a href="/" style="margin-left:auto;text-decoration:none;color:#0ea5e9">← Back</a>
+  </header>
+  <main>
+    <section>
+      <div id="chat" class="chat"></div>
+      <div class="composer">
+        <input id="msg" placeholder="Type or dictate your message…"/>
+        <button id="btnMic" title="Dictate (optional)">🎙️</button>
+        <button id="send">Send</button>
+      </div>
+    </section>
+    <aside>
+      <div class="row">
+        <label class="muted">Who starts?</label>
+        <select id="starter">
+          <option value="ai">AI starts</option>
+          <option value="me">I start</option>
+        </select>
+      </div>
+      <div class="row">
+        <label class="muted">Level</label>
+        <select id="cefr">
+          <option>A1</option><option selected>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option>
+        </select>
+      </div>
+      <div class="row">
+        <button id="begin" class="small">Begin Session</button>
+        <button id="themes" class="small">List Saved Themes</button>
+      </div>
+
+      <div class="section">
+        <div class="muted">Tip: say “new theme” to create one, or reply with a theme ID.</div>
+      </div>
+
+      <div class="section wordsPanel">
+        <h3>Theme words</h3>
+        <div id="wordsChips" class="chips"></div>
+        <div id="wordsLegend" class="legend"></div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+let sessionId = null;
+const chat = document.getElementById('chat');
+const msg = document.getElementById('msg');
+const send = document.getElementById('send');
+const begin = document.getElementById('begin');
+const themesBtn = document.getElementById('themes');
+const starterSel = document.getElementById('starter');
+const cefrSel = document.getElementById('cefr');
+
+function addBubble(text, who){
+  const b = document.createElement('div');
+  b.className = 'bubble ' + (who==='ai'?'ai':'me');
+  b.textContent = text;
+  chat.appendChild(b);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function postJSON(url, data){
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  if(!r.ok){ throw new Error(await r.text()); }
+  return r.json();
+}
+
+/* Typing indicator */
+let pendingBubble = null;
+function showTyping() {
+  if (pendingBubble) return;
+  const b = document.createElement('div');
+  b.className = 'bubble ai typing';
+  b.innerHTML = '<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
+  chat.appendChild(b);
+  chat.scrollTop = chat.scrollHeight;
+  pendingBubble = b;
+}
+function replaceTypingWith(text) {
+  if (pendingBubble) {
+    pendingBubble.classList.remove('typing');
+    pendingBubble.textContent = text || '';
+    pendingBubble = null;
+  } else {
+    addBubble(text || '', 'ai');
+  }
+}
+
+/* Words panel */
+let wordsState = { all: [], used: [], unused: [] };
+function renderWords(progress) {
+  if (!progress) return;
+  const all    = progress.words_all    || wordsState.all;
+  const unused = progress.words_unused ?? wordsState.unused;
+  const used   = progress.words_used   || all.filter(w => !unused.includes(w));
+  wordsState = { all, used, unused };
+
+  const chips = document.getElementById('wordsChips');
+  chips.innerHTML = '';
+  all.forEach(w => {
+    const span = document.createElement('span');
+    span.className = 'chip ' + (used.includes(w) ? 'used' : 'unused');
+    span.textContent = w;
+    chips.appendChild(span);
+  });
+
+  const legend = document.getElementById('wordsLegend');
+  legend.textContent = `${used.length}/${all.length} used`;
+}
+
+/* Begin session */
+begin.addEventListener('click', async () => {
+  chat.innerHTML = '';
+  wordsState = {all:[], used:[], unused:[]};
+  document.getElementById('wordsChips').innerHTML = '';
+  document.getElementById('wordsLegend').textContent = '';
+
+  const starter = starterSel.value;
+  const cefr = cefrSel.value;
+  const res = await postJSON('/api/conversation/start', {starter, cefr});
+  sessionId = res.session_id;
+  if (res.ai_text) addBubble(res.ai_text, 'ai');
+  renderWords(res.progress);
+});
+
+/* Send message */
+send.addEventListener('click', async () => {
+  if (!sessionId) { alert('Start a session first'); return; }
+  const text = msg.value.trim();
+  if (!text) return;
+  addBubble(text, 'me');
+  msg.value = '';
+
+  showTyping();
+  try {
+    const r = await postJSON('/api/conversation/turn', { session_id: sessionId, user_text: text });
+    replaceTypingWith(r.ai_text || '[no response]');
+    renderWords(r.progress);
+  } catch (err) {
+    replaceTypingWith('… failed to respond. Please try again.');
+  }
+});
+
+/* List saved themes */
+themesBtn.addEventListener('click', async ()=>{
+  const r = await fetch('/api/themes');
+  const data = await r.json();
+  if(data.length===0){ addBubble('No saved themes yet. Say “new theme”.', 'ai'); return; }
+  const lines = data.map(t=>`[${t.id}] ${t.name} (${t.target_lang})`).join('\n');
+  addBubble('Saved themes:\n'+lines+'\nReply with an ID to pick one.', 'ai');
+});
+
+/* Optional browser dictation */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+document.getElementById('btnMic').addEventListener('click', ()=>{
+  if(!SR){ alert('Browser speech recognition not available here.'); return; }
+  const recognition = new SR();
+  recognition.lang = 'en-US';
+  recognition.interimResults = true;
+  recognition.onresult = (e)=>{
+    let t=''; for(let i=e.resultIndex;i<e.results.length;i++){ t += e.results[i][0].transcript; }
+    msg.value = t;
+  };
+  recognition.start();
+});
+</script>
+</body>
+</html>
