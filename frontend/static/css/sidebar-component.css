@@ -1,0 +1,328 @@
+/**
+ * 统一面板组件样式文件
+ * 包含面板组件的所有默认样式（支持侧边栏、底部面板等）
+ */
+
+/* 切换按钮样式 */
+.sidebar-toggle {
+  display: block;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  z-index: 1000;
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 480px) {
+  .sidebar-toggle {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+
+.sidebar-toggle:hover {
+  background: #0056b3;
+  transform: scale(1.05);
+}
+
+.sidebar-toggle:active {
+  transform: scale(0.95);
+}
+
+/* 遮罩层样式 */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+
+/* 面板主体基础样式 */
+.sidebar {
+  position: fixed;
+  background: var(--bg-color);
+  color: var(--text-color);
+  z-index: 1001;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  border-radius: 8px;
+}
+
+/* 顶部面板样式 */
+.sidebar-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 40vh;
+  border-bottom: 1px solid #ddd;
+  border-radius: 0 0 15px 15px;
+  padding: 15px;
+  transform: translateY(-100%);
+}
+
+.sidebar-top.show {
+  transform: translateY(0);
+}
+
+/* 底部面板样式 */
+.sidebar-bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 50vh;
+  /* max-height: 50vh; */
+  border-top: 1px solid #ddd;
+  border-radius: 15px 15px 0 0;
+  padding: 15px;
+  transform: translateY(100%);
+}
+
+.sidebar-bottom.show {
+  transform: translateY(0);
+}
+
+/* 左侧面板样式 */
+.sidebar-left {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 300px;
+  max-width: 80vw;
+  border-right: 1px solid #667eea;
+  border-radius: 0 15px 15px 0;
+  padding: 15px;
+  transform: translateX(-100%);
+}
+
+.sidebar-left.show {
+  transform: translateX(0);
+}
+
+/* 右侧面板样式 */
+.sidebar-right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  max-width: 80vw;
+  border-left: 1px solid #ddd;
+  border-radius: 15px 0 0 15px;
+  padding: 15px;
+  transform: translateX(100%);
+  box-sizing: border-box;
+}
+
+/* 右侧面板横屏优化 - 支持30%和50%宽度 */
+.sidebar-right[style*="30%"] {
+  width: 30% !important;
+  max-width: 30% !important;
+  border-radius: 0;
+}
+
+.sidebar-right[style*="50%"] {
+  width: 50% !important;
+  max-width: 50% !important;
+  border-radius: 0;
+}
+
+/* 右侧面板百分比宽度的通用处理 */
+.sidebar-right[style*="%"] {
+  border-radius: 0;
+  max-width: none !important; /* 移除最大宽度限制 */
+}
+
+.sidebar-right.show {
+  transform: translateX(0);
+}
+
+/* 关闭按钮样式 */
+.sidebar-close {
+  display: block;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 35px;
+  height: 35px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 1002;
+}
+
+.sidebar-close:hover {
+  background: #d32f2f;
+  transform: scale(1.1);
+}
+
+.sidebar-close:active {
+  transform: scale(0.95);
+}
+
+/* 标题样式 */
+.sidebar h3 {
+  padding-right: 50px;
+  margin: 0 0 15px 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* 内容容器样式 */
+.sidebar-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.3) transparent;
+}
+
+/* 顶部和底部面板的内容高度 */
+.sidebar-top .sidebar-content {
+  max-height: calc(90vh - 80px);
+}
+
+.sidebar-bottom .sidebar-content {
+  /* max-height: calc(100vh - 80px); */
+  height: 70vh;
+}
+
+/* 左右面板的内容高度 */
+.sidebar-left .sidebar-content,
+.sidebar-right .sidebar-content {
+  max-height: calc(100vh - 80px);
+  height: calc(100vh - 80px);
+}
+
+/* 自定义滚动条样式 */
+.sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.3);
+  border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.5);
+}
+
+/* 内容项样式 */
+.sidebar-content-item {
+  margin-bottom: 15px;
+}
+
+.sidebar-content-item:last-child {
+  margin-bottom: 0;
+}
+
+
+.sidebar.light-theme {
+  background: #f8f9fa;
+  color: #333;
+  border-color: #e9ecef;
+}
+
+.sidebar.light-theme h3 {
+  color: #495057;
+}
+
+/* 动画和过渡效果 */
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* 无障碍支持 */
+.sidebar[aria-hidden="true"] {
+  visibility: hidden;
+}
+
+.sidebar[aria-hidden="false"] {
+  visibility: visible;
+}
+
+/* 焦点样式 */
+.sidebar-toggle:focus,
+.sidebar-close:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .sidebar {
+    border-width: 2px;
+  }
+  
+  .sidebar-toggle,
+  .sidebar-close {
+    border: 2px solid currentColor;
+  }
+}
+
+/* 减少动画偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar-toggle,
+  .sidebar-close {
+    transition: none;
+  }
+}
+

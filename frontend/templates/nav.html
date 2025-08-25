@@ -21,399 +21,270 @@
   <meta name="msapplication-tap-highlight" content="no">
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --bg-color: linear-gradient(135deg, #232946 0%, #393e46 100%);
+      --text-color: #f3f6fa;
+    }
+  </style>
+
+  <link rel="stylesheet" href="/static/css/navBar.css">
+  <link rel="stylesheet" href="/static/css/infoPanel.css">
+
+  <link rel="stylesheet" href="/static/css/bookPage/filter.css">
+  <link rel="stylesheet" href="/static/css/bookPage/bookCard.css">
+  <link rel="stylesheet" href="/static/css/bookPage/bookDetail.css">
+  <link rel="stylesheet" href="/static/css/bookPage/bookShelfPanel.css">
+  <link rel="stylesheet" href="/static/css/reader/readerPanel.css">
+
+  <link rel="stylesheet" href="/static/css/learnPanel.css">
+  <link rel="stylesheet" href="/static/css/wordcard/wordcardPanel.css">
+  <link rel="stylesheet" href="/static/css/wordcard/image_viewer.css">
+
+  <link rel="stylesheet" href="/static/css/setting/setting.css">
+  <link rel="stylesheet" href="/static/css/user/login.css">
+  <link rel="stylesheet" href="/static/css/user/signup.css">
+
+  <link rel="stylesheet" href="/static/css/reader/word_panel.css">
+  <link rel="stylesheet" href="/static/css/reader/youglish_panel.css">
+  <link rel="stylesheet" href="/static/css/ai_dict/AIDictPanel.css">
+
+  <style>
+    html {
+      background: var(--bg-color);
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      height: 100vh;
-      padding: 20px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .nav-container {
-      width: 100%;
-      max-width: 1200px;
-      height: 100%;
-      max-height: calc(100vh - 40px);
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      padding: 40px;
-      backdrop-filter: blur(10px);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 2.5rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .nav-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 20px;
-      list-style: none;
+      margin: 0;
       padding: 0;
-      flex: 1;
-      align-content: center;
-      overflow: hidden;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      width: 100vw;
+      height: 100vh;
+      max-width: 900px;
+      margin: 0 auto;
+      /* Change to your desired background color */
     }
 
-    .nav-item {
-      background: #fff;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-      transition: all 0.3s ease;
-      border: 2px solid transparent;
-      height: 120px;
+    .nav-bar-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 40px;
+      z-index: 1000;
+      /* Ensure it stays on top */
     }
 
-    .nav-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-      border-color: #667eea;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      padding: 20px 25px;
-      text-decoration: none;
-      color: #333;
-      height: 100%;
-      gap: 20px;
-      transition: all 0.3s ease;
-    }
-
-    .nav-icon {
-      width: 70px;
-      height: 70px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      transition: all 0.3s ease;
-      flex-shrink: 0;
-    }
-
-    .nav-icon.image-learning {
-      background: linear-gradient(135deg, #4facfe, #00f2fe);
-    }
-
-    .nav-icon.group-words {
-      background: linear-gradient(135deg, #43e97b, #38f9d7);
-    }
-
-    .nav-icon.novel-reader {
-      background: linear-gradient(135deg, #fa709a, #fee140);
-    }
-
-    .nav-icon.annotation-mode {
-      background: linear-gradient(135deg, #a8edea, #fed6e3);
-    }
-
-    .nav-icon.novel-upload {
-      background: linear-gradient(135deg, #ffecd2, #fcb69f);
-    }
-
-    .nav-icon.conversation {
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-    }
-
-    .nav-content {
-      flex: 1;
+    .page-panel {
+      background: var(--bg-color);
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
+      /* align-items: center; */
+      /* justify-content: center; */
+      width: 100%;
+      height: calc(100vh - 40px);
+      /* Adjust height to account for the nav bar */
+      /* overflow-y: auto; */
+      /* Adjust for navigation bar height */
+      /* padding: 20px; */
+      box-sizing: border-box;
+      overflow-y: auto;
     }
 
-    .nav-title {
-      font-size: 1.3rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #333;
-    }
-
-    .nav-description {
-      font-size: 0.9rem;
-      color: #666;
-      line-height: 1.4;
-    }
-
-    .nav-item:hover .nav-icon {
-      transform: scale(1.05);
-    }
-
-    .nav-item:hover .nav-title {
-      color: #667eea;
-    }
-
-    /* 移动端优化 */
-    @media (max-width: 768px) {
-      body {
-        padding: 10px;
-      }
-
-      .nav-container {
-        padding: 20px;
-        border-radius: 15px;
-      }
-
-      h2 {
-        font-size: 2rem;
-        margin-bottom: 20px;
-      }
-
-      .nav-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-      }
-
-      .nav-item {
-        height: 100px;
-      }
-
-      .nav-link {
-        padding: 15px 20px;
-        gap: 15px;
-      }
-
-      .nav-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 1.8rem;
-        border-radius: 12px;
-      }
-
-      .nav-title {
-        font-size: 1.1rem;
-        margin-bottom: 5px;
-      }
-
-      .nav-description {
-        font-size: 0.8rem;
-        line-height: 1.3;
-      }
-    }
-
-    /* 小屏幕进一步优化 */
-    @media (max-width: 480px) {
-      .nav-container {
-        padding: 15px;
-      }
-
-      h2 {
-        font-size: 1.8rem;
-      }
-
-      .nav-item {
-        height: 90px;
-      }
-
-      .nav-link {
-        padding: 12px 15px;
-        gap: 12px;
-      }
-
-      .nav-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
-        border-radius: 10px;
-      }
-
-      .nav-title {
-        font-size: 1rem;
-        margin-bottom: 3px;
-      }
-
-      .nav-description {
-        font-size: 0.75rem;
-      }
-    }
-
-    /* 横屏手机优化 - 宽度大于高度且宽度不超过1024px */
-    @media (max-height: 600px) and (orientation: landscape) and (max-width: 1024px) {
-      body {
-        padding: 10px;
-      }
-
-      .nav-container {
-        padding: 15px;
-        height: calc(100vh - 20px);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-
-      h2 {
-        font-size: 1.6rem;
-        margin-bottom: 15px;
-        flex-shrink: 0;
-      }
-
-      .nav-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        flex: 1;
-        align-content: center;
-      }
-
-      .nav-item {
-        height: 80px;
-      }
-
-      .nav-link {
-        padding: 10px 15px;
-        gap: 12px;
-      }
-
-      .nav-icon {
-        width: 45px;
-        height: 45px;
-        font-size: 1.3rem;
-        border-radius: 8px;
-      }
-
-      .nav-title {
-        font-size: 0.9rem;
-        margin-bottom: 2px;
-      }
-
-      .nav-description {
-        font-size: 0.7rem;
-        line-height: 1.2;
-      }
-    }
-
-    /* 更小的横屏设备 */
-    @media (max-height: 500px) and (orientation: landscape) and (max-width: 900px) {
-      .nav-container {
-        padding: 10px;
-      }
-
-      h2 {
-        font-size: 1.4rem;
-        margin-bottom: 10px;
-      }
-
-      .nav-item {
-        height: 70px;
-      }
-
-      .nav-link {
-        padding: 8px 12px;
-        gap: 10px;
-      }
-
-      .nav-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1.1rem;
-        border-radius: 6px;
-      }
-
-      .nav-title {
-        font-size: 0.8rem;
-        margin-bottom: 1px;
-      }
-
-      .nav-description {
-        font-size: 0.65rem;
-        line-height: 1.1;
-      }
+    .full-screen {
+      height: 100vh;
     }
   </style>
 </head>
 
 <body>
-  <div class="nav-container">
-    <h2>WhatIsThis</h2>
-    <ul class="nav-grid">
-      <li class="nav-item">
-        <a href="/lwi" class="nav-link">
-          <div class="nav-icon image-learning">🖼️</div>
-          <div class="nav-content">
-            <div class="nav-title">Learn with Image</div>
-            <div class="nav-description">Learn vocabulary through images, intuitively understand word meanings</div>
-          </div>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/lwg" class="nav-link">
-          <div class="nav-icon group-words">📚</div>
-          <div class="nav-content">
-            <div class="nav-title">Learn with Group Words</div>
-            <div class="nav-description">Learn related words in groups for systematic memorization</div>
-          </div>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/word-cards" class="nav-link">
-          <div class="nav-icon group-words">🎴</div>
-          <div class="nav-content">
-            <div class="nav-title">Word Cards</div>
-            <div class="nav-description">Review your vocabulary</div>
-          </div>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/novel-reader" class="nav-link">
-          <div class="nav-icon novel-reader">📖</div>
-          <div class="nav-content">
-            <div class="nav-title">Novel Reader</div>
-            <div class="nav-description">Immersive novel reading, learn in context</div>
-          </div>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/annotation" class="nav-link">
-          <div class="nav-icon annotation-mode">🏷️</div>
-          <div class="nav-content">
-            <div class="nav-title">Annotation Mode</div>
-            <div class="nav-description">Image annotation mode, generate and edit learning data</div>
-          </div>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/novel-upload" class="nav-link">
-          <div class="nav-icon novel-upload">📝</div>
-          <div class="nav-content">
-            <div class="nav-title">Manage Novel</div>
-            <div class="nav-description">Manage novel chapters, upload and edit novel content</div>
-          </div>
-        </a>
-      </li>
-      <li class="nav-item">
-      <a href="/conversation" class="nav-link">
-        <div class="nav-icon conversation">🎤</div>
-        <div class="nav-content">
-          <div class="nav-title">conversation</div>
-          <div class="nav-description">Practice speaking in a conversation</div>
-        </div>
-      </a>
-    </li>
-    </ul>
-  </div>
+  <div class="page-panel home" style="display: none;"> </div>
+  <div class="page-panel learn" style="display: none;"> </div>
+  <div class="page-panel shelf" style="display: none;"> </div>
+  <div class="page-panel library" style="display: none;"> </div>
+  <div class="page-panel reader full-screen" style="display: none;"> </div>
+  <div class="page-panel wordcard full-screen" style="display: none;"> </div>
+  <div class="page-panel setting" style="display: none;"> </div>
+  <div class="page-panel login full-screen" style="display: none;"> </div>
+  <div class="page-panel signup full-screen" style="display: none;"> </div>
+  <div class="page-panel AIDict" style="display: none;"></div>
+
+  <div class="nav-bar-container"></div>
+  <script type="module">
+    import { registerNavBar, registerPath, toPath } from '/static/js/router/router.js';
+    import { createNavigationBar } from '/static/js/navBar.js';
+    import InfoPanel from '/static/js/infoPanel.js';
+    import LearnPanel from '/static/js/learnPanel.js';
+    import BookShelfPanel from '/static/js/bookPage/bookShelfPanel.js';
+    import BookLibraryPanel from '/static/js/bookPage/bookLibPanel.js';
+    import { createReaderPanel } from '/static/js/reader/readerPanel.js';
+    import WordCardPanel from '/static/js/wordcard/wordcardPanel.js';
+    import { LoginPanel, SignUpPanel } from '/static/js/user/login.js';
+    import AIDictPanel from '/static/js/ai_dict/AIDictPanel.js';
+
+    import SettingPanel from '/static/js/setting/setting.js';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      registerNavBar(document.querySelector('.nav-bar-container'));
+
+      createNavigationBar(document.querySelector('.nav-bar-container'),
+        [
+          {
+            cb: () => {
+              toPath('shelf');
+            },
+            icon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+          <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22h13"></path>
+          <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2h13v20h-13A2.5 2.5 0 0 1 4 19.5z"></path>
+        </svg>
+      `
+          },
+          {
+            // url: '/learn',
+            cb: () => {
+              toPath('learn');
+            },
+            icon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+          <path d="M12 2L1 7l11 5 9-4.09V17h2V7L12 2z"></path>
+          <path d="M12 22v-7"></path>
+          <path d="M9 20h6"></path>
+        </svg>
+      `
+          },
+          {
+            cb: () => {
+              toPath('home');
+            },
+            icon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+          <path d="M3 12L12 3l9 9"></path>
+          <path d="M9 21V12h6v9"></path>
+        </svg>
+      `
+          }
+        ]);
+
+      const login_panel = new LoginPanel(document.querySelector('.login'));
+      const signup_panel = new SignUpPanel(document.querySelector('.signup'));
+      registerPath('login', {
+        fullscreen: true,
+        requiresLogin: false,
+        onMount: () => {
+          login_panel.mount();
+        },
+        onUnmount: () => {
+          login_panel.unmount();
+        }
+      });
+
+      registerPath('signup', {
+        fullscreen: true,
+        requiresLogin: false,
+        onMount: () => {
+          signup_panel.mount();
+        },
+        onUnmount: () => {
+          signup_panel.unmount();
+        }
+      });
+
+      const info_panel = new InfoPanel(document.querySelector('.home'), {
+        learnedDays: [1, 2, 3, 4, 7, 8, 9, 10],
+        daysLearned: 30,
+        wordsAdded: 150
+      });
+
+      registerPath('home', {
+        requiresLogin: true,
+        fullscreen: false,
+        onMount: () => {
+          info_panel.mount();
+        },
+        onUnmount: () => {
+          // document.querySelector('.home').innerHTML = '';
+          info_panel.unmount();
+        }
+      });
+
+      const learn_panel = new LearnPanel(document.querySelector('.learn'));
+      registerPath('learn', {
+        onMount: () => {
+          learn_panel.mount?.();
+        },
+        onUnmount: () => {
+          learn_panel.unmount?.();
+        }
+      });
+
+      const shelf_panel = new BookShelfPanel(document.querySelector('.shelf'));
+      registerPath('shelf', {
+        onMount: () => {
+          shelf_panel.mount();
+        },
+        onUnmount: () => {
+          shelf_panel.unmount();
+        }
+      });
+
+      const lib_panel = new BookLibraryPanel(document.querySelector('.library'));
+      registerPath('library', {
+        onMount: () => {
+          lib_panel.mount();
+        },
+        onUnmount: () => {
+          lib_panel.unmount();
+        }
+      });
+
+      registerPath('reader', {
+        fullscreen: true,
+        onMount: () => {
+          createReaderPanel(document.querySelector('.reader'));
+        },
+        onUnmount: () => {
+          document.querySelector('.reader').innerHTML = '';
+        }
+      });
+
+      const wordcard_panel = new WordCardPanel(document.querySelector('.wordcard'));
+      registerPath('wordcard', {
+        fullscreen: true,
+        onMount: () => {
+          wordcard_panel.mount();
+        },
+        onUnmount: () => {
+          wordcard_panel.unmount();
+        }
+      });
+
+      const setting_panel = new SettingPanel(document.querySelector('.setting'));
+      registerPath('setting', {
+        onMount: () => {
+          setting_panel.mount();
+        },
+        onUnmount: () => {
+          setting_panel.unmount();
+        }
+      });
+
+      const ai_dict_panel = new AIDictPanel({ container: document.querySelector('.AIDict') });
+      registerPath('AIDict', {
+        onMount: () => {
+          ai_dict_panel.mount();
+        },
+        onUnmount: () => {
+          ai_dict_panel.unmount();
+        }
+      });
+
+    });
+
+
+  </script>
+
 
   <!-- PWA Support Script -->
   <script src="/static/pwa.js"></script>

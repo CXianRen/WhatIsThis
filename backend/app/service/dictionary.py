@@ -6,10 +6,10 @@ from config.config import TRANSLATION_API_KEY, TRANSLATION_API_URL
 import json
 
 
-def search_images(query, max_results=5):
+def search_images(word, max_results=5):
     """Search images"""
     with DDGS() as ddgs:
-        results = ddgs.images(query)
+        results = ddgs.images(word)
         images = []
         for r in results:
             images.append(r["image"])
@@ -18,59 +18,37 @@ def search_images(query, max_results=5):
         return images
 
 
-def search_images_api(query, max_results=5):
+def search_images_api(lang, word, max_results=5):
     """Search images API (with cache)"""
-    cached_urls = get_img_cache(query)
+    cached_urls = get_word_imgs(lang, word)
     if cached_urls:
         return cached_urls
 
-    urls = search_images(query, max_results)
-    set_img_cache(query, urls)
+    urls = search_images(word, max_results)
+    save_word_imgs(lang, word, urls)
     return urls
 
 
-def search_images_as_api(query, key, max_results=5):
+def search_images_as_api(lang, word, key, max_results=5):
     """Force search images with a specific keyword and update cache"""
     urls = search_images(key, max_results)
-    set_img_cache(query, urls)
+    save_word_imgs(lang, word, urls)
     return urls
 
+# abandoned function
 
-def get_phonetic(word):
+
+def get_phonetic(lang, word):
     """Get word phonetic"""
-    cached_phonetic = get_phonetic_cache(word)
-    if cached_phonetic:
-        return cached_phonetic['phonetic']
+    return None
 
-    api_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
-    try:
-        resp = requests.get(api_url)
-        if resp.status_code == 200:
-            data = resp.json()
-            phonetics = data[0].get('phonetics', [])
-            phonetic = next((p["text"]
-                            for p in phonetics if p.get("text")), None)
-            if phonetic:
-                set_phonetic_cache(word, phonetic)
-            return phonetic or 'unknown'
-        return None
-    except Exception as e:
-        return str(e)
+# abandoned function
 
 
 def get_pronounce(word):
-    """Get word pronunciation URL"""
-    api_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
-    try:
-        resp = requests.get(api_url)
-        if resp.status_code == 200:
-            data = resp.json()
-            ress = data[0].get('phonetics', [])
-            audio = next((p["audio"] for p in ress if p.get("audio")), None)
-            return audio
-        return None
-    except Exception as e:
-        return str(e)
+    """Get word pronunciation"""
+    # This function is not implemented, returning None
+    return None
 
 
 def clean_json_block(content):
@@ -85,16 +63,19 @@ def AI_Dictionary(words, target_lang="en", native_lang="zh"):
     """
     DeepSeek for getting word details
     """
+
     # try to get from cache first
-    cached_result = get_en_dict_cache(words)
+    cached_result = get_word_definition(target_lang, native_lang, words)
     if cached_result:
         print("Cache hit, returning result directly: ", words)
-        return cached_result['definition']
+        print("Cached result:", cached_result)
+        # return cached_result['definition']
+        return cached_result
 
     else:
         print("Cache miss, calling DeepSeek API to fetch data")
 
-        # DeepSeek API配置
+        # DeepSeek API settings
         api_url = TRANSLATION_API_URL
         headers = {
             "Content-Type": "application/json",
@@ -142,12 +123,10 @@ def AI_Dictionary(words, target_lang="en", native_lang="zh"):
                 print("API return:", content)
 
                 # save to cache
-                set_en_dict_cache(words, content)
-
-                # 尝试解析JSON
+                save_word_definition(target_lang, native_lang, words, content)
 
                 return content
             else:
                 return {"error": f"API request fail: {response.status_code}"}
         except Exception as e:
-            return {"error": f"请求异常: {str(e)}"}
+            return {"error": f"request error: {str(e)}"}

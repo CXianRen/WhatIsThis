@@ -1,0 +1,131 @@
+.bookshelf-header,
+.bookLibrary-header {
+  /* margin: 20px; */
+  padding: 10px;
+  color: var(--text-color);
+  border-bottom: 2px solid black;
+}
+
+.bookLibrary-header h2,
+.bookshelf-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.empty-state h3 {
+  margin-top: 1rem;
+  font-size: 1.5rem;
+  color: var(--text-color);
+}
+
+.add-books {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+
+  height: 200px;
+  color: var(--text-color);
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  margin: 0px;
+  color: var(--text-color);
+  border-radius: 20px;
+  border: 2px dashed rgba(135, 206, 235, 0.5);
+  margin: 10px;
+}
+
+.add-books:hover {
+  /* color: var(--accent-color); */
+  border: 2px dashed skyblue;
+}
+
+
+#book-control-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: none;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.book-control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  background: #fdfdfd;
+  padding: 2.5rem 2rem;
+  border-radius: 18px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+  animation: popup-fade-in 0.25s ease;
+}
+
+@keyframes popup-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#add-book-btn,
+#read-book-btn,
+#remove-book-btn {
+  width: 200px;
+  height: 48px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
+}
+
+/* 主按鈕 - 閱讀 */
+#add-book-btn,
+#add-book-btn,
+#read-book-btn {
+  background-color: #4f8ef7;
+  color: #fff;
+}
+
+#add-book-btn:hover,
+#add-book-btn:focus,
+#read-book-btn:hover,
+#read-book-btn:focus {
+  background-color: #3a6fd1;
+}
+
+/* 副按鈕 - 刪除 */
+#remove-book-btn {
+  background-color: #f87171;
+  color: #fff;
+}
+
+#remove-book-btn:hover,
+#remove-book-btn:focus {
+  background-color: #dc2626;
+}

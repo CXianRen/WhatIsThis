@@ -5,18 +5,20 @@ import os
 
 # Import config and database modules
 from config import config
-from models.database import init_db, load_img_cache, load_phonetic_cache, load_en_dict_cache
+from models.database import init_db
 from models.tag.tag import init_tags
 
 # Import all route blueprints
-from routes.app import app_bp
-from routes.group import group_bp
-from routes.novel import novel_bp
-from routes.translation import translation_bp
-from routes.annotation import annotation_bp
-from routes.vocb import vocb_bp
-from routes.themes import theme_bp
-from routes.conversation import conversation_bp
+
+from routers.app import app_bp
+from routers.group import group_bp
+from routers.novel import book_bp
+from routers.translation import translation_bp
+from routers.annotation import annotation_bp
+from routers.vocb import vocb_bp
+from routers.user import user_bp
+from routers.conversation import conversation_bp
+from routers.themes import theme_bp
 
 import sys
 
@@ -32,19 +34,17 @@ def create_app():
     # Initialize database and cache
     init_tags()
     init_db()
-    load_img_cache()
-    load_phonetic_cache()
-    load_en_dict_cache()
-    
+     
     # Register blueprints
     app.register_blueprint(app_bp)
     app.register_blueprint(group_bp)
-    app.register_blueprint(novel_bp)
+    app.register_blueprint(book_bp)
     app.register_blueprint(translation_bp)
     app.register_blueprint(annotation_bp)
     app.register_blueprint(vocb_bp)
     app.register_blueprint(theme_bp)
     app.register_blueprint(conversation_bp)
+    app.register_blueprint(user_bp)
     
     # Set static file MIME type
     @app.after_request

@@ -10,7 +10,7 @@ from config.config import (
     SUPPORTED_LANGUAGES,
     NOVEL_DIR)
 
-from routes.novel import __parse_novel_raw_name
+from routers.novel import __parse_novel_raw_name
 import os
 import json
     
