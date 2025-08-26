@@ -23,13 +23,10 @@ def render_app_page(page_name):
         'novel-upload': 'NovelUpload.html',
         'novel-translation': 'NovelTranslation.html',
         'word-cards': 'WordCards.html',
-<<<<<<< HEAD:backend/app/routes/app.py
         # NEW:
-        'conversation': 'Conversation.html',
-=======
+        #'conversation': 'Conversation.html',
         'settings': 'Setting.html',
         'books': 'Books.html',
->>>>>>> d0e8243f290fd84ae0d572860d2e53fc6d2b493a:backend/app/routers/app.py
     }
     template = page_templates.get(page_name)
     if template:

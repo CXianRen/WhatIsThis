@@ -1,7 +1,8 @@
 import json, sqlite3
 from datetime import datetime
-from config.config import EN_DB, DEFAULT_CEFR
+from config.config import DEFAULT_CEFR
 from service.deepseek import llm_json
+from models.database import get_db_path  # <-- per-language DB
 
 def _fallback_heads(theme_name: str):
     t = theme_name.lower()
@@ -19,27 +20,24 @@ Return STRICT JSON with 25 {target_lang} vocabulary items (single words or short
 Schema exactly:
 {{
   "theme": "{theme_name}",
-  "words": ["item1","item2","item3", "... (total 25)"]
+  "words": ["item1","item2", "... (total 25)"]
 }}
-Only JSON. No commentary.
+Only JSON.
 """.strip()
     try:
         data = llm_json(prompt, temperature=0.2, max_tokens=300, timeout_s=60, force_json=True)
         words = data.get("words", [])
-        if not isinstance(words, list) or len(words) < 10:
-            raise ValueError("too few words")
+        if not isinstance(words, list) or len(words) < 10: raise ValueError("too few words")
         heads = [str(w).strip() for w in words if str(w).strip()]
-    except Exception as e:
-        print("[Vocab] Fallback heads due to:", repr(e))
+    except Exception:
         heads = _fallback_heads(theme_name)
-
     return {"theme": theme_name, "words": heads[:25]}
 
 def upsert_theme_and_words(theme_pack: dict, target_lang: str, native_lang: str) -> tuple[int, list[int]]:
-    theme = theme_pack["theme"]
-    heads = theme_pack["words"]
+    theme = theme_pack["theme"]; heads = theme_pack["words"]
+    db_path = get_db_path(target_lang)
 
-    with sqlite3.connect(EN_DB) as conn:
+    with sqlite3.connect(db_path) as conn:
         cur = conn.cursor()
         cur.execute(
             "INSERT INTO themes(name, target_lang, native_lang, cefr_default, created_at) VALUES (?, ?, ?, ?, ?)",

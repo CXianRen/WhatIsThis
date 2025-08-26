@@ -42,6 +42,7 @@ def create_app():
     app.register_blueprint(translation_bp)
     app.register_blueprint(annotation_bp)
     app.register_blueprint(vocb_bp)
+    #new
     app.register_blueprint(theme_bp)
     app.register_blueprint(conversation_bp)
     app.register_blueprint(user_bp)

@@ -14,33 +14,25 @@ def new_session(starter: str = "ai", cefr: str = "A2",
         "native_lang": native_lang,
         "theme_id": None,
         "theme_name": None,
-        "unused_words": [],   # heads not yet used in this session
-        "all_words": None,    # cached full list for the chosen theme
-        "total_words": None,  # cached int
-        "history": []         # ephemeral (last ~12 messages), not persisted
+        "unused_words": [],
+        "all_words": None,
+        "history": []
     }
     return sid
 
-def get(sid: str) -> dict | None:
-    return _SESS.get(sid)
-
-def set_(sid: str, **fields):
-    if sid in _SESS:
-        _SESS[sid].update(fields)
+def get(sid: str) -> dict | None: return _SESS.get(sid)
+def set_(sid: str, **fields): 
+    if sid in _SESS: _SESS[sid].update(fields)
 
 def append_history(sid: str, role: str, text: str):
-    s = _SESS.get(sid)
-    if not s:
-        return
+    s = _SESS.get(sid); 
+    if not s: return
     h: List[dict] = s.setdefault("history", [])
     h.append({"role": role, "text": (text or "").strip()})
-    # keep last 12 messages (≈6 exchanges)
-    if len(h) > 12:
-        del h[: len(h) - 12]
+    if len(h) > 12: del h[: len(h) - 12]
 
 def get_history(sid: str) -> list[dict]:
-    s = _SESS.get(sid)
+    s = _SESS.get(sid); 
     return [] if not s else list(s.get("history", []))
 
-def delete(sid: str):
-    _SESS.pop(sid, None)
+def delete(sid: str): _SESS.pop(sid, None)
