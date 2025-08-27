@@ -16,7 +16,9 @@ export default class LangSelect {
   }
 
   render() {
-    this.container.innerHTML = `
+    const div = document.createElement("div");
+    this.container.appendChild(div);
+    div.innerHTML = `
       <div class="custom-select">
         <div class="selected">
           <img src="${this.getFlag(this.lang)}" width="20"> ${this.getLabel(this.lang)}
@@ -32,9 +34,9 @@ export default class LangSelect {
       </div>
     `;
 
-    this.customSelect = this.container.querySelector(".custom-select");
-    this.selected = this.customSelect.querySelector(".selected");
-    this.optionsContainer = this.customSelect.querySelector(".options");
+    this.customSelect = div.querySelector(".custom-select");
+    this.selected = div.querySelector(".selected");
+    this.optionsContainer = div.querySelector(".options");
     this.optionEls = this.optionsContainer.querySelectorAll(".option");
   }
 

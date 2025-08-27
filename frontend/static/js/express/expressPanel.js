@@ -1,21 +1,12 @@
 // WordYouglishPanel.js
 import WordWidget from "../reader/wordWidget.js";
 import YouglishWidget from "../reader/youglishWidget.js";
-import LangSelect from "./LangSelect.js";
+import LangSelect from "../ai_dict/LangSelect.js";
 
-export default class DictionayPanel {
-  constructor(container) {
+export default class ExpressPanel {
+  constructor({ container }) {
     this.container = container;
     this.mounted = false;
-
-    this.wordWidget = null;
-    this.youglishWidget = null;
-
-    this.ylang_map = {
-      "en": "english",
-      "fr": "french",
-      "se": "swedish",
-    };
 
     // 初始化语言选择组件
     this.langs = [
@@ -30,33 +21,13 @@ export default class DictionayPanel {
   mount() {
     if (this.mounted) return;
     this.mounted = true;
-
     this.render();
     this.bindEvents();
-
-    this.wordWidget = new WordWidget({
-      titleEl: this.titleEl,
-      pronunciationEl: this.pronunciationEl,
-      contentEl: this.wordContentEl,
-    });
-
-    this.youglishWidget = new YouglishWidget({
-      containerId: this.youglishContainer.id,
-      onStatus: (msg) => (this.youglishStatus.textContent = msg),
-    });
-    this.youglishWidget.init();
   }
 
   unmount() {
     if (!this.mounted) return;
     this.mounted = false;
-
-    if (this.youglishWidget) {
-      this.youglishWidget.pause();
-      this.youglishWidget = null;
-    }
-    this.wordWidget = null;
-
     this.container.innerHTML = "";
   }
 
@@ -67,32 +38,6 @@ export default class DictionayPanel {
           <div class="lang-item">
             <label for="target-lang-select">Search:</label>
             <div id="target-lang"></div>
-          </div>
-          <div class="lang-item">
-            <label for="explain-lang-select">Explain in:</label>
-            <div id="explain-lang"></div>
-          </div>
-        </div>
-
-        <div class="search-bar">
-          <input type="text" class="word-input" placeholder="Input a word/phrase" />
-          <button class="search-btn">🔍</button>
-        </div>
-
-        <div class="tabs">
-          <button class="tab-btn active" data-tab="dict">AI</button>
-          <button class="tab-btn" data-tab="youglish">Youglish</button>
-        </div>
-
-        <div class="tab-content">
-          <div class="tab-panel dict-panel active">
-            <h2 class="word-title"></h2>
-            <div class="word-pronunciation"></div>
-            <div class="word-content"></div>
-          </div>
-          <div class="tab-panel youglish-panel">
-            <div class="youglish-status"></div>
-            <div id="youglish-widget-container"></div>
           </div>
         </div>
       </div>

@@ -1,21 +1,32 @@
 let register_path = [];
+let page_objs = {}; // path -> constructor
+
 let navbar = null;
 let currentPath = null;
 let stateStore = {}; // for saving path data
 
+
 import { isLoggedIn } from '../user/login.js';
 
-function registerPath(path, config = {}) {
+let app_el = null;
+
+function routerInit(container) {
+  app_el = container;
+}
+
+function registerPath(path, contructor, config = {}) {
   if (register_path.some(p => p.path === path)) {
     console.warn(`Path ${path} is already registered.`);
     return;
   }
   register_path.push({ path, config });
-  // console.log(`Path ${path} registered successfully.`);
+  page_objs[path] = new contructor(app_el);
 }
 
+
 function toPath(path, data = null, pushHistory = true) {
-  // console.log(`Navigating to path: ${path}`);
+  console.log(`Navigating to path: ${path} with data:`, data);
+
 
   // check if path is registered
   const page = register_path.find(p => p.path === path);
@@ -27,7 +38,7 @@ function toPath(path, data = null, pushHistory = true) {
 
   const pathConfig = page.config;
 
-  // 默认需要登录
+  // default requiresLogin to true
   if (!('requiresLogin' in pathConfig)) {
     pathConfig.requiresLogin = true;
   }
@@ -36,47 +47,44 @@ function toPath(path, data = null, pushHistory = true) {
     return;
   }
 
-  // --- 调用上一个页面的 unmount ---
+  const el = document.querySelector(`.app`);
+
+  // --- call previous page's unmount ---
   if (currentPath) {
     const prevPage = register_path.find(p => p.path === currentPath);
-    if (prevPage && prevPage.config.onUnmount) {
-      prevPage.config.onUnmount();
+    if (prevPage) {
+      // prevPage.config.onUnmount();
+      if (page_objs[currentPath] && page_objs[currentPath].unmount) {
+        page_objs[currentPath].unmount();
+      }
     }
   }
 
   currentPath = path;
 
-  // 存储数据
+  // show/hide navbar
   if (data !== null) {
     stateStore[path] = data;
   }
 
-  // 更新 URL hash
+  // update navbar  
   if (pushHistory) {
     let url = '#' + path;
     location.hash = url;
     console.log(`Updating URL hash to: #${path}`);
   }
 
-  // 切换 DOM display
-  register_path.forEach(p => {
-    const el = document.querySelector(`.${p.path}`);
-    if (el) {
-      el.style.display = p.path === path ? 'flex' : 'none';
-      if (p.path === path) {
-        if (p.config.fullscreen === true) {
-          navbar.style.display = 'none';
-          console.log(`Hiding navbar for full-screen path: ${path}`);
-        } else {
-          navbar.style.display = 'block';
-        }
-      }
+  // --- call navbar to update ---
+  if (navbar) {
+    if (pathConfig.fullscreen) {
+      navbar.hide();
+    } else {
+      navbar.show();
     }
-  });
-
-  // --- 调用新页面的 mount ---
-  if (pathConfig.onMount) {
-    pathConfig.onMount(stateStore[path] || null);
+  }
+  // pathConfig.onMount(stateStore[path] || null);
+  if (page_objs[path] && page_objs[path].mount) {
+    page_objs[path].mount(stateStore[path] || null);
   }
 }
 
@@ -120,4 +128,4 @@ window.addEventListener('load', () => {
   }
 });
 
-export { registerPath, toPath, registerNavBar, getPathData };
+export { routerInit, registerPath, toPath, registerNavBar, getPathData };

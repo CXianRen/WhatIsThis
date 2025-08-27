@@ -29,9 +29,9 @@ export default class BookShelfPanel {
     // event handlers
     this.eventHandlers = [];
 
-    if (this.container) {
-      this.render(); // optional immediate render
-    }
+    // if (this.container) {
+    //   this.render(); // optional immediate render
+    // }
   }
 
   // ================== Event Helpers ==================

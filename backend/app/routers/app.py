@@ -24,7 +24,7 @@ def render_app_page(page_name):
         'novel-translation': 'NovelTranslation.html',
         'word-cards': 'WordCards.html',
         # NEW:
-        #'conversation': 'Conversation.html',
+        'conversation': 'Conversation.html',
         'settings': 'Setting.html',
         'books': 'Books.html',
     }

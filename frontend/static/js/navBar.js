@@ -1,39 +1,47 @@
-// ================== Icon-only Navigation Bar Component (ESM) ==================
+// navigationBar.js 
+export default class NavigationBar {
+  constructor(options = {}) {
+    this.container = options.container || document.body;
+    this.pageList = options.pageList || [];
+    this.nav = null;
+    this.init();
+  }
 
-function createNavigationBar(
-  container = document.body,
-  page_list = [
-    // { cb: , icon: '🏠' },
-    // { cb: , icon: '📚' },
-    // { cb: , icon: '🎓' }
-  ]
-) {
-  if (!container) return;
+  // ==============  ==================
+  init() {
+    if (!this.container) return;
 
-  const nav = document.createElement('nav');
-  nav.className = 'navbar is-primary';
+    this.nav = document.createElement('nav');
+    this.nav.className = 'navbar is-primary';
 
-  const start = document.createElement('div');
-  start.className = 'navbar-start';
+    const start = document.createElement('div');
+    start.className = 'navbar-start';
 
-  page_list.forEach(page => {
-    const a = document.createElement('a');
-    a.className = 'navbar-item';
-    a.innerHTML = page.icon; 
-    a.title = page.url; 
-    a.style.padding = '0.5rem';
-    start.appendChild(a);
-    a.addEventListener('click', () => {
+    this.pageList.forEach(page => {
+      const a = document.createElement('a');
+      a.className = 'navbar-item';
+      a.innerHTML = page.icon_url ? `<img src="${page.icon_url}" alt="${page.name}" style="width:24px; height:24px;">` : (page.icon || page.name || 'Link');
+      a.title = page.url || '';
+      a.style.padding = '0.5rem';
+
       if (typeof page.cb === 'function') {
-        page.cb();
+        a.addEventListener('click', page.cb);
       }
+
+      start.appendChild(a);
     });
-  });
 
-  nav.appendChild(start);
-  container.appendChild(nav);
+    this.nav.appendChild(start);
+    this.container.appendChild(this.nav);
+    // this.hide(); // initially hide
+  }
 
-  return nav;
+  show() {
+    if (this.nav) this.nav.style.display = '';
+  }
+
+  hide() {
+    if (this.nav) this.nav.style.display = 'none';
+  }
+
 }
-
-export { createNavigationBar };
