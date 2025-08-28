@@ -24,6 +24,8 @@
     :root {
       --bg-color: linear-gradient(135deg, #232946 0%, #393e46 100%);
       --text-color: #f3f6fa;
+      --button-bg-color: rgb(79, 142, 247);
+      --button-text-color: white;
     }
   </style>
 
@@ -35,6 +37,11 @@
   <link rel="stylesheet" href="/static/css/bookPage/bookDetail.css">
   <link rel="stylesheet" href="/static/css/bookPage/bookShelfPanel.css">
   <link rel="stylesheet" href="/static/css/reader/readerPanel.css">
+
+  <link rel="stylesheet" href="/static/css/bookPage/bookManagePanel.css">
+  <link rel="stylesheet" href="/static/css/bookPage/addBookPanel.css">
+  <link rel="stylesheet" href="/static/css/bookPage/chapterManagePanel.css">
+  <link rel="stylesheet" href="/static/css/bookPage/addChapterPanel.css">
 
   <link rel="stylesheet" href="/static/css/learnPanel.css">
   <link rel="stylesheet" href="/static/css/wordcard/wordcardPanel.css">
@@ -109,11 +116,16 @@
     import LearnPanel from '/static/js/learnPanel.js';
     import BookShelfPanel from '/static/js/bookPage/bookShelfPanel.js';
     import BookLibraryPanel from '/static/js/bookPage/bookLibPanel.js';
+    import BookManagePanel from '/static/js/bookPage/bookManagePanel.js';
     import ReaderPanel from '/static/js/reader/readerPanel.js';
     import WordCardPanel from '/static/js/wordcard/wordcardPanel.js';
     import { LoginPanel, SignUpPanel } from '/static/js/user/login.js';
     import AIDictPanel from '/static/js/ai_dict/AIDictPanel.js';
     import SettingPanel from '/static/js/setting/setting.js';
+    import AddBookPanel from '/static/js/bookPage/addBookPanel.js';
+    import ChapterManagerPanel from '/static/js/bookPage/chapterManagePanel.js';
+    import AddChapterPanel from '/static/js/bookPage/addChapterPanel.js';
+
 
     window.addEventListener('DOMContentLoaded', () => {
 
@@ -164,7 +176,10 @@
       registerPath('wordcard', WordCardPanel, { fullscreen: true });
       registerPath('setting', SettingPanel);
       registerPath('AIDict', AIDictPanel);
-
+      registerPath('manage', BookManagePanel);
+      registerPath('addbook', AddBookPanel);
+      registerPath('chapter-editor', ChapterManagerPanel);
+      registerPath('add-chapter', AddChapterPanel);
     });
 
 

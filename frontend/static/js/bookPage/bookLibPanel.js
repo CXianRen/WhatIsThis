@@ -61,8 +61,8 @@ export default class BookLibraryPanel {
     this.onUnMount?.();
   }
 
-  onMount() {}
-  onUnMount() {}
+  onMount() { }
+  onUnMount() { }
 
   // ================== Render ==================
   async render() {
@@ -164,7 +164,11 @@ export default class BookLibraryPanel {
     this.showLoading(true);
 
     try {
-      const res = await fetch('/api/book/list', { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+      const token = getToken();
+      const res = await fetch('/api/book/list',
+        {
+          method: 'GET', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+        });
       if (!res.ok) throw new Error('Network error');
       const data = await res.json();
 

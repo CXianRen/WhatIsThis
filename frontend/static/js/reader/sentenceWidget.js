@@ -1,6 +1,6 @@
 // sentenceWidget.js
 export default class SentenceWidget {
-  constructor({ container, toolBarModule, onWordSelected }) {
+  constructor({ container, toolBarModule, onWordSelected, srcLang, dstLang }) {
     this.container = container;
     this.toolBarModule = toolBarModule;
     this.onWordSelected = onWordSelected;
@@ -9,6 +9,9 @@ export default class SentenceWidget {
     this.selectedWord = '';
     this.longPressTimer = null;
     this.isDragSelection = false;
+
+    this.srcLang = srcLang || 'src';
+    this.dstLang = dstLang || 'dst';
   }
 
   render(srcSentences, dstSentences, fontSizeClass) {
@@ -18,7 +21,7 @@ export default class SentenceWidget {
       const cssClass = isSource ? 'source-text' : 'dest-text';
       const text = isSource ? src.sentence : dstSentences[index].sentence;
 
-      const toggleIcon = isSource ? 'src' : 'dst';
+      const toggleIcon = isSource ? this.srcLang : this.dstLang;
       const toggleTitle = isSource ? 'Switch to dst language' : 'Switch to src language';
 
       return `

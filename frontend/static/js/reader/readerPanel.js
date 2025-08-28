@@ -1,5 +1,6 @@
 // readerPanel.js (ESM, 工厂类封装)
 import { getToken } from '../user/login.js';
+import { getPathData } from '../router/router.js';
 
 import SidebarComponent from '../common/sidebar-component.js';
 import ToolBarWidget from './toolbarModule.js';
@@ -7,8 +8,6 @@ import WordPanel from './wordModule.js';
 import YouglishPanel from './youglishModule.js';
 import TagPanel from './tagModule.js';
 import SentenceWidget from './sentenceWidget.js';
-
-import LangSelect from '../ai_dict/LangSelect.js';
 
 export default class ReaderPanel {
   constructor(container) {
@@ -26,22 +25,12 @@ export default class ReaderPanel {
     this.currentFontSize = 2;
     this.fontSizes = ['small', 'medium', 'large', 'extra-large', 'huge'];
 
-    this.langs = [
-      { code: "en", label: "EN", flag: "https://flagcdn.com/gb.svg" },
-      { code: "fr", label: "FR", flag: "https://flagcdn.com/fr.svg" },
-      { code: "se", label: "SW", flag: "https://flagcdn.com/se.svg" },
-      { code: "zh", label: "ZH", flag: "https://flagcdn.com/cn.svg" },
-    ];
-
     // widget modules
     this.sidebar = null;
     this.toolBarModule = null;
     this.WordModule = null;
     this.youglishModule = null;
     this.tagModule = null;
-
-    this.targetLangSelect = null;
-    this.explainLangSelect = null;
 
     // DOM cache
     this.currentChapterElement = null;
@@ -54,7 +43,6 @@ export default class ReaderPanel {
 
     // 事件管理
     this._events = [];
-
   }
 
   // ============== 生命周期 ==============
@@ -64,6 +52,31 @@ export default class ReaderPanel {
   mount() {
     // if (container) this.container = container;
     // if (!this.container) throw new Error('ReaderPanel: container is required');
+
+    let data = getPathData();
+
+    if (!data) {
+      data = localStorage.getItem('lastReadingBook');
+      if (data) {
+        try {
+          data = JSON.parse(data);
+        } catch (e) {
+          data = null;
+        }
+      }
+    } else {
+      localStorage.setItem('lastReadingBook', JSON.stringify(data));
+    }
+
+    console.log('ReaderPanel mount with data:', data);
+
+    this.bookId = data.id || null;
+    this.src_lang = data.languages[0].lang;
+    this.src_lang_level = data.languages[0].level[0];
+    this.dst_lang = data.languages[1].lang;
+    this.dst_lang_level = data.languages[1].level[0];
+
+    // if data is null, try to load from localStorage
 
     this.render();
     this._loadFontSizeSettings();
@@ -137,6 +150,7 @@ export default class ReaderPanel {
 
     // ToolBar
     this.toolBarModule = new ToolBarWidget({
+      container: mainContainerElement,
       cssUrl: '/static/css/reader/tool_bar.css',
       applist: [
         { name: "AI_D", onclick: () => this._openAIDictionary(), logo: "AI" },
@@ -176,9 +190,6 @@ export default class ReaderPanel {
         return;
       }
 
-      const book = { id: '000001' };
-      this.bookId = book.id;
-
       const response = await fetch(`/api/book/chapters`, {
         method: 'POST',
         headers: {
@@ -186,18 +197,19 @@ export default class ReaderPanel {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          book_id: book.id,
-          lang: "en",
-          level: "b2"
+          book_id: this.bookId,
+          lang: this.dst_lang,
+          level: this.dst_lang_level
         })
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       this.chapterData = await response.json();
+      console.log('Loaded chapter list:', this.chapterData);
 
       if (this.sidebar) {
         this.sidebar.clearContent();
-        this.sidebar.addContent(this._renderSidebar(), 'novelList');
+        this.sidebar.addContent(this._renderNovelList(), 'novelList');
       }
     } catch (error) {
       console.error('加载小说章节列表失败:', error);
@@ -215,42 +227,6 @@ export default class ReaderPanel {
         ${this.chapterData.map((ch, idx) => `<li class="chapter-item" data-chapter-index="${idx}">${ch.chapter_title}</li>`).join('')}
       </ul>
     `;
-  }
-
-  _renderSidebar() {
-
-    const container = document.createElement('div');
-
-    const lan_container = document.createElement('div');
-    lan_container.className = 'lang-select-container';
-
-    container.appendChild(lan_container);
-    
-    this.targetLangSelect = new LangSelect({
-      container: lan_container,
-      options: this.langs,
-      defaultLang: this.targetLang || "en",
-      onChange: (lang) => {
-        // this.targetLang = lang;
-        // this.saveConfig();
-      },
-    });
-
-    this.explainLangSelect = new LangSelect({
-      container: lan_container,
-      options: this.langs,
-      defaultLang: this.explainLang || "zh",
-      onChange: (lang) => {
-        // this.explainLang = lang;
-        // this.saveConfig();
-      },
-    });
-
-    this.targetLang = this.targetLangSelect.getValue();
-    // this.explainLang = this.explainLangSelect.getValue();
-
-    container.appendChild(this._renderNovelList());
-    return container;
   }
 
   _renderNovelList() {
@@ -310,7 +286,7 @@ export default class ReaderPanel {
             'Authorization': `Bearer ${getToken()}`
           },
           body: JSON.stringify({
-            book_id: '000001',
+            book_id: this.bookId,
             chapter_id: chapter.chapter_id,
             lang,
             level
@@ -320,8 +296,8 @@ export default class ReaderPanel {
         return await response.json();
       };
 
-      this.currentSrcContent = await fetchChapterContent("zh", "c2");
-      this.currentDstContent = await fetchChapterContent("en", "b2");
+      this.currentSrcContent = await fetchChapterContent(this.src_lang, this.src_lang_level);
+      this.currentDstContent = await fetchChapterContent(this.dst_lang, this.dst_lang_level);
 
       if (this.currentSrcContent.total_sentence !== this.currentDstContent.total_sentence) {
         throw new Error('Source and target content sentence count mismatch');
@@ -332,7 +308,9 @@ export default class ReaderPanel {
       this.sentenceWidget = new SentenceWidget({
         container: this.contentAreaElement,
         toolBarModule: this.toolBarModule,
-        onWordSelected: (word) => { this.selectedWord = word; }
+        onWordSelected: (word) => { this.selectedWord = word;},
+        srcLang: this.src_lang,
+        dstLang: this.dst_lang
       });
 
       this.sentenceWidget.render(

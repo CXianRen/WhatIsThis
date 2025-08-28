@@ -2,35 +2,32 @@
 from flask import Blueprint, jsonify, request, g
 import os
 import json
-from config.config import NOVEL_DIR
 from routers.user import login_required
 from models.database import get_all_books, \
     get_user_all_books, \
+    get_books_by_user, \
+    get_books_by_ids, \
     append_user_book_list, \
     remove_user_book_list, \
-    get_books_by_ids
+    get_book_chapter_info, \
+    get_chapter_content, \
+    add_new_book, \
+    delete_book, \
+    add_or_update_chapter,\
+    delete_chapter
+
+from service.translation_service import (
+    split_sentences,
+    to_content,
+    translate_content)
 
 
 # ================= Refactored Novel API =================
 book_bp = Blueprint('book', __name__, url_prefix='/api/book')
 
 
-def __parse_novel_raw_name(name: str):
-    base_name = name.replace(".txt", "")
-    parts = base_name.split('_')
-    res = {}
-    res['cid'] = int(parts[0])
-    res['title'] = parts[1]
-    res['basename'] = base_name
-    return res
-
-
-def __gen_novel_raw_name(cid: int, title: str):
-    safe_title = f"{cid:03d}_{title}.txt"
-    return safe_title
-
-
 @book_bp.route('/list', methods=['GET'])
+@login_required
 def get_books():
     """Get all books with basic info"""
     books = get_all_books()
@@ -123,37 +120,16 @@ def get_chapters():
 
     # todo check this books is available for this user or not
 
-    # Find the novel directory by book_id
-    books = get_books_by_ids([book_id])
-    if not books or len(books) == 0:
-        return jsonify({'error': 'Book not found'}), 404
-    book = books[0]
-    chapter_ids = book['chapter_id']
-
-    chapter_info = []
-    for cid in chapter_ids:
-        chapter_json_file = f"{cid}-{lang}-{level}.json"
-        chapter_json_path = os.path.join(
-            NOVEL_DIR, f"{book['book_id']:06d}", cid, chapter_json_file)
-        # check if file exists
-        if os.path.exists(chapter_json_path):
-            with open(chapter_json_path, 'r', encoding='utf-8') as f:
-                chapter_data = json.load(f)
-                chapter_info.append(
-                    {
-                        'book_id': book_id,
-                        'chapter_id': chapter_data['chapter_id'],
-                        'chapter_title': chapter_data['chapter_title'],
-                        'lang': lang,
-                        'level': level
-                    })
+    chapter_info = get_book_chapter_info(book_id, lang, level)
+    if chapter_info == None:
+        return jsonify({'error': 'No chapters found for this book'}), 404
     return jsonify(chapter_info)
 
 
 # get chapter content by book_id and chapter_id
 @book_bp.route('/content', methods=['POST'])
 @login_required
-def get_chapter_content():
+def _get_chapter_content():
     data = request.get_json() or {}
     book_id = data.get('book_id', None)
     chapter_id = data.get('chapter_id', None)
@@ -171,328 +147,397 @@ def get_chapter_content():
         return jsonify({'error': 'book_id parameter is required'}), 400
     if not chapter_id:
         return jsonify({'error': 'chapter_id parameter is required'}), 400
-    
+
     # todo check this books is available for this user or not
-    
-    chapter_path = os.path.join(
-        NOVEL_DIR, f"{int(book_id):06d}", chapter_id, f"{chapter_id}-{lang}-{level}.json")
-    if not os.path.exists(chapter_path):
-        return jsonify({'error': 'Chapter not found'}), 404
-    
-    with open(chapter_path, 'r', encoding='utf-8') as f:
-        chapter_data = json.load(f)
-        return jsonify(chapter_data)
 
-
-# @book_bp.route('/<novel_name>/chapters', methods=['GET'])
-# def get_chapters(novel_name):
-#     """Get all chapter names of the specified novel"""
-#     chapters = []
-
-#     novel_path = os.path.join(NOVEL_DIR, novel_name)
-#     if not os.path.exists(novel_path):
-#         return jsonify({'error': 'Novel does not exist'}), 404
-
-#     # Scan txt files (original Chinese)
-#     txt_files = sorted(
-#         [f for f in os.listdir(novel_path) if f.endswith('.txt')])
-#     print("len of texts", len(txt_files))
-
-#     for txt_file in txt_files:
-#         info = __parse_novel_raw_name(txt_file)
-
-#         # Check available language versions
-#         available_languages = []
-#         for lang_code in ['en', 'sw', 'fr']:
-#             lang_file = f"{info['basename']}.{lang_code}.json"
-#             lang_path = os.path.join(novel_path, lang_file)
-#             if os.path.exists(lang_path):
-#                 available_languages.append(lang_code)
-
-#         chapters.append({
-#             'cid': info['cid'],
-#             'title': info['title'],
-#             'available_languages': available_languages
-#         })
-
-#     # Sort by cid
-#     chapters.sort(key=lambda x: x['cid'])
-#     print("len of chapters:", len(chapters))
-
-#     return jsonify(chapters)
-
-# Get all chapters of a book
-# @book_bp.route('/<novel_name>/chapters', methods=['GET'])
-# def get_chapters(novel_name):
-#     """Get all chapter names of the specified novel"""
-#     chapters = []
-
-#     novel_path = os.path.join(NOVEL_DIR, novel_name)
-#     if not os.path.exists(novel_path):
-#         return jsonify({'error': 'Novel does not exist'}), 404
-
-#     # Scan txt files (original Chinese)
-#     txt_files = sorted(
-#         [f for f in os.listdir(novel_path) if f.endswith('.txt')])
-#     print("len of texts", len(txt_files))
-
-#     for txt_file in txt_files:
-#         info = __parse_novel_raw_name(txt_file)
-
-#         # Check available language versions
-#         available_languages = []
-#         for lang_code in ['en', 'sw', 'fr']:
-#             lang_file = f"{info['basename']}.{lang_code}.json"
-#             lang_path = os.path.join(novel_path, lang_file)
-#             if os.path.exists(lang_path):
-#                 available_languages.append(lang_code)
-
-#         chapters.append({
-#             'cid': info['cid'],
-#             'title': info['title'],
-#             'available_languages': available_languages
-#         })
-
-#     # Sort by cid
-#     chapters.sort(key=lambda x: x['cid'])
-#     print("len of chapters:", len(chapters))
-
-#     return jsonify(chapters)
-
-
-@book_bp.route('/<novel_name>/chapters/raw/<int:cid>', methods=['GET'])
-def get_raw_chapter(novel_name, cid):
-    """Get the raw text of the specified chapter"""
-    novel_path = os.path.join(NOVEL_DIR, novel_name)
-    if not os.path.exists(novel_path):
-        return jsonify({'error': 'Novel does not exist'}), 404
-
-    # Find the txt file with the corresponding cid
-    txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
-    target_file = None
-    info = None
-    for txt_file in txt_files:
-        tinfo = __parse_novel_raw_name(txt_file)
-        if tinfo['cid'] == cid:
-            target_file = txt_file
-            info = tinfo
-            break
-
-    if not target_file:
-        return jsonify({'error': 'Chapter does not exist'}), 404
-
-    txt_path = os.path.join(novel_path, target_file)
-    try:
-        with open(txt_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        return jsonify({
-            'cid': cid,
-            'title': info['title'],
-            'content': content
-        })
-    except Exception as e:
-        return jsonify({'error': f'Failed to read file: {str(e)}'}), 500
-
-
-@book_bp.route('/<novel_name>/chapters/<int:cid>/<language>', methods=['GET'])
-def get_translated_chapter(novel_name, cid, language):
-    """Get the translated version of the specified chapter (en|sw|fr)"""
-    if language not in ['en', 'sw', 'fr']:
-        return jsonify({'error': 'Unsupported language code'}), 400
-
-    novel_path = os.path.join(NOVEL_DIR, novel_name)
-    if not os.path.exists(novel_path):
-        return jsonify({'error': 'Novel does not exist'}), 404
-
-    # Find the file with the corresponding cid
-    txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
-    target_base_name = None
-
-    for txt_file in txt_files:
-        info = __parse_novel_raw_name(txt_file)
-        if info['cid'] == cid:
-            target_base_name = info['basename']
-            break
-
-    if not target_base_name:
-        return jsonify({'error': 'Chapter does not exist'}), 404
-
-    # Find the corresponding translation file
-    lang_file = f"{target_base_name}.{language}.json"
-    lang_path = os.path.join(novel_path, lang_file)
-
-    if not os.path.exists(lang_path):
-        return jsonify({'error': f'{language} version does not exist'}), 404
-
-    try:
-        print("load ", lang_path)
-        with open(lang_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-
-        return jsonify(data)
-    except Exception as e:
-        return jsonify({'error': f'Failed to read translation file: {str(e)}'}), 500
+    chapter_data = get_chapter_content(book_id, chapter_id, lang, level)
+    if chapter_data == None:
+        return jsonify({'error': 'Chapter content not found'}), 404
+    return jsonify(chapter_data)
 
 # ================= Chapter Management API (CRUD) =================
 
 
-@book_bp.route('/<novel_name>/chapters/update', methods=['POST'])
-def update_chapter_api(novel_name):
-    """
-    Update Chapter API - supports create, update, delete
-    Data structure: {
-        "action": "create|update|delete",
-        "cid": Chapter ID,
-        "title": Chapter title,
-        "content": Chapter content
-    }
-    """
+# get books created by the user
+@book_bp.route('/manage/list', methods=['GET'])
+@login_required
+def manage_user_books():
+    """Get books created by the user (login required)"""
+
+    userid = g.user['userid']
+    if not userid:
+        return jsonify({'error': 'User ID not found in token'}), 400
+
+    books = get_books_by_user(userid)
+    if not books:
+        return jsonify([])
+    return jsonify(books)
+
+
+@book_bp.route('/manage/create', methods=['POST'])
+@login_required
+def _create_book():
+    """Create a new novel (login required)"""
     try:
         data = request.get_json()
-        action = data.get('action', '').lower()
-        cid = data.get('cid')
-        title = data.get('title', '').strip()
-        content = data.get('content', '').strip()
+        novel_name = data.get('name', None)
+        if not novel_name:
+            return jsonify({'error': 'Novel name cannot be empty'}), 400
+        novel_name = novel_name.strip()
 
-        if action not in ['create', 'update', 'delete']:
-            return jsonify({'error': 'Invalid action type'}), 400
+        org_lang = data.get('org_lang', 'en')
+        if not org_lang or not isinstance(org_lang, str):
+            return jsonify({'error': 'org_lang cannot be empty'}), 400
+        org_lang = org_lang.strip().lower()
 
-        if not cid or not isinstance(cid, int):
-            return jsonify({'error': 'cid must be an integer'}), 400
+        supported_lang = data.get('supported_lang', None)
+        if not supported_lang:
+            return jsonify({'error': 'supported_lang cannot be empty'}), 400
+        supported_lang = str(supported_lang).strip().lower()
 
-        novel_path = os.path.join(NOVEL_DIR, novel_name)
-        if not os.path.exists(novel_path):
-            return jsonify({'error': 'Novel does not exist'}), 404
+        levels = data.get('levels', None)
+        if not levels or not isinstance(levels, list):
+            return jsonify({'error': 'levels cannot be empty'}), 400
+        levels = [str(level).strip().lower()
+                  for level in levels if str(level).strip()]
 
-        print("Op: ", action)
-        if action == 'delete':
-            return _delete_chapter(novel_path, novel_name, cid)
-        elif action == 'create':
-            if not title or not content:
-                return jsonify({'error': 'Title and content cannot be empty when creating a chapter'}), 400
-            return _create_chapter(novel_path, novel_name, cid, title, content)
-        elif action == 'update':
-            if not title or not content:
-                return jsonify({'error': 'Title and content cannot be empty when updating a chapter'}), 400
-            return _update_chapter(novel_path, novel_name, cid, title, content)
+        userid = g.user['userid']
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
-@book_bp.route('/create', methods=['POST'])
-def create_novel():
-    """Create a new novel"""
-    try:
-        data = request.get_json()
-        novel_name = data.get('name', '').strip()
+        if not userid:
+            return jsonify({'error': 'User ID not found in token'}), 400
 
         if not novel_name:
             return jsonify({'error': 'Novel name cannot be empty'}), 400
 
-        # Generate safe directory name
-        safe_name = novel_name.lower().replace(' ', '_')
-        safe_name = ''.join(
-            c for c in safe_name if c.isalnum() or c in ('_', '-'))
+        info = {
+            'book_name': novel_name,
+            'user_id': userid,
+            'org_lang': org_lang,
+            'support_language': [
+                {
+                    'lang': org_lang,
+                    # a temporay solution
+                    'level': 'c2' if org_lang == supported_lang[0] else levels
+                },
+                {
+                    'lang': supported_lang,
+                    'level': levels
+                }]
+        }
 
-        # Create novel directory
-        novel_dir = os.path.join(NOVEL_DIR, safe_name)
-        if os.path.exists(novel_dir):
-            return jsonify({'error': 'Novel already exists'}), 400
-
-        os.makedirs(novel_dir, exist_ok=True)
+        print(info)
+        # add new book to database
+        book_id = add_new_book(info)
+        if not book_id:
+            return jsonify({'error': 'Failed to create novel'}), 500
 
         return jsonify({
             'success': True,
             'message': 'Novel created successfully',
-            'name': safe_name
+            'book_id': book_id
         })
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-def _create_chapter(novel_path, novel_name, cid, title, content):
-    """Create a new chapter"""
-    # Check if cid already exists
-    txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
-    for txt_file in txt_files:
-        info = __parse_novel_raw_name(txt_file)
-        if info['cid'] == cid:
-            return jsonify({'error': f'Chapter CID {cid} already exists'}), 400
+# delete a book
+@book_bp.route('/manage/delete', methods=['POST'])
+@login_required
+def _delete_book():
+    """Delete a novel (login required)"""
+    try:
+        data = request.get_json()
+        book_id = data.get('book_id', None)
+        if not book_id or not isinstance(book_id, int):
+            return jsonify({'error': 'book_id must be an integer'}), 400
 
-    # Generate file name: [novel_name]_[cid]_[title].txt
-    safe_title = __gen_novel_raw_name(cid, title)
-    file_path = os.path.join(novel_path, safe_title)
+        userid = g.user['userid']
 
-    # Save chapter content
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(content)
+        if not userid:
+            return jsonify({'error': 'User ID not found in token'}), 400
 
+        # delete book from database
+        success, msg = delete_book(book_id, userid)
+        return jsonify({
+            'success': success,
+            'message': msg
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# add a new chapter
+@book_bp.route('/manage/chapter/add', methods=['POST'])
+@login_required
+def _add_chapter():
+    data = request.get_json()
+    book_id = data.get('book_id', None)
+    title = data.get('title', '').strip()
+    # content is raw text content
+    content = data.get('content', '').strip()
+    if not book_id:
+        return jsonify({'error': 'book_id parameter is required'}), 400
+    if not title:
+        return jsonify({'error': 'Chapter title cannot be empty'}), 400
+    if not content:
+        return jsonify({'error': 'Chapter content cannot be empty'}), 400
+    userid = g.user['userid']
+    if not userid:
+        return jsonify({'error': 'User ID not found in token'}), 400
+    # add new chapter to database
+
+    # get book info
+    book = get_books_by_ids([book_id])[0]
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+    
+    # get book org language and level
+    src_lang = book['support_language'][0]['lang']
+    dst_lang = book['support_language'][1]['lang']
+    dst_level = book['support_language'][1]['level']
+    
+    src_content = to_content(split_sentences(content))
+    dst_content = src_content
+    if dst_lang != src_lang:
+        dst_content = translate_content(content, src_lang, dst_lang, dst_level)
+    res, msg = add_or_update_chapter(book_id, userid, title, src_content, dst_content)
+
+    if not res:
+        return jsonify({'error': msg}), 500
     return jsonify({
         'success': True,
-        'message': f'Chapter {cid} created successfully',
-        'filename': file_path
+        'message': 'Chapter added successfully'
+    })
+
+# update an existing chapter
+@book_bp.route('/manage/chapter/update', methods=['POST'])
+@login_required
+def _update_chapter():
+    data = request.get_json()
+    book_id = data.get('book_id', None)
+    chapter_id = data.get('chapter_id', None)
+    title = data.get('title', '').strip()
+    # content is raw text content
+    content = data.get('content', '').strip()
+    if not book_id:
+        return jsonify({'error': 'book_id parameter is required'}), 400
+    if not chapter_id:
+        return jsonify({'error': 'chapter_id parameter is required'}), 400
+    if not title:
+        return jsonify({'error': 'Chapter title cannot be empty'}), 400
+    if not content:
+        return jsonify({'error': 'Chapter content cannot be empty'}), 400
+    userid = g.user['userid']
+    if not userid:
+        return jsonify({'error': 'User ID not found in token'}), 400
+    # update chapter in database
+    # get book info
+    book = get_books_by_ids([book_id])[0]
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+    
+    print("Updating chapter:", book_id, chapter_id, title)
+    src_lang = book['support_language'][0]['lang']
+    dst_lang = book['support_language'][1]['lang']
+    dst_level = book['support_language'][1]['level']
+    
+    src_content = to_content(split_sentences(content))
+    dst_content = src_content
+    if dst_lang != src_lang:
+        dst_content = translate_content(content, src_lang, dst_lang, dst_level)
+    res, msg = add_or_update_chapter(book_id, userid, title, src_content, dst_content, chapter_id)
+
+    if not res:
+        return jsonify({'error': msg}), 500
+    return jsonify({
+        'success': True,
+        'message': 'Chapter updated successfully'
     })
 
 
-def _update_chapter(novel_path, novel_name, cid, title, content):
-    """Update chapter"""
-    # Find the file with the corresponding cid
-    txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
-    target_file = None
+@book_bp.route('/manage/chapter/delete', methods=['POST'])
+@login_required
+def _delete_chapter():
+    data = request.get_json()
+    book_id = data.get('book_id', None)
+    chapter_id = data.get('chapter_id', None)
+    if not book_id:
+        return jsonify({'error': 'book_id parameter is required'}), 400
+    if not chapter_id:
+        return jsonify({'error': 'chapter_id parameter is required'}), 400
+    userid = g.user['userid']
+    if not userid:
+        return jsonify({'error': 'User ID not found in token'}), 400
+    # delete chapter from database
+    res, msg = delete_chapter(book_id, chapter_id, userid)
 
-    for txt_file in txt_files:
-        info = __parse_novel_raw_name(txt_file)
-        if info['cid'] == cid:
-            target_file = txt_file
-            break
-
-    if not target_file:
-        return jsonify({'error': f'Chapter CID {cid} does not exist'}), 404
-
-    # Update content
-    target_file = os.path.join(novel_path, target_file)
-    with open(target_file, 'w', encoding='utf-8') as f:
-        print("writing to file:", target_file)
-        f.write(content)
-
+    if not res:
+        return jsonify({'error': msg}), 500
     return jsonify({
         'success': True,
-        'message': f'Chapter {title} updated successfully',
-        'filename': target_file
+        'message': 'Chapter deleted successfully'
     })
 
 
-def _delete_chapter(novel_path, novel_name, cid):
-    """Delete chapter"""
-    # Find the file with the corresponding cid
-    txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
-    target_file = None
 
-    for txt_file in txt_files:
-        info = __parse_novel_raw_name(txt_file)
-        if info['cid'] == cid:
-            target_file = txt_file
-            break
+# @book_bp.route('/<novel_name>/chapters/update', methods=['POST'])
+# def update_chapter_api(novel_name):
+#     """
+#     Update Chapter API - supports create, update, delete
+#     Data structure: {
+#         "action": "create|update|delete",
+#         "cid": Chapter ID,
+#         "title": Chapter title,
+#         "content": Chapter content
+#     }
+#     """
+#     try:
+#         data = request.get_json()
+#         action = data.get('action', '').lower()
+#         cid = data.get('cid')
+#         title = data.get('title', '').strip()
+#         content = data.get('content', '').strip()
 
-    if not target_file:
-        return jsonify({'error': f'Chapter CID {cid} does not exist'}), 404
+#         if action not in ['create', 'update', 'delete']:
+#             return jsonify({'error': 'Invalid action type'}), 400
 
-    # Delete txt file
-    file_path = os.path.join(novel_path, target_file)
-    os.remove(file_path)
+#         if not cid or not isinstance(cid, int):
+#             return jsonify({'error': 'cid must be an integer'}), 400
 
-    # Delete related translation files
-    base_name = target_file.replace(".txt", "")
-    for lang in ['en', 'sw', 'fr']:
-        lang_file = f"{base_name}.{lang}.json"
-        lang_path = os.path.join(novel_path, lang_file)
-        if os.path.exists(lang_path):
-            os.remove(lang_path)
+#         novel_path = os.path.join(NOVEL_DIR, novel_name)
+#         if not os.path.exists(novel_path):
+#             return jsonify({'error': 'Novel does not exist'}), 404
 
-    return jsonify({
-        'success': True,
-        'message': f'Chapter {cid} deleted successfully'
-    })
+#         print("Op: ", action)
+#         if action == 'delete':
+#             return _delete_chapter(novel_path, novel_name, cid)
+#         elif action == 'create':
+#             if not title or not content:
+#                 return jsonify({'error': 'Title and content cannot be empty when creating a chapter'}), 400
+#             return _create_chapter(novel_path, novel_name, cid, title, content)
+#         elif action == 'update':
+#             if not title or not content:
+#                 return jsonify({'error': 'Title and content cannot be empty when updating a chapter'}), 400
+#             return _update_chapter(novel_path, novel_name, cid, title, content)
+
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+
+
+# @book_bp.route('/create', methods=['POST'])
+# def create_book():
+#     """Create a new novel"""
+#     try:
+#         data = request.get_json()
+#         novel_name = data.get('name', '').strip()
+
+#         if not novel_name:
+#             return jsonify({'error': 'Novel name cannot be empty'}), 400
+
+#         # Generate safe directory name
+#         safe_name = novel_name.lower().replace(' ', '_')
+#         safe_name = ''.join(
+#             c for c in safe_name if c.isalnum() or c in ('_', '-'))
+
+#         # Create novel directory
+#         novel_dir = os.path.join(NOVEL_DIR, safe_name)
+#         if os.path.exists(novel_dir):
+#             return jsonify({'error': 'Novel already exists'}), 400
+
+#         os.makedirs(novel_dir, exist_ok=True)
+
+#         return jsonify({
+#             'success': True,
+#             'message': 'Novel created successfully',
+#             'name': safe_name
+#         })
+
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
+
+
+# def _create_chapter(novel_path, novel_name, cid, title, content):
+#     """Create a new chapter"""
+#     # Check if cid already exists
+#     txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
+#     for txt_file in txt_files:
+#         info = __parse_novel_raw_name(txt_file)
+#         if info['cid'] == cid:
+#             return jsonify({'error': f'Chapter CID {cid} already exists'}), 400
+
+#     # Generate file name: [novel_name]_[cid]_[title].txt
+#     safe_title = __gen_novel_raw_name(cid, title)
+#     file_path = os.path.join(novel_path, safe_title)
+
+#     # Save chapter content
+#     with open(file_path, 'w', encoding='utf-8') as f:
+#         f.write(content)
+
+#     return jsonify({
+#         'success': True,
+#         'message': f'Chapter {cid} created successfully',
+#         'filename': file_path
+#     })
+
+
+# def _update_chapter(novel_path, novel_name, cid, title, content):
+#     """Update chapter"""
+#     # Find the file with the corresponding cid
+#     txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
+#     target_file = None
+
+#     for txt_file in txt_files:
+#         info = __parse_novel_raw_name(txt_file)
+#         if info['cid'] == cid:
+#             target_file = txt_file
+#             break
+
+#     if not target_file:
+#         return jsonify({'error': f'Chapter CID {cid} does not exist'}), 404
+
+#     # Update content
+#     target_file = os.path.join(novel_path, target_file)
+#     with open(target_file, 'w', encoding='utf-8') as f:
+#         print("writing to file:", target_file)
+#         f.write(content)
+
+#     return jsonify({
+#         'success': True,
+#         'message': f'Chapter {title} updated successfully',
+#         'filename': target_file
+#     })
+
+
+# def _delete_chapter(novel_path, novel_name, cid):
+#     """Delete chapter"""
+#     # Find the file with the corresponding cid
+#     txt_files = [f for f in os.listdir(novel_path) if f.endswith('.txt')]
+#     target_file = None
+
+#     for txt_file in txt_files:
+#         info = __parse_novel_raw_name(txt_file)
+#         if info['cid'] == cid:
+#             target_file = txt_file
+#             break
+
+#     if not target_file:
+#         return jsonify({'error': f'Chapter CID {cid} does not exist'}), 404
+
+#     # Delete txt file
+#     file_path = os.path.join(novel_path, target_file)
+#     os.remove(file_path)
+
+#     # Delete related translation files
+#     base_name = target_file.replace(".txt", "")
+#     for lang in ['en', 'sw', 'fr']:
+#         lang_file = f"{base_name}.{lang}.json"
+#         lang_path = os.path.join(novel_path, lang_file)
+#         if os.path.exists(lang_path):
+#             os.remove(lang_path)
+
+#     return jsonify({
+#         'success': True,
+#         'message': f'Chapter {cid} deleted successfully'
+#     })

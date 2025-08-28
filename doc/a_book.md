@@ -56,3 +56,13 @@ chapterid: 4 number
     }
   ]
 }
+
+# book management 
++ add a new book
+title
+org-lang
+
+support-language:
+lang, level
+
+# 加一张-> 翻译一张

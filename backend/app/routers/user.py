@@ -31,16 +31,19 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         auth_header = request.headers.get('Authorization', None)
         if not auth_header or not auth_header.startswith('Bearer '):
+            print("Authorization header missing or invalid")
             return jsonify({'error': 'Authorization header missing or invalid'}), 401
         token = auth_header.split(' ')[1]
         try:
             payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256'])
             # check token expiration
             if payload['exp'] < datetime.datetime.utcnow().timestamp():
+                print("Token has expired")
                 return jsonify({'error': 'Token has expired'}), 401
             g.user = payload
             print("Authenticated user:", g.user)
         except Exception:
+            print("Invalid or expired token")
             return jsonify({'error': 'Invalid or expired token'}), 401
         return f(*args, **kwargs)
     return decorated_function

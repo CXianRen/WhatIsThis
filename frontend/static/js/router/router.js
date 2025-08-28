@@ -88,6 +88,10 @@ function toPath(path, data = null, pushHistory = true) {
   }
 }
 
+function toPrevPath() {
+  window.history.back();
+}
+
 function registerNavBar(bar) {
   navbar = bar;
 }
@@ -120,7 +124,7 @@ window.addEventListener('load', () => {
     toPath(register_path[0].path, null, false);
   } else if (hash) {
     const [path, queryStr] = hash.split('?');
-    let query = {};
+    let query = null;
     if (queryStr) {
       query = Object.fromEntries(new URLSearchParams(queryStr));
     }
@@ -128,4 +132,5 @@ window.addEventListener('load', () => {
   }
 });
 
-export { routerInit, registerPath, toPath, registerNavBar, getPathData };
+
+export { routerInit, registerPath, toPath, registerNavBar, getPathData, toPrevPath };

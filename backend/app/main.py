@@ -13,7 +13,6 @@ from models.tag.tag import init_tags
 from routers.app import app_bp
 from routers.group import group_bp
 from routers.novel import book_bp
-from routers.translation import translation_bp
 from routers.annotation import annotation_bp
 from routers.vocb import vocb_bp
 from routers.user import user_bp
@@ -39,7 +38,6 @@ def create_app():
     app.register_blueprint(app_bp)
     app.register_blueprint(group_bp)
     app.register_blueprint(book_bp)
-    app.register_blueprint(translation_bp)
     app.register_blueprint(annotation_bp)
     app.register_blueprint(vocb_bp)
     #new
