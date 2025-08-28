@@ -42,7 +42,7 @@ export default class WordPanel {
   }
 
   // ===== 显示单词信息 =====
-  async show(word) {
+  async show(word, lang = 'en', native_lang = 'zh') {
     if (!word) return;
 
     this.titleEl.textContent = word;
@@ -50,7 +50,7 @@ export default class WordPanel {
     this.contentEl.innerHTML = '<div class="word-loading">正在加载单词信息...</div>';
     this.overlay.style.display = 'flex';
 
-    this.wordDetail.loadWord(word);
+    this.wordDetail.loadWord(word, lang, native_lang);
 
   }
 

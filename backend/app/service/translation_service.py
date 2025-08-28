@@ -13,6 +13,8 @@ from config.config import (
 import os
 import json
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 # Simplified translation management
 translation_results = {}  # Store translation results and progress
 current_task = None  # Currently processing task
@@ -21,7 +23,7 @@ processing_lock = threading.Lock()  # Ensure only one task is running
 
 def split_sentences(text: str) -> list:
     """Split text into a list of sentences by punctuation"""
-    sentences = re.split(r'[。！？.]', text)
+    sentences = re.split(r'[。.]', text)
     sentences = [s.strip() for s in sentences if s.strip()]
     return sentences
 
@@ -39,15 +41,10 @@ def to_content(setences: list) -> list:
 def translate_content(raw_content, src_lang, dst_lang, dst_level) -> list:
     """Translate raw content to target language"""
     sentences = split_sentences(raw_content)
-    translated_sentences = []
 
-    # Process in batches of 10 sentences
-    batch_size = 10
-    for i in range(0, len(sentences), batch_size):
-        batch = sentences[i:i + batch_size]
-        translated_batch = translate_sentences_batch(
-            batch, src_lang, dst_lang, dst_level)
-        translated_sentences.extend(translated_batch)
+    translated_sentences = translate_in_parallel(
+        sentences, src_lang, dst_lang, dst_level, batch_size=5, max_workers=10
+    )
 
     return to_content(translated_sentences)
 
@@ -69,6 +66,8 @@ def translate_sentences_batch(sentences: list, source_language: str, target_lang
 Translate the following sentences to {language_map[target_language]} at {target_level} level. Return the same JSON structure.
 Requirement:
 1. key the output same structure of input (list).
+2. Don't change the order of sentences.
+3. Don't miss any sentence.
 Input:
 {json.dumps(sentences, ensure_ascii=False)}
 """
@@ -83,27 +82,47 @@ Input:
         "stream": False
     }
 
-    for attempt in range(retry_times):
-        try:
-            resp = requests.post(TRANSLATION_API_URL,
-                                 headers=headers, json=data, timeout=60)
-            resp.raise_for_status()
-            result = resp.json()
-
-            translated_content = result['choices'][0]['message']['content'].strip(
-            )
-
-            translated_content = translated_content.lstrip(
-                '```json').rstrip('```').strip()
-
-            translated_json = json.loads(translated_content)
-            print("get translation:", translated_json)
-            return translated_json     
-        except Exception:
-            if attempt < retry_times - 1:
-                # time.sleep(3)
-                continue
-            else:
+    def _request():
+        for attempt in range(retry_times):
+            try:
+                resp = requests.post(
+                    TRANSLATION_API_URL,
+                    headers=headers,
+                    json=data,
+                    timeout=60
+                )
+                resp.raise_for_status()
+                result = resp.json()
+                translated_content = result['choices'][0]['message']['content'].strip()
+                translated_content = translated_content.lstrip('```json').rstrip('```').strip()
+                return json.loads(translated_content)
+            except Exception as e:
+                if attempt < retry_times - 1:
+                    continue
                 return [f"[Translation failed] {s}" for s in sentences]
 
-    return [f"[Translation failed] {s}" for s in sentences]
+    return _request()
+
+
+def translate_in_parallel(all_sentences: list, source_language: str, target_language: str, target_level: str, batch_size=5, max_workers=10):
+    batches = [all_sentences[i:i+batch_size] for i in range(0, len(all_sentences), batch_size)]
+    
+    results = [None] * len(batches)
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_idx = {
+            executor.submit(
+                translate_sentences_batch, batch, source_language, target_language, target_level
+            ): idx
+            for idx, batch in enumerate(batches)
+        }
+
+        for future in as_completed(future_to_idx):
+            idx = future_to_idx[future]
+            try:
+                results[idx] = future.result()
+            except Exception as e:
+                results[idx] = [f"[Batch failed] {b}" for b in batches[idx]]
+
+    # 拼接所有批次结果
+    return [item for batch in results for item in batch]

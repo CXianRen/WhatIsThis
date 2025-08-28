@@ -299,11 +299,12 @@ export default class ReaderPanel {
       this.currentSrcContent = await fetchChapterContent(this.src_lang, this.src_lang_level);
       this.currentDstContent = await fetchChapterContent(this.dst_lang, this.dst_lang_level);
 
-      if (this.currentSrcContent.total_sentence !== this.currentDstContent.total_sentence) {
+      if (this.currentSrcContent.content.length !== this.currentDstContent.content.length) {
+        alert('Source and target content sentence count mismatch');
         throw new Error('Source and target content sentence count mismatch');
       }
 
-      this.chapterInfoElement.textContent = `Total ${this.currentDstContent.total_sentence} sentences`;
+      this.chapterInfoElement.textContent = `Total ${this.currentDstContent.content.length} sentences`;
 
       this.sentenceWidget = new SentenceWidget({
         container: this.contentAreaElement,

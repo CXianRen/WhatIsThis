@@ -76,11 +76,11 @@ export default class YouglishPanel {
   }
 
   // === 对外 API ===
-  show(word) {
+  show(word, lang = "english") {
     if (!word) return;
     this.wordEl.textContent = word;
     this.overlay.style.display = "flex";
-    this.widget.search(word);
+    this.widget.search(word, lang);
   }
 
   close() {
