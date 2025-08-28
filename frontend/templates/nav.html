@@ -54,6 +54,7 @@
   <link rel="stylesheet" href="/static/css/reader/word_panel.css">
   <link rel="stylesheet" href="/static/css/reader/youglish_panel.css">
   <link rel="stylesheet" href="/static/css/ai_dict/AIDictPanel.css">
+  <link rel="stylesheet" href="/static/css/conversation/conversationPanel.css">
 
   <style>
     html {
@@ -126,6 +127,7 @@
     import ChapterManagerPanel from '/static/js/bookPage/chapterManagePanel.js';
     import AddChapterPanel from '/static/js/bookPage/addChapterPanel.js';
 
+    import ConversationPanel from '/static/js/conversation/conversationPanel.js';
 
     window.addEventListener('DOMContentLoaded', () => {
 
@@ -180,6 +182,7 @@
       registerPath('addbook', AddBookPanel);
       registerPath('chapter-editor', ChapterManagerPanel);
       registerPath('add-chapter', AddChapterPanel);
+      registerPath('conversation', ConversationPanel);
     });
 
 

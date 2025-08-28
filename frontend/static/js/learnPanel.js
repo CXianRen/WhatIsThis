@@ -15,10 +15,10 @@ export default class LearnPanel {
       description: "Get AI-powered definitions and pronunciations",
     },
     {
-      href: "/#sayit",
+      href: "/#conversation",
       icon: "🗣️",
-      title: "Say It",
-      description: "how to express a idea in any language",
+      title: "Conversation",
+      description: "Practice speaking with AI",
     }
   ]) {
     this.container = container;
