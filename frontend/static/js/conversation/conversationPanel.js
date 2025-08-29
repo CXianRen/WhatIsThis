@@ -13,6 +13,7 @@ export default class ConversationPanel {
     this.mounted = true;
     this.render();
     this.bindEvents();
+    this.startSession();
   }
 
   unmount() {
@@ -32,9 +33,9 @@ export default class ConversationPanel {
           <section>
             <div class="chat"></div>
             <div class="composer">
-              <input class="msg" placeholder="Type or dictate your message…"/>
               <button class="btn-mic" title="Dictate (optional)">🎙️</button>
-              <button class="btn-send">Send</button>
+              <input class="msg" placeholder="Type or dictate your message…"/>
+              <button class="btn-send">⬆️</button>
             </div>
           </section>
           <aside>
@@ -93,7 +94,7 @@ export default class ConversationPanel {
   /* UI helpers */
   addBubble(text, who) {
     const b = document.createElement("div");
-    b.className = "bubble " + (who === "ai" ? "ai" : "me");
+    b.className = "bubble " + who;
     b.textContent = text;
     this.chatEl.appendChild(b);
     this.chatEl.scrollTop = this.chatEl.scrollHeight;
@@ -124,7 +125,17 @@ export default class ConversationPanel {
     const all = progress.words_all || this.wordsState.all;
     const unused = progress.words_unused ?? this.wordsState.unused;
     const used = progress.words_used || all.filter(w => !unused.includes(w));
+    const prevUsed = this.wordsState.used || [];
     this.wordsState = { all, used, unused };
+
+    // Find newly used words
+    const newUsed = used.filter(w => !prevUsed.includes(w));
+    console.log("Newly used words:", newUsed);
+    if (newUsed.length > 0) {
+      this.addBubble(
+        "Word: " + newUsed.join(", "), "newwords"
+      );
+    }
 
     this.wordsChips.innerHTML = "";
     all.forEach(w => {
@@ -153,6 +164,7 @@ export default class ConversationPanel {
     this.wordsState = { all: [], used: [], unused: [] };
     this.wordsChips.innerHTML = "";
     this.wordsLegend.textContent = "";
+    this.sayInformation();
 
     const starter = this.starterSel.value;
     const cefr = this.cefrSel.value;
@@ -160,6 +172,11 @@ export default class ConversationPanel {
     this.sessionId = res.session_id;
     if (res.ai_text) this.addBubble(res.ai_text, "ai");
     this.renderWords(res.progress);
+  }
+
+  sayInformation() {
+    this.addBubble(
+      "You are learning at level " + this.cefrSel.value + ". ", "ai");
   }
 
   async sendMessage() {

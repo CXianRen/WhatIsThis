@@ -37,11 +37,11 @@ export default class NavigationBar {
   }
 
   show() {
-    if (this.nav) this.nav.style.display = '';
+    if (this.container) this.container.style.display = '';
   }
 
   hide() {
-    if (this.nav) this.nav.style.display = 'none';
+    if (this.container) this.container.style.display = 'none';
   }
 
 }

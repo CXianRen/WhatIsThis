@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0 viewport-fit=cover">
   <title>WhatIsThis - 多功能学习平台</title>
 
   <!-- Favicon and Icons -->
@@ -91,7 +91,7 @@
       /* align-items: center; */
       /* justify-content: center; */
       width: 100%;
-      height: calc(100vh - 40px);
+      /* height: calc(100vh - 40px); */
       /* Adjust height to account for the nav bar */
       /* overflow-y: auto; */
       /* Adjust for navigation bar height */
@@ -99,10 +99,10 @@
       box-sizing: border-box;
       overflow-y: auto;
     }
-
-    .full-screen {
+    
+    /* .full-screen {
       height: 100vh;
-    }
+    } */
   </style>
 </head>
 
@@ -182,7 +182,7 @@
       registerPath('addbook', AddBookPanel);
       registerPath('chapter-editor', ChapterManagerPanel);
       registerPath('add-chapter', AddChapterPanel);
-      registerPath('conversation', ConversationPanel);
+      registerPath('conversation', ConversationPanel, { fullscreen: true });
     });
 
 

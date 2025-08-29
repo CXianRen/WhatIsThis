@@ -77,9 +77,14 @@ function toPath(path, data = null, pushHistory = true) {
   // --- call navbar to update ---
   if (navbar) {
     if (pathConfig.fullscreen) {
+      const el = document.querySelector(`.app`);
+      el.style.height = '100vh';
       navbar.hide();
     } else {
       navbar.show();
+      const el = document.querySelector(`.app`);
+      const nvbar = document.querySelector(`nav`);
+      el.style.height = 'calc(100vh - ' + nvbar.offsetHeight + 'px)';
     }
   }
   // pathConfig.onMount(stateStore[path] || null);
