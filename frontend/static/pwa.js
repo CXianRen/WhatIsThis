@@ -136,32 +136,32 @@ class PWAManager {
   // 设置全屏功能
   setupFullscreen() {
     // 添加全屏切换按钮
-    const fullscreenButton = document.createElement('button');
-    fullscreenButton.id = 'fullscreen-btn';
-    fullscreenButton.innerHTML = '⛶';
-    fullscreenButton.title = '切换全屏';
-    fullscreenButton.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 10000;
-      background: rgba(0,0,0,0.7);
-      color: white;
-      border: none;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-    `;
+    // const fullscreenButton = document.createElement('button');
+    // fullscreenButton.id = 'fullscreen-btn';
+    // fullscreenButton.innerHTML = '⛶';
+    // fullscreenButton.title = '切换全屏';
+    // fullscreenButton.style.cssText = `
+    //   position: fixed;
+    //   bottom: 20px;
+    //   right: 20px;
+    //   z-index: 10000;
+    //   background: rgba(0,0,0,0.7);
+    //   color: white;
+    //   border: none;
+    //   width: 50px;
+    //   height: 50px;
+    //   border-radius: 50%;
+    //   cursor: pointer;
+    //   font-size: 20px;
+    //   display: flex;
+    //   align-items: center;
+    //   justify-content: center;
+    //   transition: all 0.3s ease;
+    // `;
     
-    fullscreenButton.addEventListener('click', () => {
-      this.toggleFullscreen();
-    });
+    // fullscreenButton.addEventListener('click', () => {
+    //   this.toggleFullscreen();
+    // });
     
     // 监听全屏状态变化
     document.addEventListener('fullscreenchange', () => {

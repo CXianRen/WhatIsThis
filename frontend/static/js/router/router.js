@@ -78,7 +78,7 @@ function toPath(path, data = null, pushHistory = true) {
   if (navbar) {
     if (pathConfig.fullscreen) {
       const el = document.querySelector(`.app`);
-      el.style.height = '100vh';
+      el.style.height = 'calc(100vh - var(--top-insert))';
       navbar.hide();
     } else {
       navbar.show();

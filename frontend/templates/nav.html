@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0 viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no, initial-scale=1.0 viewport-fit=cover">
   <title>WhatIsThis - 多功能学习平台</title>
 
   <!-- Favicon and Icons -->
@@ -26,6 +26,7 @@
       --text-color: #f3f6fa;
       --button-bg-color: rgb(79, 142, 247);
       --button-text-color: white;
+      --top-insert: env(safe-area-inset-top, 40px);
     }
   </style>
 
@@ -59,6 +60,8 @@
   <style>
     html {
       background: var(--bg-color);
+      touch-action: manipulation; 
+      
     }
 
     body {
@@ -70,6 +73,7 @@
       height: 100vh;
       max-width: 900px;
       margin: 0 auto;
+      padding-top: var(--top-insert);
       /* Change to your desired background color */
     }
 
