@@ -103,6 +103,13 @@ export default class ChapterEditPanel {
       payload.chapter_id = this.chapter.chapter_id;  // 必须传 chapter_id
     }
 
+    // the button show uploading
+    const save_btn = this.container.querySelector('.btn-save');
+    const old_text =  save_btn.innerText;
+    save_btn.innerText = "Translating...";
+    
+    // console.log("change")
+
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -111,6 +118,9 @@ export default class ChapterEditPanel {
       },
       body: JSON.stringify(payload)
     });
+
+    // console.log("rechange")
+    save_btn.innerText = old_text;
 
     if (res.ok) {
       const data = await res.json();

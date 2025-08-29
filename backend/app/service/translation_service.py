@@ -25,6 +25,12 @@ def split_sentences(text: str) -> list:
     """Split text into a list of sentences by punctuation"""
     sentences = re.split(r'[。.]', text)
     sentences = [s.strip() for s in sentences if s.strip()]
+    # remove all \t and \n
+    sentences = [s.replace('\n', ' ').replace('\t', ' ') for s in sentences]
+    # remove multiple spaces
+    sentences = [re.sub(r'\s+', ' ', s) for s in sentences]
+    # remove empty sentences
+    sentences = [s for s in sentences if s]
     return sentences
 
 
@@ -63,23 +69,40 @@ def translate_sentences_batch(sentences: list, source_language: str, target_lang
     }
 
     prompt = f"""
-Translate the following sentences to {language_map[target_language]} at {target_level} level. Return the same JSON structure.
-Requirement:
-1. key the output same structure of input (list).
-2. Don't change the order of sentences.
-3. Don't miss any sentence.
+You are a translation engine.
+
+Task:
+Translate the following text block into {language_map[target_language]} at {target_level} level.
+
+Strict Requirements:
+1. Keep the same JSON list structure as the input.
+2. Each input block corresponds to ONE output. 
+   - Do NOT split one block into multiple blocks.
+   - Do NOT merge multiple blocks into one.
+3. Do NOT drop or add any content.
+4. Do NOT change the order.
+5. Output valid JSON only.
+6. output format:
+{{
+"translations": [
+    "translated  block 1",
+    "translated  block 2",
+    ...
+}}
 Input:
 {json.dumps(sentences, ensure_ascii=False)}
 """
     data = {
         "model": "deepseek-chat",
         "messages": [
-            {"role": "system", "content": "You are a professional translation assistant. Return valid JSON only."},
+            {"role": "system", "content": "You are a professional translation assistant."},
             {"role": "user", "content": prompt}
         ],
-        "max_tokens": 2000,
+        
+        "max_tokens": 5000,
         "temperature": 0.1,
-        "stream": False
+        "stream": False,
+        "response_format": {"type": "json_object"}
     }
 
     def _request():
@@ -95,10 +118,15 @@ Input:
                 result = resp.json()
                 translated_content = result['choices'][0]['message']['content'].strip()
                 translated_content = translated_content.lstrip('```json').rstrip('```').strip()
-                return json.loads(translated_content)
+                print("Translated content:", translated_content)
+                res = json.loads(translated_content)['translations']
+                print("In put len:", len(sentences), "Out put len:", len(res))
+                return res 
             except Exception as e:
                 if attempt < retry_times - 1:
+                    print(f"Translation attempt {attempt + 1} failed: {e}. Retrying...")
                     continue
+                
                 return [f"[Translation failed] {s}" for s in sentences]
 
     return _request()

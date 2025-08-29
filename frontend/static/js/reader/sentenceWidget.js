@@ -52,6 +52,16 @@ export default class SentenceWidget {
           this.toggleSentence(index, srcSentences, dstSentences);
         });
 
+
+      // click the sentence block
+      sentenceEl.addEventListener('click', (e) => {
+        this.container.querySelectorAll('.sentence').forEach(el => {
+          el.classList.remove('selected-sentence');
+        });
+        // 
+        sentenceEl.classList.add('selected-sentence');
+      });
+
       // 鼠标 / 触摸事件
       const textEl = sentenceEl.querySelector('.sentence-text');
       textEl.addEventListener('mousedown', this._handleMouseDown.bind(this));
