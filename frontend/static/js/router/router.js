@@ -121,7 +121,7 @@ window.addEventListener('hashchange', () => {
 window.addEventListener('load', () => {
   const hash = location.hash.slice(1);
   if (!hash && register_path.length > 0) {
-    toPath(register_path[0].path, null, false);
+    toPath('home', null, false);
   } else if (hash) {
     const [path, queryStr] = hash.split('?');
     let query = null;
