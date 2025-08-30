@@ -36,7 +36,7 @@ DEEPSEEK_MODEL = "deepseek-chat"  # or your preferred model name
 CONVO_TEMPERATURE = 0.2
 
 # CEFR ladder
-CEFR_LEVELS = ["A1","A2","B1","B2","C1","C2"]
+CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 DEFAULT_CEFR = "A2"
 
 # Supported languages configuration
@@ -46,17 +46,23 @@ SUPPORTED_LANGUAGES = {
         'flag': '🇺🇸',
         'level': ['B1', 'B2', 'C1', 'C2'],
     },
-    'se': {
-        'name': 'Swedish', 
-        'flag': 'se',
+    'sv': {
+        'name': 'Swedish',
+        'flag': 'sv',
         'level': ['B1', 'B2', 'C1', 'C2'],
     },
+    # 'sw': {
+    #     'name': 'Swedish',
+    #     'flag': 'sv',
+    #     'level': ['B1', 'B2', 'C1', 'C2'],
+    # },
     'fr': {
         'name': 'Franch',
-        'flag': '🇫🇷', 
+        'flag': '🇫🇷',
         'level': ['B1', 'B2', 'C1', 'C2'],
     }
 }
+
 
 def get_supported_languages():
     """Return a list of supported languages."""

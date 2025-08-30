@@ -130,3 +130,67 @@ def AI_Dictionary(words, target_lang="en", native_lang="zh"):
                 return {"error": f"API request fail: {response.status_code}"}
         except Exception as e:
             return {"error": f"request error: {str(e)}"}
+
+
+def AI_Word_Analyse(word, sentences, target_lang="en", native_lang="zh"):
+    """
+    DeepSeek for analysing a word in given sentences
+    """
+
+    # DeepSeek API settings
+    api_url = TRANSLATION_API_URL
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {TRANSLATION_API_KEY}"
+    }
+
+    prompt = f"""\
+Please analyze the {target_lang} word/phrase "{word}" in the following sentences strictly in JSON format as below:\
+{{
+    "part": "词性 [noun, v, adj, adv, other]",
+    "meaning": "核心含义",
+    "level": "[A1-C2]",
+    "features": "该词在句子中的作用",
+     oral-replacement: [
+    {{ word: "口语常用替换词", replaced: "替换后的完整句子" }},
+        ...
+    ],
+    cases_of_levels: [
+        {{ level: "[A1-C2]", words: "替换词", replaced: "替换后的完整句子", chinese: "该替换词最贴切的中文意思" }},
+        ...
+    ]
+}}
+要求：
+1. 口语替换不改变原意。
+2. cases_of_levels 给出不同等级可替换词及中文意思。
+3. 保证替换后句子语境一致。
+
+句子：
+{sentences}
+
+词汇：{word}
+"""
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "temperature": 0.1
+    }
+
+    print("prompt:", prompt)
+    try:
+        response = requests.post(api_url, headers=headers, json=payload)
+        if response.status_code == 200:
+            data = response.json()
+            content = data['choices'][0]['message']['content']
+            content = clean_json_block(content)
+            print("API return:", content)
+            return content
+        else:
+            return {"error": f"API request fail: {response.status_code}"}
+    except Exception as e:
+        return {"error": f"request error: {str(e)}"}

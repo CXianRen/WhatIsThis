@@ -34,7 +34,11 @@ export default class ToolBarWidget {
     btn.className = 'word-toolbar-button';
     btn.title = name;
     btn.innerHTML = logo || name;
-    btn.addEventListener('click', onclick);
+    btn.addEventListener('click', (e) => {
+      // console.log(`Toolbar button clicked: ${name}`); 
+      onclick?.(e);
+      this.close();
+    });
     this.wordToolbar.appendChild(btn);
   }
 

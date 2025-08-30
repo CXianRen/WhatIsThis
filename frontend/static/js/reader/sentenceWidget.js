@@ -7,6 +7,7 @@ export default class SentenceWidget {
 
     this.sentenceStates = {}; // index: 'dest' | 'source'
     this.selectedWord = '';
+    this.selectedSentenceIndex = null;
     this.longPressTimer = null;
     this.isDragSelection = false;
 
@@ -123,10 +124,12 @@ export default class SentenceWidget {
           const y = rect.bottom + window.scrollY;
 
           this.selectedWord = word;
+          const selected_sentence_content = selection.anchorNode.parentElement.innerText;
+
           this.toolBarModule?.show(x, y);
           this._highlightWord(word);
 
-          this.onWordSelected?.(word);
+          this.onWordSelected?.(word, selected_sentence_content);
         }
       }, 100);
     }
@@ -150,10 +153,11 @@ export default class SentenceWidget {
       const rect = selection.getRangeAt(0).getBoundingClientRect();
       const x = rect.left + rect.width / 2;
       const y = rect.bottom;
-
+      
+      const selected_sentence_content = selection.anchorNode.parentElement.innerText;
       this.toolBarModule?.show(x, y);
       this._highlightWord(text);
-      this.onWordSelected?.(text);
+      this.onWordSelected?.(text, selected_sentence_content);
 
       selection.removeAllRanges();
     }

@@ -127,6 +127,25 @@ def get_word_detail():
     res = json.loads(res)
     return jsonify(res)
 
+@vocb_bp.route('/word/analyse', methods=['POST'])
+def analyse_word():
+    """
+    analyse a text, return the difficult words and their details
+    """
+    data = request.get_json()
+    word = data.get('word', None)
+    text = data.get('text', None)
+    target_lang = data.get('lang', 'en')
+    native_lang = data.get('native_lang', 'zh')
+    # none of them should be None
+    if not word or not text:
+        return jsonify({"error": "word and text are required"}), 400
+    print(f"Analyse word: {word} in text: {text[:30]}... in {target_lang}, native: {native_lang}")
+    res = AI_Word_Analyse(word, text, target_lang, native_lang)
+    res = json.loads(res)
+    return jsonify(res)
+
+
 
 @vocb_bp.route('/word/imgs/<word>', methods=['GET'])
 def get_word_imgs(word):
@@ -139,6 +158,7 @@ def get_word_imgs(word):
         return jsonify({'success': True, 'images': urls, 'word': word})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 
 @vocb_bp.route('/word/imgs/<word>/<key>', methods=['GET'])

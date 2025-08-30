@@ -14,14 +14,15 @@ export default class DictionayPanel {
     this.ylang_map = {
       "en": "english",
       "fr": "french",
-      "se": "swedish",
+      // "se": "swedish",
+      "sv": "swedish",
     };
 
     // 初始化语言选择组件
     this.langs = [
       { code: "en", label: "English", flag: "https://flagcdn.com/gb.svg" },
       { code: "fr", label: "Français", flag: "https://flagcdn.com/fr.svg" },
-      { code: "se", label: "Svenska", flag: "https://flagcdn.com/se.svg" },
+      { code: "sv", label: "Svenska", flag: "https://flagcdn.com/se.svg" },
       { code: "zh", label: "中文", flag: "https://flagcdn.com/cn.svg" },
     ];
 

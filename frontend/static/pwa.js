@@ -164,17 +164,17 @@ class PWAManager {
     // });
     
     // 监听全屏状态变化
-    document.addEventListener('fullscreenchange', () => {
-      if (document.fullscreenElement) {
-        fullscreenButton.innerHTML = '⛶';
-        fullscreenButton.title = '退出全屏';
-      } else {
-        fullscreenButton.innerHTML = '⛶';
-        fullscreenButton.title = '进入全屏';
-      }
-    });
+    // document.addEventListener('fullscreenchange', () => {
+    //   if (document.fullscreenElement) {
+    //     fullscreenButton.innerHTML = '⛶';
+    //     fullscreenButton.title = '退出全屏';
+    //   } else {
+    //     fullscreenButton.innerHTML = '⛶';
+    //     fullscreenButton.title = '进入全屏';
+    //   }
+    // });
     
-    document.body.appendChild(fullscreenButton);
+    // document.body.appendChild(fullscreenButton);
   }
 
   // 切换全屏

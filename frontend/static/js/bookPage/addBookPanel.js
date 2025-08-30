@@ -76,7 +76,7 @@ export default class AddBookPanel {
           <option value="en">English</option>
           <option value="fr">French</option>
           <option value="zh">Chinese</option>
-          <option value="sw">Swedish</option>
+          <option value="sv">Swedish</option>
         </select>
       </label>
 
@@ -87,7 +87,7 @@ export default class AddBookPanel {
           <option value="en">English</option>
           <option value="fr">French</option>
           <option value="zh">Chinese</option>
-          <option value="sw">Swedish</option>
+          <option value="sv">Swedish</option>
         </select>
       </label>
 

@@ -7,7 +7,9 @@ import ToolBarWidget from './toolbarModule.js';
 import WordPanel from './wordModule.js';
 import YouglishPanel from './youglishModule.js';
 import TagPanel from './tagModule.js';
+import WordAnalysisPanel from './wordAnalysisModule.js';
 import SentenceWidget from './sentenceWidget.js';
+
 
 export default class ReaderPanel {
   constructor(container) {
@@ -20,6 +22,7 @@ export default class ReaderPanel {
     this.currentDstContent = null;
 
     this.selectedWord = '';
+    this.selectedText = '';
     this.sentenceWidget = null;
 
     this.currentFontSize = 2;
@@ -31,6 +34,7 @@ export default class ReaderPanel {
     this.WordModule = null;
     this.youglishModule = null;
     this.tagModule = null;
+    this.wordAnalysisModule = null;
 
     // DOM cache
     this.currentChapterElement = null;
@@ -155,7 +159,8 @@ export default class ReaderPanel {
       applist: [
         { name: "AI_D", onclick: () => this._openAIDictionary(), logo: "AI" },
         { name: "PN", onclick: () => this._openYouglish(), logo: "YT" },
-        { name: "TAG", onclick: () => this._openTags(), logo: "TT" }
+        { name: "TAG", onclick: () => this._openTags(), logo: "TT" },
+        { name: "AN", onclick: () => this._openWordAnalysis(), logo: "WA" },
       ],
       closeCallback: () => {
         this.sentenceWidget?._clearWordSelection();
@@ -179,6 +184,13 @@ export default class ReaderPanel {
       cssUrl: '/static/css/reader/tag_panel.css'
     });
     this.tagModule.init();
+
+    // Word Analysis
+    this.wordAnalysisModule = new WordAnalysisPanel({
+      container: mainContainerElement
+    });
+    this.wordAnalysisModule.init();
+
   }
 
   // ============== 加载章节列表 ==================
@@ -309,7 +321,10 @@ export default class ReaderPanel {
       this.sentenceWidget = new SentenceWidget({
         container: this.contentAreaElement,
         toolBarModule: this.toolBarModule,
-        onWordSelected: (word) => { this.selectedWord = word;},
+        onWordSelected: (word, text) => {
+          this.selectedWord = word;
+          this.selectedText = text;
+        },
         srcLang: this.src_lang,
         dstLang: this.dst_lang
       });
@@ -332,24 +347,39 @@ export default class ReaderPanel {
   // ============== ToolBar actions ==================
   _openAIDictionary() {
     if (this.selectedWord) {
-      this.toolBarModule.close();
+      //this.toolBarModule.close();
       this.sentenceWidget?._clearWordSelection();
-      this.WordModule.show(this.selectedWord);
+      this.WordModule.show(this.selectedWord, this.dst_lang, this.src_lang);
     }
   }
 
   _openYouglish() {
     if (this.selectedWord) {
-      this.toolBarModule.close();
+      const lang_map = {
+        'zh': 'chinese',
+        'en': 'english',
+        'fr': 'french',
+        // 'sw': 'swedish',
+        'sv': 'swedish',
+      }
+      //this.toolBarModule.close();
       this.sentenceWidget?._clearWordSelection();
-      this.youglishModule.show(this.selectedWord);
+      this.youglishModule.show(this.selectedWord, this.dst_lang);
     }
   }
 
   _openTags() {
     if (this.selectedWord) {
       this.tagModule.show(this.selectedWord);
-      this.toolBarModule.close();
+      //this.toolBarModule.close();
+    }
+  }
+
+  _openWordAnalysis() {
+    if (this.selectedWord) {
+      this.wordAnalysisModule.show(this.selectedWord,
+        this.selectedText, this.dst_lang, this.src_lang);
+      //this.toolBarModule.close();
     }
   }
   // ================== reading history ===========

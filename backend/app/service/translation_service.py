@@ -60,7 +60,8 @@ def translate_sentences_batch(sentences: list, source_language: str, target_lang
         'en': 'English',
         'zh': 'Chinese',
         'fr': 'French',
-        'se': 'Swedish',
+        # 'sw': 'Swedish',
+        'sv': 'Swedish',
     }
 
     headers = {
@@ -150,6 +151,7 @@ def translate_in_parallel(all_sentences: list, source_language: str, target_lang
             try:
                 results[idx] = future.result()
             except Exception as e:
+                print(f"Batch {idx} translation failed: {e}")
                 results[idx] = [f"[Batch failed] {b}" for b in batches[idx]]
 
     # 拼接所有批次结果
