@@ -1,5 +1,5 @@
 // chapterManagerPanel.js
-import { getToken } from '../user/login.js';
+import { fetchChapters, deleteChapter } from '../common/api_book.js';
 import { getPathData, toPath } from '../router/router.js';
 
 export default class ChapterManagerPanel {
@@ -94,28 +94,18 @@ export default class ChapterManagerPanel {
 
   // ----------- 数据加载 -----------
   async _loadChapters() {
-    const token = getToken();
-    const response = await fetch(`/api/book/chapters`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        book_id: this.bookId,
+    try {
+      this.chapterData = await fetchChapters({
+        bookId: this.bookId,
         lang: this.src_lang,
         level: this.src_lang_level
-      })
-    });
-
-    if (!response.ok) {
-      console.error("Error fetching chapters:", response.statusText);
+      });
+    } catch (err) {
+      console.error('Error fetching chapters:', err);
       this.chapterData = [];
-      return;
     }
-
-    this.chapterData = await response.json();
   }
+
 
   _createChapterListContent() {
     if (this.chapterData.length === 0) return '<div class="loading">0 chapter</div>';
@@ -137,24 +127,14 @@ export default class ChapterManagerPanel {
     const chapter = this.chapterData[idx];
     if (!confirm(`Delete chapter "${chapter.chapter_title}"?`)) return;
 
-    const token = getToken();
-    const res = await fetch(`/api/book/manage/chapter/delete`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        book_id: this.bookId,
-        chapter_id: chapter.chapter_id
-      })
-    });
-
-    if (res.ok) {
+    try {
+      await deleteChapter({ bookId: this.bookId, chapterId: chapter.chapter_id });
       await this._loadChapters();
       this.render();
-    } else {
-      alert('Error deleting chapter');
+    } catch (err) {
+      console.error('Error deleting chapter:', err);
+      alert(err.message || 'Error deleting chapter');
     }
   }
+
 }

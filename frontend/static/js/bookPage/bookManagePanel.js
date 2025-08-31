@@ -1,4 +1,6 @@
 // ================== BookManagePanel (Factory Class Version) ==================
+import { fetchUserCreatedBooks, deleteBook } from '../common/api_book.js';
+
 import { toPath } from '../router/router.js';
 import BookList from './bookList.js';
 import { getToken } from '../user/login.js';
@@ -158,44 +160,22 @@ export default class BookManagePanel {
   }
 
   // ================== Data ==================
-  loadBooks() {
+  async loadBooks() {
     this.showLoading(true);
-    const token = getToken();
-    if (!token) {
-      console.error('No token found. User might not be logged in.');
-      this.showLoading(false);
-      return;
-    }
 
-    // Fetch user's book list
-    fetch('/api/book/manage/list', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    })
-      .then(res => res.ok ? res.json() : Promise.reject(new Error('Network error')))
-      .then(data => {
-        this.books = data.map(book => ({
-          id: book.book_id,
-          title: book.book_name,
-          subtitle: book.subtitle || '',
-          description: book.description || '',
-          languages: book.support_language || [],
-          cover: '/static/imgs/book-placeholder.svg',
-          chapters: book.total_chapters || 0
-        }));
-        this.filteredBooks = [...this.books];
-        this.renderBooks();
-        this.showLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching books:', err);
-        alert('Error loading books. Please try again later.');
-        this.showLoading(false);
-      });
+    try {
+      const books = await fetchUserCreatedBooks();
+      this.books = books;
+      this.filteredBooks = [...books];
+      this.renderBooks();
+    } catch (err) {
+      console.error('Error fetching books:', err);
+      alert('Error loading books. Please try again later.');
+    } finally {
+      this.showLoading(false);
+    }
   }
+
 
   // ================== Rendering ==================
   renderBooks() {
@@ -236,41 +216,25 @@ export default class BookManagePanel {
     }
 
     if (deleteBookBtn) {
-      deleteBookBtn.onclick = () => {
+      deleteBookBtn.onclick = async () => {
         if (!confirm(`Remove book "${book.title}"?`)) return;
 
-        this.books = this.books.filter(b => b.id !== book.id);
-        const token = getToken();
-        if (!token) {
-          alert('User not logged in.');
-          this.closeOverlay();
-          return;
-        }
+        try {
+          await deleteBook(book.id);
 
-        fetch('/api/book/manage/delete', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ book_id: book.id })
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success) {
-              console.log('Book removed:', data);
-              this.filteredBooks = this.filteredBooks.filter(b => b.id !== book.id);
-              this.renderBooks();
-              alert(data.message || 'Book removed successfully');
-            } else {
-              alert(data.error || 'Error removing book.');
-            }
-          })
-          .catch(err => {
-            console.error('Error removing book:', err);
-            alert(err.message || 'Error removing book.');
-          });
-        this.closeOverlay();
+          // 更新本地数据
+          this.books = this.books.filter(b => b.id !== book.id);
+          this.filteredBooks = this.filteredBooks.filter(b => b.id !== book.id);
+          this.renderBooks();
+
+          alert(`Book "${book.title}" removed successfully`);
+
+        } catch (err) {
+          console.error('Error removing book:', err);
+          alert(err.message || 'Error removing book.');
+        } finally {
+          this.closeOverlay();
+        }
       };
     }
   }

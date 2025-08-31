@@ -1,5 +1,5 @@
 // chapterEditPanel.js
-import { getToken } from '../user/login.js';
+import { saveChapterAPI } from '../common/api_book.js';
 import { getPathData, toPath, toPrevPath } from '../router/router.js';
 
 export default class ChapterEditPanel {
@@ -17,7 +17,7 @@ export default class ChapterEditPanel {
 
     this.book = this.data?.book || {};
     this.chapter = this.data?.chapter || null; // null 表示新增章节
-    
+
     this.render();
     this.onMount();
   }
@@ -28,8 +28,8 @@ export default class ChapterEditPanel {
     this.container.innerHTML = '';
   }
 
-  onMount() {}
-  onUnmount() {}
+  onMount() { }
+  onUnmount() { }
 
   render() {
     const isEdit = !!this.chapter;
@@ -90,50 +90,30 @@ export default class ChapterEditPanel {
       return;
     }
 
-    const token = getToken();
-    const isEdit = !!this.chapter;
-    const url = isEdit ? '/api/book/manage/chapter/update' : '/api/book/manage/chapter/add';
+    const saveBtn = this.container.querySelector('.btn-save');
+    const oldText = saveBtn.innerText;
+    saveBtn.innerText = "Translating...";
 
-    const payload = {
-      book_id: this.book.id,
-      title,
-      content
-    };
-    if (isEdit) {
-      payload.chapter_id = this.chapter.chapter_id;  // 必须传 chapter_id
-    }
+    try {
+      const data = await saveChapterAPI({
+        bookId: this.book.id,
+        title,
+        content,
+        chapterId: this.chapter?.chapter_id
+      });
 
-    // the button show uploading
-    const save_btn = this.container.querySelector('.btn-save');
-    const old_text =  save_btn.innerText;
-    save_btn.innerText = "Translating...";
-    
-    // console.log("change")
+      alert(data.message || (this.chapter ? 'Chapter updated successfully' : 'Chapter added successfully'));
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
-
-    // console.log("rechange")
-    save_btn.innerText = old_text;
-
-    if (res.ok) {
-      const data = await res.json();
-      alert(data.message || (isEdit ? 'Chapter updated successfully' : 'Chapter added successfully'));
       this.unmount(); // 关闭面板
-      toPrevPath();   // 回到章节管理
-    } else {
-      const errText = await res.text();
-      console.error('Error saving chapter:', errText);
-      alert('Error saving chapter');
+      toPrevPath();   // 返回章节管理
+
+    } catch (err) {
+      console.error('Error saving chapter:', err);
+      alert(err.message || 'Error saving chapter');
+    } finally {
+      saveBtn.innerText = oldText;
     }
   }
-
   _cancel() {
     toPrevPath();
   }

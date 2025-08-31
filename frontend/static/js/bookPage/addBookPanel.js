@@ -1,5 +1,5 @@
 // ================== AddBookPanel (Factory Class Version) ==================
-import { getToken } from '../user/login.js';
+import { createBook } from '../common/api_book.js';
 import { toPath } from '../router/router.js';
 
 export default class AddBookPanel {
@@ -136,7 +136,7 @@ export default class AddBookPanel {
   }
 
   // ================== Submit ==================
-  handleSubmit() {
+  async handleSubmit() {
     const bookName = this.container.querySelector('#book-name').value.trim();
     const orgLang = this.container.querySelector('#org-lang').value.trim().toLowerCase();
     const targetLang = this.container.querySelector('#target-lang').value.trim().toLowerCase();
@@ -147,12 +147,6 @@ export default class AddBookPanel {
       return;
     }
 
-    const token = getToken();
-    if (!token) {
-      this.showMessage('❌ User not logged in.', 'error');
-      return;
-    }
-
     const payload = {
       name: bookName,
       org_lang: orgLang,
@@ -160,27 +154,20 @@ export default class AddBookPanel {
       levels: [level],
     };
 
-    fetch('/api/book/manage/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    })
-      .then(res => res.json().then(data => ({ ok: res.ok, data })))
-      .then(({ ok, data }) => {
-        if (!ok) throw new Error(data.error || 'Failed to add book');
-        this.showMessage('✅ Book added successfully!', 'success');
-        setTimeout(() => {
-          toPath('manage'); // 跳转到管理面板
-        }, 1000);
-      })
-      .catch(err => {
-        console.error('Error adding book:', err);
-        this.showMessage(`❌ ${err.message}`, 'error');
-      });
+    try {
+      const data = await createBook(payload);
+      this.showMessage('✅ Book added successfully!', 'success');
+
+      setTimeout(() => {
+        toPath('manage'); // 跳转到管理面板
+      }, 1000);
+
+    } catch (err) {
+      console.error('Error adding book:', err);
+      this.showMessage(`❌ ${err.message}`, 'error');
+    }
   }
+
 
   // ================== Utils ==================
   showMessage(msg, type = 'info') {

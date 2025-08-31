@@ -1,3 +1,5 @@
+import { getTagList, getWordTags, addTag, addTagToWord } from '../common/api_vocb.js';
+
 export default class TagPanel {
   constructor({ cssUrl = null, closeCallback = null } = {}) {
     this.isInitialized = false;
@@ -27,7 +29,7 @@ export default class TagPanel {
 
     if (this.cssUrl) await this.#loadCSS(this.cssUrl);
 
-    this.getTagList((tags) => {
+    getTagList((tags) => {
       console.log("get tag list");
       this.allowTagList = tags;
       this.#renderTags();
@@ -47,7 +49,7 @@ export default class TagPanel {
     this.addTagOverlay.style.display = 'flex';
     this.addTagOverlay.querySelector('#addTagText').textContent = `Add: ${word}`;
 
-    this.getWordTags(word, (tags) => {
+    getWordTags(word, (tags) => {
       this.wordTags = tags;
       this.tempTagList = [...this.wordTags];
       this.#renderTags();
@@ -167,7 +169,7 @@ export default class TagPanel {
 
     if (newTags.length === 0) return;
 
-    this.addTag(newTags, (tags) => {
+    addTag(newTags, (tags) => {
       this.allowTagList = tags;
       this.#renderTags();
       this.addTagInput.value = '';
@@ -180,64 +182,8 @@ export default class TagPanel {
       this.tempTagList.every(tag => this.wordTags.includes(tag))) {
       return;
     }
-    this.addTagToWord(this.selectedWord, this.tempTagList, () => {
+    addTagToWord(this.selectedWord, this.tempTagList, () => {
       alert("save tags!");
     });
-  }
-
-  // ====== API 调用函数 ======
-  async getTagList(callback) {
-    const response = await fetch('/api/vocb/tags', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    const data = await response.json();
-    const tags = data.tags || [];
-    if (typeof callback === 'function') callback(tags);
-    return tags;
-  }
-
-  async addTag(tag, callback) {
-    const response = await fetch('/api/vocb/tags', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags: tag })
-    });
-    const data = await response.json();
-    if (typeof callback === 'function') callback(data.tag || null);
-    return data.tag || null;
-  }
-
-  async deleteTag(tag, callback) {
-    const response = await fetch('/api/vocb/tags', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tag })
-    });
-    const data = await response.json();
-    if (typeof callback === 'function') callback(data.success);
-    return data.success;
-  }
-
-  async getWordTags(word, callback) {
-    const response = await fetch(`/api/vocb/word/tags/${encodeURIComponent(word)}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    const data = await response.json();
-    const tags = data.tags || [];
-    if (typeof callback === 'function') callback(tags);
-    return tags;
-  }
-
-  async addTagToWord(word, tags, callback) {
-    const response = await fetch(`/api/vocb/word/tags/${encodeURIComponent(word)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tag: tags })
-    });
-    const data = await response.json();
-    if (typeof callback === 'function') callback(data.success);
-    return data.success;
   }
 }

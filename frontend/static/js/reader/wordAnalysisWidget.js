@@ -1,3 +1,4 @@
+import { fetchWordAnalysis } from '../common/api_vocb.js';
 import { getToken } from '../user/login.js';
 
 export default class WordAnalysisWidget {
@@ -54,28 +55,14 @@ export default class WordAnalysisWidget {
     this.contentEl.innerHTML = html || '<div class="word-error">No analysis available.</div>';
   }
 
-  async loadWordAnalysis(word, text, lang, native_lang) {
+  async loadWordAnalysis(word, text, lang, nativeLang) {
     try {
-      
-      const token = getToken();
-      const response = await fetch('/api/vocb/word/analyse', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ word, text, lang, native_lang }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();     
+      const data = await fetchWordAnalysis({ word, text, lang, nativeLang });
       this.renderAnalysis(data);
     } catch (error) {
       console.error('Failed to load word analysis:', error);
       this.contentEl.innerHTML = `<div class="word-error">Load fail: ${error.message}</div>`;
     }
   }
+
 }

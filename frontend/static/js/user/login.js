@@ -1,4 +1,5 @@
 // ================== Login & SignUp Panels ==================
+import { login, loginAsGuest, signup, logout, isLoggedIn, getUserInfo, getToken } from '../common/api_user.js';
 
 class BasePanel {
   constructor(container) {
@@ -209,66 +210,6 @@ class SignUpPanel extends BasePanel {
   }
 }
 
-// ================== API helpers (保持原有逻辑) ==================
-function signup(username, email, password) {
-  return fetch('/api/user/signup', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, useremail: email, userpassword: password })
-  })
-    .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error); }))
-}
-
-function login(username, password) {
-  return fetch('/api/user/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, userpassword: password })
-  })
-    .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error); }))
-    .then(data => {
-      localStorage.setItem('token', data.token);
-      return data;
-    });
-}
-
-function loginAsGuest() {
-  return fetch('/api/user/guest_login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
-  })
-    .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error); }))
-    .then(data => {
-      localStorage.setItem('token', data.token);
-      return data;
-    });
-}
-
-function logout() {
-  localStorage.removeItem('token');
-}
-
-function isLoggedIn() {
-  return !!localStorage.getItem('token');
-}
-
-function getUserInfo() {
-  // return local information from localStorage
-  const token = localStorage.getItem('token');
-  if (!token) {
-    return Promise.reject(new Error('User not logged in'));
-  }
-  // Decode the token to get user info (assuming JWT)
-  const payload = JSON.parse(atob(token.split('.')[1]));
-  return Promise.resolve({
-    username: payload.username,
-    email: payload.useremail
-  });
-}
-
-function getToken() {
-  return localStorage.getItem('token');
-}
 
 // ================== Export ==================
 export { LoginPanel, SignUpPanel, logout, isLoggedIn, getUserInfo, getToken };

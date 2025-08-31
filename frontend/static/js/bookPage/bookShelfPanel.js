@@ -1,4 +1,6 @@
 // ================== BookShelfPanel (Factory Class Version) ==================
+import { fetchUserBooks, removeBookFromShelf } from '../common/api_book.js';
+
 import { toPath } from '../router/router.js';
 import BookFilter from './filter.js';
 import BookList from './bookList.js';
@@ -63,8 +65,8 @@ export default class BookShelfPanel {
     this.onUnMount?.();
   }
 
-  onMount() {}
-  onUnMount() {}
+  onMount() { }
+  onUnMount() { }
 
   // ================== Render ==================
   async render() {
@@ -172,47 +174,20 @@ export default class BookShelfPanel {
   }
 
   // ================== Data ==================
-  loadUserBooks() {
+  async loadUserBooks() {
     this.showLoading(true);
-    const token = getToken();
-    if (!token) {
-      console.error('No token found. User might not be logged in.');
+    try {
+      const books = await fetchUserBooks();
+      // renderBooks.call(this, books);
+      this.books = books;
+      this.filteredBooks = [...books];
+      this.renderBooks();  // 保留原有渲染方法
+    } catch (err) {
+      console.error('Error fetching books:', err);
+      alert('Error loading books. Please try again later.');
+    } finally {
       this.showLoading(false);
-      return;
     }
-
-    fetch('/api/book/list/user', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    })
-      .then(res => res.ok ? res.json() : Promise.reject(new Error('Network error')))
-      .then(data => {
-        this.books = data.map(book => ({
-          id: book.book_id,
-          title: book.book_name,
-          subtitle: book.subtitle || '',
-          description: book.description || '',
-          cover: '/static/imgs/book-placeholder.svg',
-          languages: book.support_language || [],
-          chapters: book.total_chapters || 0,
-          totalWords: 0,
-          progress: 0,
-          featured: false,
-          new: false,
-          lastRead: null
-        }));
-        this.filteredBooks = [...this.books];
-        this.renderBooks();
-        this.showLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching books:', err);
-        alert('Error loading books. Please try again later.');
-        this.showLoading(false);
-      });
   }
 
   // ================== Filters ==================
@@ -284,48 +259,34 @@ export default class BookShelfPanel {
     }
 
     if (removeButton) {
-      removeButton.onclick = () => {
+      removeButton.onclick = async () => {
         if (!confirm(`Remove "${book.title}" from shelf?`)) return;
 
-        this.books = this.books.filter(b => b.id !== book.id);
-        const token = getToken();
-        if (!token) {
-          console.error('No token found. User might not be logged in.');
+        try {
+          const data = await removeBookFromShelf(book.id);
+
+          if (data.success) {
+            console.log('Book removed from shelf:', data);
+
+            // 更新本地数据
+            this.books = this.books.filter(b => b.id !== book.id);
+            this.filteredBooks = this.filteredBooks.filter(b => b.id !== book.id);
+
+            this.renderBooks();
+            alert(data.message || 'Book removed successfully');
+          } else {
+            alert(data.error || 'Error removing book.');
+          }
+        } catch (err) {
+          console.error('Error removing book:', err);
+          alert(err.message || 'Error removing book.');
+        } finally {
+          this.closeBookControl();
         }
-
-        fetch('/api/book/list/user/update', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ action: 'remove', book_id: book.id })
-        })
-          .then(async res => {
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Network error');
-            return data;
-          })
-          .then(data => {
-            if (data.success) {
-              console.log('Book removed from shelf:', data);
-              this.filteredBooks = this.filteredBooks.filter(b => b.id !== book.id);
-              this.books = this.books.filter(b => b.id !== book.id);
-              this.renderBooks();
-              alert(data.message || 'Book removed successfully');
-            } else {
-              alert(data.error || 'Error removing book.');
-            }
-          })
-          .catch(err => {
-            console.error('Error updating book list:', err);
-            alert(err.message || 'Error removing book.');
-          });
-
-        this.closeBookControl();
       };
     }
   }
+
 
   closeBookControl() {
     if (this.overlay) this.overlay.style.display = 'none';

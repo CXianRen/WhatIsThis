@@ -1,4 +1,5 @@
 // ================== BookLibraryPanel (Factory Class Version) ==================
+import { fetchAllBooks, addBookToShelf } from '../common/api_book.js';
 import { toPath } from '../router/router.js';
 import BookFilter from './filter.js';
 import BookList from './bookList.js';
@@ -164,39 +165,17 @@ export default class BookLibraryPanel {
     this.showLoading(true);
 
     try {
-      const token = getToken();
-      const res = await fetch('/api/book/list',
-        {
-          method: 'GET', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
-        });
-      if (!res.ok) throw new Error('Network error');
-      const data = await res.json();
-
-      this.books = data.map(book => ({
-        id: book.book_id,
-        title: book.book_name,
-        subtitle: book.subtitle || '',
-        description: book.description || '',
-        cover: '/static/imgs/book-placeholder.svg',
-        languages: book.support_language || [],
-        chapters: book.total_chapters || 0,
-        totalWords: 0,
-        progress: 0,
-        featured: false,
-        new: false,
-        lastRead: null
-      }));
-
-      this.filteredBooks = [...this.books];
+      const books = await fetchAllBooks();
+      this.books = books;
+      this.filteredBooks = [...books];
       this.renderBooks();
-      this.showLoading(false);
     } catch (err) {
       console.error('Error fetching books:', err);
       alert('Error loading books. Please try again later.');
+    } finally {
       this.showLoading(false);
     }
   }
-
   // ================== Filters ==================
   handleFilterChange(filters) {
     this.currentFilters = filters;
@@ -258,26 +237,12 @@ export default class BookLibraryPanel {
     if (!addButton) return;
 
     addButton.onclick = async () => {
-      const token = getToken();
-      if (!token) {
-        alert('Please log in to add books to your shelf.');
-        return;
-      }
-
       try {
-        const res = await fetch('/api/book/list/user/update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ book_id: book.id, action: 'add' })
-        });
-
-        const data = await res.json();
-        if (!res.ok || data.error) throw new Error(data.error || 'Network error');
-
+        await addBookToShelf(book.id);
         alert(`Book "${book.title}" added to your shelf!`);
       } catch (err) {
-        console.error('Error updating user book list:', err);
-        alert('Error adding book to your shelf. Please try again later.');
+        console.error('Error adding book to shelf:', err);
+        alert(err.message || 'Error adding book to your shelf. Please try again later.');
       } finally {
         this.closeBookControl();
       }

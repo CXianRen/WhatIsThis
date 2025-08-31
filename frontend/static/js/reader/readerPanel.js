@@ -1,5 +1,6 @@
 // readerPanel.js (ESM, 工厂类封装)
-import { getToken } from '../user/login.js';
+import { fetchChapters, fetchChapterContent } from '../common/api_book.js';
+
 import { getPathData } from '../router/router.js';
 
 import SidebarComponent from '../common/sidebar-component.js';
@@ -196,41 +197,29 @@ export default class ReaderPanel {
   // ============== 加载章节列表 ==================
   async _loadNovelList() {
     try {
-      const token = getToken();
-      if (!token) {
-        alert('You should login first');
-        return;
-      }
-
-      const response = await fetch(`/api/book/chapters`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          book_id: this.bookId,
-          lang: this.dst_lang,
-          level: this.dst_lang_level
-        })
+      this.chapterData = await fetchChapters({
+        bookId: this.bookId,
+        lang: this.dst_lang,
+        level: this.dst_lang_level
       });
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      this.chapterData = await response.json();
       console.log('Loaded chapter list:', this.chapterData);
 
       if (this.sidebar) {
         this.sidebar.clearContent();
         this.sidebar.addContent(this._renderNovelList(), 'novelList');
       }
+
     } catch (error) {
-      console.error('加载小说章节列表失败:', error);
+      console.error('Failed to load novel chapters:', error);
+
       if (this.sidebar) {
         this.sidebar.clearContent();
         this.sidebar.addContent(`<div class="error">加载失败: ${error.message}</div>`, 'error');
       }
     }
   }
+
 
   _createNovelListContent() {
     if (this.chapterData.length === 0) return '<div class="loading">No chapter found</div>';
@@ -279,45 +268,33 @@ export default class ReaderPanel {
     event.stopPropagation();
     const chapter = this.chapterData[chapterIndex];
 
+    // 更新选中样式
     this.sidebar?.hide();
     this.sidebar.sidebar.querySelectorAll('.chapter-item').forEach(item => item.classList.remove('active'));
     chapterElement.classList.add('active');
 
+    // 显示加载状态
     this.currentChapterElement.textContent = `${chapter.chapter_title}`;
     this.chapterInfoElement.textContent = 'Loading...';
     this.contentAreaElement.innerHTML = '<div class="loading">Loading...</div>';
 
-    const url = `/api/book/content`;
-
     try {
-      const fetchChapterContent = async (lang, level) => {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getToken()}`
-          },
-          body: JSON.stringify({
-            book_id: this.bookId,
-            chapter_id: chapter.chapter_id,
-            lang,
-            level
-          })
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        return await response.json();
-      };
+      // 并行请求源语言和目标语言内容
+      const [srcContent, dstContent] = await Promise.all([
+        fetchChapterContent({ bookId: this.bookId, chapterId: chapter.chapter_id, lang: this.src_lang, level: this.src_lang_level }),
+        fetchChapterContent({ bookId: this.bookId, chapterId: chapter.chapter_id, lang: this.dst_lang, level: this.dst_lang_level })
+      ]);
 
-      this.currentSrcContent = await fetchChapterContent(this.src_lang, this.src_lang_level);
-      this.currentDstContent = await fetchChapterContent(this.dst_lang, this.dst_lang_level);
-
-      if (this.currentSrcContent.content.length !== this.currentDstContent.content.length) {
+      if (srcContent.content.length !== dstContent.content.length) {
         alert('Source and target content sentence count mismatch');
         throw new Error('Source and target content sentence count mismatch');
       }
 
-      this.chapterInfoElement.textContent = `Total ${this.currentDstContent.content.length} sentences`;
+      this.currentSrcContent = srcContent;
+      this.currentDstContent = dstContent;
+      this.chapterInfoElement.textContent = `Total ${dstContent.content.length} sentences`;
 
+      // 渲染 SentenceWidget
       this.sentenceWidget = new SentenceWidget({
         container: this.contentAreaElement,
         toolBarModule: this.toolBarModule,
@@ -330,8 +307,8 @@ export default class ReaderPanel {
       });
 
       this.sentenceWidget.render(
-        this.currentSrcContent.content,
-        this.currentDstContent.content,
+        srcContent.content,
+        dstContent.content,
         `font-size-${this.fontSizes[this.currentFontSize]}`
       );
 
@@ -340,9 +317,10 @@ export default class ReaderPanel {
       this.contentAreaElement.innerHTML = `<div class="error">Failed to load: ${error.message}</div>`;
     }
 
-    // update reading history
+    // 保存阅读历史
     this._saveReadingHistory(this.bookId, chapter.chapter_id);
   }
+
 
   // ============== ToolBar actions ==================
   _openAIDictionary() {
