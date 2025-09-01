@@ -105,6 +105,7 @@ export default class SentenceWidget {
     this.isDragSelection = false;
 
     this.longPressTimer = setTimeout(() => {
+      console.log('Long press detected');
       this.isDragSelection = true;
       window.getSelection().removeAllRanges();
     }, 600);
@@ -136,6 +137,7 @@ export default class SentenceWidget {
   }
 
   _handleTouchMove(e) {
+    console.log('Touch move detected');
     const touch = e.touches[0];
     const deltaX = Math.abs(touch.clientX - (e.startX || 0));
     const deltaY = Math.abs(touch.clientY - (e.startY || 0));
