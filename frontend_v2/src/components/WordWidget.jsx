@@ -40,7 +40,7 @@ export default function WordWidget({ word, lang = "en", nativeLang = "zh" }) {
     <Box>
       {/* Word title & pronunciation */}
       <Box mb={2}>
-        <Typography variant="h5">{data.word || word}</Typography>
+        <Typography variant="h5">{data.word[0] || word}</Typography>
         {data.pronunciation && (
           <Typography variant="body2" color="text.secondary">
             {data.pronunciation} {data.spelling_pronunciation ? `(${data.spelling_pronunciation})` : ""}

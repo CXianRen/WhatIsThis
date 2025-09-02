@@ -20,7 +20,7 @@ export default function WordPanel({ open, word, lang = "en", nativeLang = "zh", 
           justifyContent: "space-between",
         }}
       >
-        <Typography variant="h6">{word || "单词"}</Typography>
+        <Typography >{word || "word"}</Typography>
         <IconButton onClick={onClose}>
           <CloseIcon />
         </IconButton>
@@ -31,7 +31,7 @@ export default function WordPanel({ open, word, lang = "en", nativeLang = "zh", 
         {word ? (
           <WordWidget word={word} lang={lang} nativeLang={nativeLang} />
         ) : (
-          <Typography>请选择单词查看详情</Typography>
+          <Typography>Opps!... something wrong</Typography>
         )}
       </DialogContent>
     </Dialog>

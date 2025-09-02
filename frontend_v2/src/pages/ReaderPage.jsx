@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SentenceWidget from "../components/SentenceWidget";
+import ToolBarPanel from "../components/ToolBarPanel";
+import WordPanel from "../components/WordPanel";
 
 export default function ReaderPageReact() {
   const { bookId: paramBookId } = useParams();
@@ -32,6 +34,40 @@ export default function ReaderPageReact() {
   const [srcLevel, setSrcLevel] = useState(0);
   const [dstLevel, setDstLevel] = useState(0);
   const [fontSize, setFontSize] = useState(2);
+
+  // toolbar 显示状态和位置
+  const [toolbarOpen, setToolbarOpen] = useState(false);
+  const [toolbarPos, setToolbarPos] = useState({ x: 0, y: 0 });
+
+  const [selectedWord, setSelectedWord] = useState("");
+  const [selectedSentence, setSelectedSentence] = useState("");
+
+  // WordPanel state
+  const [wordPanelOpen, setWordPanelOpen] = React.useState(false);
+
+
+  // toolbar app 列表
+  const applist = [
+    { name: "Define", onclick: (e) => setWordPanelOpen(true) },
+    { name: "Copy", onclick: (e) => console.log("Copy clicked") },
+    { name: "Translate", onclick: (e) => console.log("Translate clicked") },
+    // 其他工具按钮
+  ];
+
+  // 显示 toolbar 的函数
+  const showToolbar = (x, y) => {
+    console.log("show tool bar at:", x, y)
+    // ensure within viewport
+    const toolbarWidth = 250; // 估计宽度
+    const toolbarHeight = 40;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    setToolbarPos({ x, y });
+    setToolbarOpen(true);
+  };
+
   const fontSizes = ["small", "medium", "large", "extra-large", "huge"];
   const currentChapterEl = useRef(null);
   const chapterInfoEl = useRef(null);
@@ -214,14 +250,34 @@ export default function ReaderPageReact() {
               srcLang={srcLang}
               dstLang={dstLang}
               fontSizeClass={`font-size-${fontSizes[fontSize]}`}
-              onWordSelected={(word, sentence) => console.log("Selected word:", word, sentence)}
+              onWordSelected={(word, sentence) => {
+                console.log("Word selected:", word, sentence);
+                // update selected word and open WordPanel
+                setSelectedWord(word);
+                setSelectedSentence(sentence);
+              }
+              }
+              onShowToolbar={(x, y) => showToolbar(x, y)}
             />
           ) : (
             <Typography>Please select a chapter</Typography>
           )}
         </Box>
       </Box>
-
+      <ToolBarPanel
+        applist={applist}
+        anchorPos={toolbarPos}
+        open={toolbarOpen}
+        onClose={() => setToolbarOpen(false)}
+      />
+      <WordPanel
+        open={wordPanelOpen}
+        word={selectedWord}
+        lang={dstLang}        // 可根据需求传
+        nativeLang={srcLang}  // 可根据需求传
+        onClose={() => setWordPanelOpen(false)}
+      />
     </Box>
+
   );
 }
