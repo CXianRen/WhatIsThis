@@ -168,9 +168,9 @@ export default function YouglishWidget({ word, lang = "english", width = 640, he
           </Box>
         )}
       </Box>
-      <Typography variant="body2" color="text.secondary">
+      {/* <Typography variant="body2" color="text.secondary">
         {status}
-      </Typography>
+      </Typography> */}
     </Box>
   );
 }

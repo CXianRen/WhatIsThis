@@ -71,12 +71,19 @@ export default function ReaderPageReact() {
     setToolbarOpen(true);
   };
 
-  const fontSizes = ["small", "medium", "large", "extra-large", "huge"];
+  // const fontSizes = ["small", "medium", "large", "extra-large", "huge"];
+  const fontSizes = [14, 16, 18, 22, 26, 30];
   const currentChapterEl = useRef(null);
   const chapterInfoEl = useRef(null);
+  
+  const [textSize, setTextSize] = useState(fontSizes[fontSize]);
+  useEffect(() => {
+    setTextSize(fontSizes[fontSize]);
+  }, [fontSize]);
 
   // Drawer open state
   const [drawerOpen, setDrawerOpen] = useState(false);
+  
 
   // ========== 初始化 ==========
   useEffect(() => {
@@ -252,7 +259,7 @@ export default function ReaderPageReact() {
               dstSentences={dstSentences}
               srcLang={srcLang}
               dstLang={dstLang}
-              fontSizeClass={`font-size-${fontSizes[fontSize]}`}
+              textSize={textSize}
               onWordSelected={(word, sentence) => {
                 console.log("Word selected:", word, sentence);
                 // update selected word and open WordPanel

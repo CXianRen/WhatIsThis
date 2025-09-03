@@ -9,19 +9,19 @@ export default function YouglishPanel({ open, onClose, word, lang = "english", w
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        🎵 单词发音: {word}
+        📽️{word}
         <IconButton onClick={onClose}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <Typography variant="body2" color="text.secondary" sx={{ mx: 2 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mx: 1 }}>
         {status}
       </Typography>
 
-      <DialogContent>
+      <DialogContent sx={{pl: 0.5, pr:0.5 }}>
         {/* ⚠️ 使用 display 控制显示，而不是条件渲染 */}
-        <Box sx={{ display: open ? "block" : "none" }}>
+        <Box sx={{ display: open ? "block" : "none", pl: 0, pr:0 }}>
           <YouglishWidget
             word={word}
             lang={lang}
