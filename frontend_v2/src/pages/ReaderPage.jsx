@@ -18,6 +18,9 @@ import MenuIcon from "@mui/icons-material/Menu";
 import SentenceWidget from "../components/SentenceWidget";
 import ToolBarPanel from "../components/ToolBarPanel";
 import WordPanel from "../components/WordPanel";
+import YouglishPanel from "../components/YouglishPanel";
+import TagPanel  from "../components/TagPanel";
+import WordAnalysisPanel from "../components/WordAnalysisPanel";
 
 export default function ReaderPageReact() {
   const { bookId: paramBookId } = useParams();
@@ -44,26 +47,26 @@ export default function ReaderPageReact() {
 
   // WordPanel state
   const [wordPanelOpen, setWordPanelOpen] = React.useState(false);
+  // YouglishPanel state
+  const [youglishPanelOpen, setYouglishPanelOpen] = React.useState(false);
+  // TagPanel state
+  const [tagPanelOpen, setTagPanelOpen] = React.useState(false);
+  // WordAnalysisPanel state
+  const [wordAnalysisPanelOpen, setWordAnalysisPanelOpen] = React.useState(false);
 
 
   // toolbar app 列表
   const applist = [
     { name: "Define", onclick: (e) => setWordPanelOpen(true) },
-    { name: "Copy", onclick: (e) => console.log("Copy clicked") },
-    { name: "Translate", onclick: (e) => console.log("Translate clicked") },
+    { name: "Yglish", onclick: (e) => setYouglishPanelOpen(true) },
+    { name: "Tag", onclick: (e) => setTagPanelOpen(true) },
+    { name: "Analyze", onclick: (e) => setWordAnalysisPanelOpen(true) },
     // 其他工具按钮
   ];
 
   // 显示 toolbar 的函数
   const showToolbar = (x, y) => {
     console.log("show tool bar at:", x, y)
-    // ensure within viewport
-    const toolbarWidth = 250; // 估计宽度
-    const toolbarHeight = 40;
-
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
     setToolbarPos({ x, y });
     setToolbarOpen(true);
   };
@@ -276,6 +279,24 @@ export default function ReaderPageReact() {
         lang={dstLang}        // 可根据需求传
         nativeLang={srcLang}  // 可根据需求传
         onClose={() => setWordPanelOpen(false)}
+      />
+      <YouglishPanel
+        open={youglishPanelOpen}
+        word={selectedWord}
+        lang={dstLang}        // 可根据需求传
+        onClose={() => setYouglishPanelOpen(false)}
+      />
+      <TagPanel
+        open={tagPanelOpen}
+        word={selectedWord}
+        lang={dstLang}        // 可根据需求传
+        onClose={() => setTagPanelOpen(false)}
+      />
+      <WordAnalysisPanel
+        open={wordAnalysisPanelOpen}
+        word={selectedWord}
+        lang={dstLang}        // 可根据需求传
+        onClose={() => setWordAnalysisPanelOpen(false)}
       />
     </Box>
 

@@ -1,30 +1,50 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
 
-export default function YouglishWidget({ word, lang = "english", width = 640, height = 550 }) {
+export default function YouglishWidget({ word, lang = "english", width = 640, height = 550, onStatus }) {
   const containerRef = useRef(null);
-  const [status, setStatus] = useState("加载中...");
-  const [widgetReady, setWidgetReady] = useState(false);
   const widgetRef = useRef(null);
   const timerRef = useRef(null);
+  const initializedRef = useRef(false);
+  const lastWordRef = useRef({ word: null, lang: null });
 
-  // 动态加载脚本
+  const containerId = "youglish-widget-container"; // ⚠️ 固定 id
+  const [status, setStatus] = useState("加载中...");
+  const [widgetReady, setWidgetReady] = useState(false);
+
+  // 动态加载 Youglish 脚本
   useEffect(() => {
+    const loadScript = () => {
+      const script = document.createElement("script");
+      script.src = "https://youglish.com/public/emb/widget.js";
+      script.async = true;
+
+      script.onload = () => {
+        window.onYouglishAPIReady = () => {
+          const msg = "YouGlish API 已就绪";
+          setStatus(msg);
+          onStatus?.(msg);
+          initWidget();
+        };
+      };
+
+      script.onerror = () => {
+        const msg = "脚本加载失败";
+        setStatus(msg);
+        onStatus?.(msg);
+      };
+
+      document.head.appendChild(script);
+      return script;
+    };
+
+    // 如果 YG 已存在，直接初始化
     if (window.YG) {
-      setWidgetReady(true);
+      initWidget();
       return;
     }
-    const script = document.createElement("script");
-    script.src = "https://youglish.com/public/emb/widget.js";
-    script.async = true;
-    script.onload = () => {
-      window.onYouglishAPIReady = () => {
-        setStatus("YouGlish API 已就绪");
-        initWidget();
-      };
-    };
-    script.onerror = () => setStatus("脚本加载失败");
-    document.head.appendChild(script);
+
+    const script = loadScript();
 
     return () => {
       pauseWidget();
@@ -32,19 +52,25 @@ export default function YouglishWidget({ word, lang = "english", width = 640, he
     };
   }, []);
 
-  // 初始化 Widget
+  // 初始化 Widget，只执行一次
   const initWidget = () => {
+    if (initializedRef.current) return;
     if (!window.YG || !containerRef.current || widgetRef.current) return;
+
+    initializedRef.current = true;
+
     try {
-      widgetRef.current = new window.YG.Widget(containerRef.current, {
+      // ⚠️ 传 containerId 而不是 DOM
+      widgetRef.current = new window.YG.Widget(containerId, {
         width,
         height,
         components: 88,
         autoStart: 0,
         events: {
           onFetchDone: (e) => {
-            if (e.totalResult === 0) setStatus("没有找到结果");
-            else setStatus(`找到 ${e.totalResult} 个发音示例`);
+            const msg = e.totalResult === 0 ? "没有找到结果" : `找到 ${e.totalResult} 个发音示例`;
+            setStatus(msg);
+            onStatus?.(msg);
           },
           onCaptionConsumed: () => {
             pauseWidget();
@@ -52,31 +78,55 @@ export default function YouglishWidget({ word, lang = "english", width = 640, he
               if (widgetRef.current) widgetRef.current.replay();
             }, 2000);
           },
-          onVideoReady: () => setStatus("播放器已准备就绪"),
-          onError: (e) => setStatus("发生错误：" + e.code),
+          onVideoReady: () => {
+            const msg = "播放器已准备就绪";
+            setStatus(msg);
+            onStatus?.(msg);
+            // setWidgetReady(true);
+          },
+          onError: (e) => {
+            const msg = "发生错误：" + e.code;
+            setStatus(msg);
+            onStatus?.(msg);
+          },
         },
       });
+      
       setWidgetReady(true);
-      setStatus("Widget 已创建");
+      const msg = "Widget 已创建";
+      setStatus(msg);
+      onStatus?.(msg);
     } catch (e) {
-      console.error("Widget 创建失败:", e);
-      setStatus("Widget 创建失败: " + e.message);
+      const msg = "Widget 创建失败: " + e.message;
+      console.error(msg);
+      setStatus(msg);
+      onStatus?.(msg);
     }
   };
 
-  // 搜索单词
+  // 每次 word/lang 改变时调用 fetch
   useEffect(() => {
-    if (widgetReady && word) {
-      try {
-        setStatus("正在搜索: " + word);
-        widgetRef.current.fetch(word, lang);
-      } catch (e) {
-        console.error(e);
-        setStatus("搜索失败: " + e.message);
-      }
+    if (!widgetReady || !widgetRef.current || !word || !containerRef.current) return;
+
+    if (lastWordRef.current.word === word && lastWordRef.current.lang === lang) return;
+
+    lastWordRef.current = { word, lang };
+
+    const msg = "正在搜索: " + word;
+    setStatus(msg);
+    onStatus?.(msg);
+
+    try {
+      widgetRef.current.fetch(word, lang);
+    } catch (e) {
+      const err = "搜索失败: " + e.message;
+      console.error(err);
+      setStatus(err);
+      onStatus?.(err);
     }
   }, [word, lang, widgetReady]);
 
+  // 暂停 widget 并清理定时器
   const pauseWidget = () => {
     if (widgetRef.current) {
       try {
@@ -92,6 +142,7 @@ export default function YouglishWidget({ word, lang = "english", width = 640, he
   return (
     <Box>
       <Box
+        id={containerId} // ⚠️ 必须有 id
         ref={containerRef}
         sx={{
           width,

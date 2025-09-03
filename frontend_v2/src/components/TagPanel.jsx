@@ -72,14 +72,14 @@ export default function TagPanel({ open, word, onClose }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        添加标签: {word}
+        {word}
         <IconButton onClick={onClose}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
       <DialogContent>
         <Typography variant="subtitle1" gutterBottom>
-          可用标签:
+          Tags:
         </Typography>
         <Stack direction="row" spacing={1} flexWrap="wrap" mb={2}>
           {allowTags.map((tag) => (
@@ -98,17 +98,17 @@ export default function TagPanel({ open, word, onClose }) {
           <TextField
             fullWidth
             size="small"
-            placeholder="输入标签，逗号分隔"
+            placeholder="New Tag, use comma to separate"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />
           <Button variant="contained" onClick={handleAddNewTags}>
-            新增
+            Add
           </Button>
         </Box>
 
         <Typography variant="subtitle1" gutterBottom>
-          已选标签:
+          Selected Tags:
         </Typography>
         <Stack direction="row" spacing={1} flexWrap="wrap" mb={2}>
           {tempTags.map((tag) => (

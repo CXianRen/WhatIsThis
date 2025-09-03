@@ -1,6 +1,7 @@
 // SentenceWidget.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 export default function SentenceWidget({
   srcSentences = [],
@@ -16,6 +17,7 @@ export default function SentenceWidget({
   const touchState = useRef({ startX: 0, startY: 0 });
   const longPressTimer = useRef(null);
   const isDragSelection = useRef(false);
+  
 
   const textRefs = useRef([]);
 
@@ -174,7 +176,7 @@ export default function SentenceWidget({
           <Box
             key={index}
             sx={{
-              mb: 2,
+              mb: 0,
               p: 1,
               borderRadius: 1,
               userSelect: "text",
@@ -191,9 +193,9 @@ export default function SentenceWidget({
             <Typography
               component="span"
               ref={textRefs.current[index]}
-              style={{ touchAction: "manipulation" }}
+              // style={{ touchAction: "manipulation" }}
             >
-              {renderTextWithHighlight(sentenceText)}
+             {" "}{renderTextWithHighlight(sentenceText)}
             </Typography>
           </Box>
         );
