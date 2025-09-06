@@ -302,6 +302,7 @@ export default function ReaderPageReact() {
       <WordAnalysisPanel
         open={wordAnalysisPanelOpen}
         word={selectedWord}
+        text={selectedSentence}
         lang={dstLang}        // 可根据需求传
         onClose={() => setWordAnalysisPanelOpen(false)}
       />

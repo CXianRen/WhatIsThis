@@ -37,7 +37,7 @@ export default function WordWidget({ word, lang = "en", nativeLang = "zh" }) {
   const dstKey = `explain_${lang}`;
 
   return (
-    <Box>
+    <Box >
       {/* Word title & pronunciation */}
       <Box mb={2}>
         <Typography variant="h5">{data.word[0] || word}</Typography>

@@ -1,60 +1,140 @@
 import { getToken } from './api_user.js';
 
-export async function getTagList(callback) {
-  const response = await fetch('/api/vocb/tags', {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
-  });
+// defined tag object
+// {
+//   "id": tag_id,
+//    "name": name,
+//    "lang": lang,
+//    "created_at": now,
+//    "updated_at": now
+// }
+
+
+export async function getTagList(lang, callback) {
+  const token = getToken();
+  if (!token) throw new Error('User not logged in');
+
+  const response = await fetch(`/api/vocb/tags/${lang}`,
+    {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+    });
+
   const data = await response.json();
-  const tags = data.tags || [];
+  if (response.status !== 200) {
+    console.error('Failed to fetch tags:', data.error || 'Unknown error');
+    throw new Error(data.error || 'Failed to fetch tags');
+    return [];
+  }
+  // console.log('Raw tag data:', data.data);
+  const tags = data.data || [];
+  console.log('Fetched tags:', tags);
+
   if (typeof callback === 'function') callback(tags);
   return tags;
 }
 
-export async function addTag(tag, callback) {
+export async function addTag(tag, lang, callback) {
+  const token = getToken();
+  if (!token) throw new Error('User not logged in');
+
   const response = await fetch('/api/vocb/tags', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tags: tag })
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({
+      'tag': tag,
+      'lang': lang
+    })
   });
+
   const data = await response.json();
-  if (typeof callback === 'function') callback(data.tag || null);
-  return data.tag || null;
+  if (response.status !== 200) {
+    throw new Error(data.error || 'Failed to add tag');
+  }
+
+  return data.data || null;
 }
 
-export async function deleteTag(tag, callback) {
+export async function deleteTag(word, tag) {
+  const token = getToken();
+  if (!token) throw new Error('User not logged in');
   const response = await fetch('/api/vocb/tags', {
     method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tag })
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({
+      'word': word,
+      'tag': tag
+    })
   });
   const data = await response.json();
-  if (typeof callback === 'function') callback(data.success);
-  return data.success;
+  if (response.status !== 200) {
+    throw new Error(data.error || 'Failed to delete tag from word');
+  }
+  return data;
 }
 
-export async function getWordTags(word, callback) {
-  const response = await fetch(`/api/vocb/word/tags/${encodeURIComponent(word)}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
+export async function getWordTags(word, lang) {
+  const token = getToken();
+  if (!token) throw new Error('User not logged in');
+  const response = await fetch('/api/vocb/word/tags', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    }
+    , body: JSON.stringify({ word, lang })
   });
   const data = await response.json();
-  const tags = data.tags || [];
-  if (typeof callback === 'function') callback(tags);
+  if (response.status !== 200) {
+    throw new Error(data.error || 'Failed to fetch word tags');
+  }
+  const tags = data.data || [];
   return tags;
 }
 
-export async function addTagToWord(word, tags, callback) {
-  const response = await fetch(`/api/vocb/word/tags/${encodeURIComponent(word)}`, {
+export async function addTagToWord(word, tag) {
+  const token = getToken();
+  if (!token) throw new Error('User not logged in');
+  const response = await fetch(`/api/vocb/word/tags/add`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tag: tags })
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      'word': word,
+      'tag': tag
+    })
   });
+
   const data = await response.json();
-  if (typeof callback === 'function') callback(data.success);
-  return data.success;
+  if (response.status !== 200) {
+    throw new Error(data.error || 'Failed to add tag to word');
+  }
+  console.log('Add tag to word response:', data);
+  return data.data || null;
 }
 
+export async function removeTagFromWord(word, tag) {
+  const token = getToken();
+  if (!token) throw new Error('User not logged in');
+  const response = await fetch('/api/vocb/word/tags/remove', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      'word': word,
+      'tag': tag
+    })
+  });
+  const data = await response.json();
+  if (response.status !== 200) {
+    throw new Error(data.error || 'Failed to remove tag from word');
+  }
+  return data;
+}
 // 获取单词分析
 export async function fetchWordAnalysis({ word, text, lang, nativeLang }) {
   const token = getToken();

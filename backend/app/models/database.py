@@ -5,6 +5,8 @@ import sqlite3
 from config.config import get_supported_languages, DATA_DIR
 from config.config import NOVEL_DIR
 
+from .data_tag import init_tag_db
+
 db_path_dict = {}
 
 
@@ -17,7 +19,6 @@ def get_db_path(lang):
     return db_path_dict[lang]
 
 # to initialize the database
-
 
 def init_db():
     """
@@ -40,6 +41,7 @@ def init_db():
 
     init_user_db()
     init_book_db()  # assuming this exists elsewhere
+    init_tag_db()
 
 
 def __init_db_language(db_path):
@@ -357,7 +359,7 @@ def init_book_db():
         book_id: 000000 （6 digits）
         book_name: EN book name
         author:  author name | cat
-        user_id: 
+        user_id:
         cover-page: string
         org-lang: zh
         total-chapters: 0
@@ -682,6 +684,8 @@ def delete_book(book_id, userid):
     return True, "Book deleted successfully."
 
 # add or update a chapter
+
+
 def add_or_update_chapter(book_id, userid, title, src_content, dst_content, chapter_id=None):
     """
     If chapter_id is None, add a new chapter.
@@ -715,7 +719,8 @@ def add_or_update_chapter(book_id, userid, title, src_content, dst_content, chap
         if chapter_id is None:
             # chapter id is auto-generated, 6 digits
             new_chapter_id = f"{total_chapters + 1:06d}"
-            chapter_dir = os.path.join(NOVEL_DIR, f"{int(book_id):06d}", new_chapter_id)
+            chapter_dir = os.path.join(
+                NOVEL_DIR, f"{int(book_id):06d}", new_chapter_id)
             os.makedirs(chapter_dir, exist_ok=True)
             cid = new_chapter_id
             # update the book record
@@ -729,7 +734,8 @@ def add_or_update_chapter(book_id, userid, title, src_content, dst_content, chap
             # Update existing chapter
             if chapter_id not in chapter_ids:
                 return False, "Chapter not found in this book."
-            chapter_dir = os.path.join(NOVEL_DIR, f"{int(book_id):06d}", chapter_id)
+            chapter_dir = os.path.join(
+                NOVEL_DIR, f"{int(book_id):06d}", chapter_id)
             if not os.path.exists(chapter_dir):
                 return False, "Chapter directory not found."
             cid = chapter_id
@@ -756,6 +762,8 @@ def add_or_update_chapter(book_id, userid, title, src_content, dst_content, chap
         return True, f"Chapter {action_msg} successfully."
 
 # delete a chapter
+
+
 def delete_chapter(book_id, chapter_id, userid):
     book_dp_path = os.path.join(DATA_DIR, "book_db.sqlite")
     with sqlite3.connect(book_dp_path) as conn:
@@ -790,3 +798,324 @@ def delete_chapter(book_id, chapter_id, userid):
 
         return True, "Chapter deleted successfully."
 
+ # tag region
+# tags - User Tag Table
+# | Field      | Type                | Description                |
+# | ---------- | ------------------- | -------------------------- |
+# | id         | BIGINT PK           | Tag ID                     |
+# | user_id    | BIGINT FK users(id) | User ID                    |
+# | name       | VARCHAR(50)         | Tag name                   |
+# | lang       | VARCHAR(10)         | Tag language (optional)    |
+# | created_at | DATETIME            | Creation time              |
+# | updated_at | DATETIME            | Update time                |
+
+# tag_words - Tag-Word Relationship Table (Many-to-Many)
+# | Field       | Type                  | Description                |
+# | ----------- | --------------------- | -------------------------- |
+# | id          | BIGINT PK             | Tag-word record ID         |
+# | tag_id      | BIGINT FK tags(id)    | Tag ID                     |
+# | word        | VARCHAR(100)          | Word                       |
+# | lang        | VARCHAR(10)           | Word language              |
+# | has_context | BOOLEAN DEFAULT FALSE | Has context                |
+# | created_at  | DATETIME              | Creation time              |
+# | updated_at  | DATETIME              | Update time                |
+
+# tag_word_context - Word Context Table
+# | Field         | Type                        | Description                |
+# | ------------- | --------------------------- | -------------------------- |
+# | id            | BIGINT PK                   | Context record ID          |
+# | tag_word_id   | BIGINT FK tag_words(id)     | Corresponding tag word     |
+# | book_id       | BIGINT FK books(id) NULL    | Book ID (optional)         |
+# | chapter_id    | BIGINT FK chapters(id) NULL | Chapter ID (optional)      |
+# | sentence      | TEXT                        | Context sentence           |
+# | lang          | VARCHAR(10)                 | Sentence language          |
+# | created_at    | DATETIME                    | Creation time              |
+
+def init_tag_db():
+    """
+    Initialize the tag database.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    if not os.path.exists(tag_db_path):
+        print(f"Initializing tag database at {tag_db_path}")
+        with sqlite3.connect(tag_db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS tags (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    lang TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    UNIQUE(user_id, name, lang)
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS tag_words (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tag_id INTEGER NOT NULL,
+                    word TEXT NOT NULL,
+                    lang TEXT NOT NULL,
+                    has_context BOOLEAN DEFAULT FALSE,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    UNIQUE(tag_id, word, lang),
+                    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS tag_word_context (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tag_word_id INTEGER NOT NULL,
+                    book_id INTEGER,
+                    chapter_id INTEGER,
+                    sentence TEXT NOT NULL,
+                    lang TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (tag_word_id) REFERENCES tag_words(id) ON DELETE CASCADE
+                )
+            ''')
+            conn.commit()
+    else:
+        print(f"Tag database already exists at {tag_db_path}")
+
+# user add a new tag
+def add_user_tag(user_id, name, lang=None):
+    """
+    Add a new tag for a user.
+    Returns (True, tag_id) on success, (False, error_msg) on failure.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    from datetime import datetime
+    now = datetime.utcnow().isoformat()
+    with sqlite3.connect(tag_db_path) as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO tags (user_id, name, lang, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (user_id, name, lang, now, now))
+            conn.commit()
+            return True, cursor.lastrowid
+        except sqlite3.IntegrityError:
+            return False, "Tag with the same name and language already exists."
+
+# user delete a tag
+def delete_user_tag(user_id, tag_id):
+    """
+    Delete a tag for a user.
+    Returns (True, msg) on success, (False, error_msg) on failure.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    with sqlite3.connect(tag_db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT user_id FROM tags WHERE id=?', (tag_id,))
+        row = cursor.fetchone()
+        if not row:
+            return False, "Tag not found."
+        if row[0] != user_id:
+            return False, "You do not have permission to delete this tag."
+        cursor.execute('DELETE FROM tags WHERE id=?', (tag_id,))
+        conn.commit()
+        return True, "Tag deleted successfully."
+    
+def get_user_tags(user_id, lang):
+    """
+    Get all tags for a user, optionally filtered by language.
+    Returns a list of dictionaries with tag information.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    with sqlite3.connect(tag_db_path) as conn:
+        cursor = conn.cursor()
+        if lang:
+            cursor.execute('SELECT id, name, lang, created_at, updated_at FROM tags WHERE user_id=? AND lang=?', (user_id, lang))
+        else:
+            cursor.execute('SELECT id, name, lang, created_at, updated_at FROM tags WHERE user_id=?', (user_id,))
+        rows = cursor.fetchall()
+        tags = []
+        for row in rows:
+            tags.append({
+                'id': row[0],
+                'name': row[1],
+                'lang': row[2],
+                'created_at': row[3],
+                'updated_at': row[4]
+            })
+        return tags
+    
+# user add a word to a tag
+def add_word_to_tag(user_id, tag_id, word, lang):
+    """
+    Add a word to a user's tag.
+    Returns (True, tag_word_id) on success, (False, error_msg) on failure.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    from datetime import datetime
+    now = datetime.utcnow().isoformat()
+    with sqlite3.connect(tag_db_path) as conn:
+        cursor = conn.cursor()
+        # check if the tag belongs to the user
+        cursor.execute('SELECT user_id FROM tags WHERE id=?', (tag_id,))
+        row = cursor.fetchone()
+        if not row:
+            return False, "Tag not found."
+        if row[0] != user_id:
+            return False, "You do not have permission to modify this tag."
+        try:
+            cursor.execute('''
+                INSERT INTO tag_words (tag_id, word, lang, has_context, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (tag_id, word, lang, False, now, now))
+            conn.commit()
+            return True, cursor.lastrowid
+        except sqlite3.IntegrityError:
+            return False, "Word already exists in this tag."
+
+def remove_word_from_tag(user_id, tag_word_id):
+    """
+    Remove a word from a user's tag.
+    Returns (True, msg) on success, (False, error_msg) on failure.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    with sqlite3.connect(tag_db_path) as conn:
+        cursor = conn.cursor()
+        # check if the tag_word belongs to the user
+        cursor.execute('''
+            SELECT tw.tag_id, t.user_id 
+            FROM tag_words tw 
+            JOIN tags t ON tw.tag_id = t.id 
+            WHERE tw.id=?
+        ''', (tag_word_id,))
+        row = cursor.fetchone()
+        if not row:
+            return False, "Tag word not found."
+        if row[1] != user_id:
+            return False, "You do not have permission to modify this tag word."
+        cursor.execute('DELETE FROM tag_words WHERE id=?', (tag_word_id,))
+        conn.commit()
+        return True, "Word removed from tag successfully."
+    
+def get_words_in_tag(user_id, tag_id):
+    """
+    Get all words in a user's tag.
+    Returns a list of dictionaries with tag word information.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    with sqlite3.connect(tag_db_path) as conn:
+        cursor = conn.cursor()
+        # check if the tag belongs to the user
+        cursor.execute('SELECT user_id FROM tags WHERE id=?', (tag_id,))
+        row = cursor.fetchone()
+        if not row:
+            return []
+        if row[0] != user_id:
+            return []
+        cursor.execute('SELECT id, word, lang, has_context, created_at, updated_at FROM tag_words WHERE tag_id=?', (tag_id,))
+        rows = cursor.fetchall()
+        tag_words = []
+        for row in rows:
+            tag_words.append({
+                'id': row[0],
+                'word': row[1],
+                'lang': row[2],
+                'has_context': bool(row[3]),
+                'created_at': row[4],
+                'updated_at': row[5]
+            })
+        return tag_words
+    
+def add_word_context(user_id, tag_word_id, book_id, chapter_id, sentence, lang):
+    """
+    Add context sentence for a word in a user's tag.
+    Returns (True, context_id) on success, (False, error_msg) on failure.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    from datetime import datetime
+    now = datetime.utcnow().isoformat()
+    with sqlite3.connect(tag_db_path) as conn:
+        cursor = conn.cursor()
+        # check if the tag_word belongs to the user
+        cursor.execute('''
+            SELECT tw.tag_id, t.user_id 
+            FROM tag_words tw 
+            JOIN tags t ON tw.tag_id = t.id 
+            WHERE tw.id=?
+        ''', (tag_word_id,))
+        row = cursor.fetchone()
+        if not row:
+            return False, "Tag word not found."
+        if row[1] != user_id:
+            return False, "You do not have permission to modify this tag word."
+        try:
+            cursor.execute('''
+                INSERT INTO tag_word_context (tag_word_id, book_id, chapter_id, sentence, lang, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (tag_word_id, book_id, chapter_id, sentence, lang, now))
+            # update has_context in tag_words
+            cursor.execute('UPDATE tag_words SET has_context=?, updated_at=? WHERE id=?', (True, now, tag_word_id))
+            conn.commit()
+            return True, cursor.lastrowid
+        except sqlite3.IntegrityError as e:
+            return False, str(e)
+
+def get_word_contexts(user_id, tag_word_id):
+    """
+    Get all context sentences for a word in a user's tag.
+    Returns a list of dictionaries with context information.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    with sqlite3.connect(tag_db_path) as conn:
+        cursor = conn.cursor()
+        # check if the tag_word belongs to the user
+        cursor.execute('''
+            SELECT tw.tag_id, t.user_id 
+            FROM tag_words tw 
+            JOIN tags t ON tw.tag_id = t.id 
+            WHERE tw.id=?
+        ''', (tag_word_id,))
+        row = cursor.fetchone()
+        if not row:
+            return []
+        if row[1] != user_id:
+            return []
+        cursor.execute('SELECT id, book_id, chapter_id, sentence, lang, created_at FROM tag_word_context WHERE tag_word_id=?', (tag_word_id,))
+        rows = cursor.fetchall()
+        contexts = []
+        for row in rows:
+            contexts.append({
+                'id': row[0],
+                'book_id': row[1],
+                'chapter_id': row[2],
+                'sentence': row[3],
+                'lang': row[4],
+                'created_at': row[5]
+            })
+        return contexts
+    
+def delete_word_context(user_id, context_id):
+    """
+    Delete a context sentence for a word in a user's tag.
+    Returns (True, msg) on success, (False, error_msg) on failure.
+    """
+    tag_db_path = os.path.join(DATA_DIR, "tag_db.sqlite")
+    with sqlite3.connect(tag_db_path) as conn:
+        cursor = conn.cursor()
+        # check if the context belongs to the user
+        cursor.execute('''
+            SELECT tw.tag_id, t.user_id 
+            FROM tag_word_context twc
+            JOIN tag_words tw ON twc.tag_word_id = tw.id
+            JOIN tags t ON tw.tag_id = t.id 
+            WHERE twc.id=?
+        ''', (context_id,))
+        row = cursor.fetchone()
+        if not row:
+            return False, "Context not found."
+        if row[1] != user_id:
+            return False, "You do not have permission to delete this context."
+        cursor.execute('DELETE FROM tag_word_context WHERE id=?', (context_id,))
+        conn.commit()
+        return True, "Context deleted successfully."
+    
+# end of tag region

@@ -23,7 +23,7 @@ export default function WordAnalysisPanel({ open, word, text, lang = "en", nativ
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers>
+      <DialogContent dividers sx={{ p: 1 }}>
         {word ? (
           <WordAnalysisWidget
             word={word}

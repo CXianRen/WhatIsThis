@@ -27,7 +27,7 @@ export default function WordPanel({ open, word, lang = "en", nativeLang = "zh", 
       </DialogTitle>
 
       {/* 内容区域 */}
-      <DialogContent dividers>
+      <DialogContent dividers sx={{ p: 1 }}>
         {word ? (
           <WordWidget word={word} lang={lang} nativeLang={nativeLang} />
         ) : (
