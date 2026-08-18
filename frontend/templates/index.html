@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f5f2eb">
+    <meta name="description" content="Find real-world pronunciation examples with YouGlish.">
+    <title>AIDict · YouGlish</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/app.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <p class="eyebrow">AIDict</p>
+        <h1>Hear it in context.</h1>
+        <p class="intro">Search real videos to hear how a word or phrase is spoken.</p>
+      </header>
+
+      <section class="search-card" aria-labelledby="search-title">
+        <h2 id="search-title" class="sr-only">YouGlish search</h2>
+
+        <label class="field-label" for="language">Language</label>
+        <div class="language-picker">
+          <select id="language" name="language" aria-label="Search language">
+            <option value="english">English</option>
+            <option value="swedish">Swedish</option>
+            <option value="french">French</option>
+            <option value="chinese">Chinese</option>
+          </select>
+          <span class="select-arrow" aria-hidden="true">⌄</span>
+        </div>
+
+        <form id="search-form" class="search-form" autocomplete="off">
+          <label class="field-label" for="query">Word or phrase</label>
+          <div class="search-row">
+            <input
+              id="query"
+              name="query"
+              type="search"
+              inputmode="search"
+              enterkeyhint="search"
+              placeholder="Try “good morning”"
+              maxlength="160"
+              aria-controls="history-panel"
+              aria-expanded="false"
+              required
+            >
+            <button type="submit" aria-label="Search YouGlish">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.5"></circle>
+                <path d="m16 16 4 4"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div id="history-panel" class="history-panel" hidden>
+            <div class="history-heading">
+              <span>Recent searches</span>
+              <button id="clear-history" class="clear-history" type="button">Clear</button>
+            </div>
+            <ul id="history-list" class="history-list" aria-label="Recent searches"></ul>
+            <p id="empty-history" class="empty-history">Your searches will appear here.</p>
+          </div>
+        </form>
+      </section>
+
+      <section id="results" class="results" aria-live="polite">
+        <div class="result-heading">
+          <div>
+            <p class="eyebrow">YouGlish</p>
+            <h2 id="result-title">Ready to search</h2>
+          </div>
+          <span id="result-language" class="language-chip">English</span>
+        </div>
+        <p id="status" class="status">Enter a word or phrase above.</p>
+        <div id="youglish-widget" class="youglish-widget" hidden></div>
+        <a class="powered-by" href="https://youglish.com" target="_blank" rel="noopener noreferrer">
+          Powered by YouGlish.com
+        </a>
+      </section>
+    </main>
+
+    <script type="module" src="/static/js/app.js"></script>
+  </body>
+</html>
