@@ -5,6 +5,7 @@ from flask import Flask, render_template
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+APP_VERSION = "0.1.0"
 
 
 def create_app() -> Flask:
@@ -16,7 +17,7 @@ def create_app() -> Flask:
 
     @app.get("/")
     def index():
-        return render_template("index.html")
+        return render_template("index.html", app_version=APP_VERSION)
 
     @app.after_request
     def add_security_headers(response):

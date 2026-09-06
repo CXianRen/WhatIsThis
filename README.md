@@ -6,9 +6,12 @@ A mobile-first Flask web app for finding real-world pronunciation examples with
 ## Features
 
 - YouGlish search only
-- English, Swedish, French, and Chinese
-- Search history stored locally on the device
-- Mobile-first interface
+- English, Swedish, Dutch, French, and Chinese
+- Accent selection for languages supported by YouGlish
+- A custom mobile player for play/pause, replay, seeking, examples, and speed
+- Search history, including language and accent, stored locally on the device
+- Light and dark themes with the initial theme taken from the device
+- Mobile-only interface
 
 ## Run locally
 
@@ -33,6 +36,9 @@ frontend/static/js/app.js
 frontend/static/js/youglish.js
 ```
 
-The YouGlish widget requires an internet connection. Review YouGlish's API and
-embedding policies before commercial distribution or packaging this website as
-a native mobile app.
+The app uses YouGlish's official JavaScript widget as the video and caption
+engine, while rendering its own controls around it. The widget requires an
+internet connection. Review YouGlish's API and embedding policies before
+commercial distribution or packaging this website as a native mobile app; the
+[official developer policy](https://youglish.com/api/doc/js-api#developer-policy)
+requires explicit permission for those uses.
