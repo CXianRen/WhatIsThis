@@ -17,7 +17,6 @@
   --focus-ring: rgba(40, 107, 77, 0.25);
   --button-shadow: 0 8px 18px rgba(40, 107, 77, 0.24);
   --history-shadow: 0 18px 42px rgba(32, 35, 31, 0.18);
-  --player-shadow: 0 8px 18px rgba(40, 107, 77, 0.2);
   --shadow: 0 18px 48px rgba(38, 44, 39, 0.1);
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -41,7 +40,6 @@ html[data-theme="dark"] {
   --focus-ring: rgba(100, 184, 137, 0.3);
   --button-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   --history-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
-  --player-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
   --shadow: 0 18px 52px rgba(0, 0, 0, 0.3);
 }
 
@@ -357,7 +355,6 @@ p {
 .history-item:focus-visible,
 .locale-trigger:focus-visible,
 .locale-option:focus-visible,
-.player-toolbar button:focus-visible,
 .theme-toggle:focus-visible {
   outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
@@ -485,13 +482,6 @@ p {
   font-size: 0.9rem;
 }
 
-.player-stage {
-  /* The iframe is cross-origin, so this offset targets the space above its attribution row. */
-  --floating-toolbar-bottom: 52px;
-  --floating-toolbar-opacity: 1.0;
-  position: relative;
-}
-
 .youglish-widget {
   width: 100%;
   min-height: 240px;
@@ -518,131 +508,6 @@ p {
   background: #171a17;
   font-size: 0.8rem !important;
   font-style: normal !important;
-}
-
-.player-toolbar {
-  position: absolute;
-  right: 8px;
-  bottom: var(--floating-toolbar-bottom);
-  left: 8px;
-  z-index: 2;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 8px;
-  background: var(--surface);
-  box-shadow: var(--history-shadow);
-  opacity: var(--floating-toolbar-opacity);
-}
-
-.player-meta {
-  display: flex;
-  min-height: 26px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 9px;
-  padding: 0 2px;
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.transport-controls {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.transport-controls button,
-.control-pill {
-  display: inline-flex;
-  min-width: 0;
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--line);
-  color: var(--ink);
-  background: var(--surface);
-}
-
-.transport-controls button {
-  position: relative;
-  border-radius: 14px;
-  padding: 0;
-}
-
-.transport-controls button:active,
-.control-pill:active {
-  background: var(--accent-soft);
-  transform: translateY(1px);
-}
-
-.transport-controls button:disabled,
-.control-pill:disabled {
-  cursor: not-allowed;
-  opacity: 0.38;
-  transform: none;
-}
-
-.transport-controls svg,
-.control-pill svg {
-  width: 21px;
-  height: 21px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-}
-
-.transport-controls .play-button {
-  border-color: var(--accent);
-  color: var(--on-accent);
-  background: var(--accent);
-  box-shadow: var(--player-shadow);
-}
-
-.transport-controls .play-button:active {
-  background: var(--accent-dark);
-}
-
-.play-button .pause-icon,
-.play-button.is-playing .play-icon {
-  display: none;
-}
-
-.play-button.is-playing .pause-icon {
-  display: block;
-}
-
-.seek-button span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -38%);
-  font-size: 0.58rem;
-  font-weight: 850;
-}
-
-.secondary-controls {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.control-pill {
-  gap: 7px;
-  border-radius: 13px;
-  padding: 0 12px;
-  font-size: 0.86rem;
-  font-weight: 700;
-}
-
-.control-pill strong {
-  color: var(--accent-ink);
-  font-variant-numeric: tabular-nums;
 }
 
 .provider-links {
@@ -800,6 +665,47 @@ button:focus-visible, summary:focus-visible, textarea:focus-visible, .book-filte
 
 #wordbook-view {
   padding-top: 8px;
+}
+
+.book-languages {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin: -4px -3px 10px;
+  padding: 4px 3px;
+  scrollbar-width: thin;
+}
+
+.book-language {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 54px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 0.8rem;
+}
+
+.book-language[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+
+.book-language .language-flag {
+  width: 22px;
+  height: 16px;
+}
+
+.book-language-count {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .review-start {

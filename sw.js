@@ -1,5 +1,5 @@
 // Bump this version whenever publishing changed application files.
-const VERSION = "0.2.0";
+const VERSION = "0.2.5";
 const BASE = new URL("./", self.location.href);
 const CACHE_PREFIX = `aidict-shell:${encodeURIComponent(BASE.href)}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;

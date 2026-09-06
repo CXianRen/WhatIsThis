@@ -3,6 +3,7 @@ import { openWordbook, wordId, isDue, createReviewSession, scheduleReview } from
 
 const $ = (id) => document.getElementById(id);
 const dateLabel = (time) => new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric" }).format(time);
+const LANGUAGE_KEY = `aidict.wordbook.language:${encodeURIComponent(new URL("../../", import.meta.url).pathname)}`;
 
 export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearch }) {
   let store;
@@ -17,8 +18,53 @@ export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearc
   let editing = null;
   let toastTimer;
   let refreshNumber = 0;
+  let navigationNumber = 0;
+  let bookScrollPosition = null;
+  let restoringBookScroll = false;
+  let bookLanguage = "";
+  try {
+    const saved = localStorage.getItem(LANGUAGE_KEY);
+    if (Object.hasOwn(languages, saved)) bookLanguage = saved;
+  } catch { /* Language filtering still works when preferences cannot be saved. */ }
   const favorite = $("favorite-button");
   const dialog = $("note-dialog");
+  const languageButtons = new Map();
+
+  for (const [code, language] of [["", { label: "全部" }], ...Object.entries(languages)]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "book-language";
+    button.dataset.language = code;
+    button.title = language.label;
+    button.setAttribute("aria-controls", "word-list");
+    if (language.flag) {
+      const flag = document.createElement("img");
+      flag.src = language.flag;
+      flag.alt = "";
+      flag.className = "language-flag";
+      button.append(flag);
+    } else {
+      button.append(language.label);
+    }
+    const count = document.createElement("span");
+    count.className = "book-language-count";
+    count.setAttribute("aria-hidden", "true");
+    button.append(count);
+    button.addEventListener("click", () => {
+      if (pending || session || activeView !== "wordbook" || code === bookLanguage) return;
+      bookLanguage = code;
+      try { localStorage.setItem(LANGUAGE_KEY, code); } catch { /* Keep the current selection in memory. */ }
+      resetBookPosition();
+      renderList();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    });
+    languageButtons.set(code, button);
+    $("book-languages").append(button);
+  }
+
+  function languageEntries() {
+    return bookLanguage ? entries.filter((entry) => entry.language === bookLanguage) : entries;
+  }
 
   function message(id, text = "", error = false) {
     $(id).textContent = text;
@@ -49,7 +95,8 @@ export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearc
     }
     $("end-review").disabled = value;
     $("close-note").disabled = value;
-    $("start-review").disabled = value || !store || !entries.some((entry) => isDue(entry));
+    $("start-review").disabled = value || !store || !languageEntries().some((entry) => isDue(entry));
+    for (const button of languageButtons.values()) button.disabled = value || !store;
   }
 
   async function refresh() {
@@ -98,12 +145,23 @@ export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearc
 
   function renderList() {
     const now = Date.now();
-    const due = entries.filter((entry) => isDue(entry, now)).length;
-    $("book-count").textContent = `${entries.length} 个词`;
+    const selected = languageEntries();
+    const counts = new Map();
+    for (const entry of entries) counts.set(entry.language, (counts.get(entry.language) || 0) + 1);
+    for (const [code, button] of languageButtons) {
+      const count = code ? counts.get(code) || 0 : entries.length;
+      button.hidden = Boolean(code && count === 0 && code !== bookLanguage);
+      button.disabled = !store || pending;
+      button.setAttribute("aria-pressed", String(code === bookLanguage));
+      button.setAttribute("aria-label", `${code ? languages[code].label : "全部语言"}，${count} 个收藏`);
+      button.querySelector(".book-language-count").textContent = count.toLocaleString();
+    }
+    const due = selected.filter((entry) => isDue(entry, now)).length;
+    $("book-count").textContent = `${selected.length} 个词`;
     $("due-count").textContent = `今日复习 · ${due}`;
     $("start-review").disabled = !store || pending || due === 0;
     const filter = $("book-filter").value.trim().toLowerCase();
-    const visible = entries.filter((entry) => `${entry.query}\n${entry.note}`.toLowerCase().includes(filter));
+    const visible = selected.filter((entry) => `${entry.query}\n${entry.note}`.toLowerCase().includes(filter));
     const fragment = document.createDocumentFragment();
     for (const entry of visible) {
       const row = document.createElement("li");
@@ -145,9 +203,11 @@ export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearc
       fragment.append(row);
     }
     $("word-list").replaceChildren(fragment);
+    $("word-list").setAttribute("aria-label", `${bookLanguage ? languages[bookLanguage].label : "全部语言"}的收藏`);
     message("book-status", storageError || (entries.length === 0
       ? "还没有收藏，在查词结果右侧点 ☆ 即可添加。"
-      : visible.length === 0 ? "没有找到匹配的词或笔记。" : ""), Boolean(storageError));
+      : selected.length === 0 ? "这个语言还没有收藏，查词后点 ☆ 即可添加。"
+        : visible.length === 0 ? "没有找到匹配的词或笔记。" : ""), Boolean(storageError));
   }
 
   function stopReviewVideo() {
@@ -160,8 +220,52 @@ export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearc
     message("review-player-status");
   }
 
+  function rememberBookScroll() {
+    if (session || $("book-home").hidden || restoringBookScroll) return;
+    const scrollY = Math.max(0, window.scrollY);
+    const anchor = scrollY > 0 ? [...$("word-list").children].find((row) => {
+      const bounds = row.getBoundingClientRect();
+      return bounds.bottom > 0 && bounds.top < window.innerHeight;
+    }) : null;
+    bookScrollPosition = {
+      scrollY,
+      anchorId: anchor?.dataset?.id || null,
+      anchorOffset: anchor ? anchor.getBoundingClientRect().top : 0,
+    };
+  }
+
+  function resetBookPosition() {
+    // A different language/filter invalidates any pending restore for the old list.
+    navigationNumber += 1;
+    bookScrollPosition = null;
+    restoringBookScroll = false;
+  }
+
+  async function restoreBookScroll(navigation, position) {
+    try {
+      await refresh();
+    } catch (error) {
+      toast(error.message);
+    }
+    requestAnimationFrame(() => {
+      // A slow read must not move another tab or a newly opened review card.
+      if (navigation !== navigationNumber) return;
+      restoringBookScroll = false;
+      if (activeView !== "wordbook" || session || $("book-home").hidden) return;
+      const anchor = position?.anchorId && [...$("word-list").children]
+        .find((row) => row.dataset.id === position.anchorId);
+      const top = anchor
+        ? window.scrollY + anchor.getBoundingClientRect().top - position.anchorOffset
+        : position?.scrollY || 0;
+      window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+    });
+  }
+
   function showView(view) {
     if (view === activeView) return;
+    if (activeView === "wordbook") rememberBookScroll();
+    const navigation = ++navigationNumber;
+    restoringBookScroll = false;
     if (activeView === "search") onLeaveSearch();
     else stopReviewVideo();
     activeView = view;
@@ -173,7 +277,12 @@ export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearc
       if (name === view) $(`nav-${name}`).setAttribute("aria-current", "page");
       else $(`nav-${name}`).removeAttribute("aria-current");
     }
-    if (view === "wordbook") refresh().catch((error) => toast(error.message));
+    if (view === "wordbook") {
+      languageButtons.get(bookLanguage)?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" });
+      restoringBookScroll = !session;
+      restoreBookScroll(navigation, bookScrollPosition);
+    }
+    // Cancel any in-flight smooth scroll from lookup before restoring the list.
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
@@ -264,7 +373,7 @@ export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearc
     setPending(true);
     try {
       await refresh();
-      const queue = createReviewSession(entries);
+      const queue = createReviewSession(languageEntries());
       if (!queue.length) { toast("今天的复习已完成。"); return; }
       session = { queue, total: queue.length, familiar: 0 };
       $("book-home").hidden = true;
@@ -359,7 +468,10 @@ export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearc
   });
   $("nav-search").addEventListener("click", () => showView("search"));
   $("nav-wordbook").addEventListener("click", () => showView("wordbook"));
-  $("book-filter").addEventListener("input", renderList);
+  $("book-filter").addEventListener("input", () => {
+    resetBookPosition();
+    renderList();
+  });
   $("retry-storage").addEventListener("click", connect);
 
   $("export-book").addEventListener("click", async () => {
@@ -419,6 +531,7 @@ export function initWordbook({ languages, formatLanguage, onLookup, onLeaveSearc
       refresh().catch(() => {});
     }
   }, 60000);
+  renderList();
   connect();
   return {
     setCurrent(entry) { current = entry; updateFavorite(); },

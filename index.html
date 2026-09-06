@@ -38,7 +38,7 @@
         <div class="header-bar">
           <div class="app-brand">
             <h1 class="app-title">AIDict</h1>
-            <p class="app-version" aria-label="Version 0.2.0">v0.2.0</p>
+            <p class="app-version" aria-label="Version 0.2.5">v0.2.5</p>
           </div>
           <div class="header-actions">
             <div class="locale-controls" role="group" aria-label="Search language and accent">
@@ -113,67 +113,8 @@
             <button id="favorite-button" class="favorite-button" type="button" aria-label="收藏当前词" aria-pressed="false" hidden disabled>☆</button>
           </div>
           <p id="status" class="status" role="status" aria-live="polite">Enter a word or phrase above.</p>
-          <div class="player-stage">
-            <div id="youglish-widget" class="youglish-widget" hidden>
-              <p class="player-placeholder" aria-hidden="true">Loading video…</p>
-            </div>
-
-            <div id="player-toolbar" class="player-toolbar" hidden>
-              <div class="player-meta">
-                <span id="track-position">0 / 0</span>
-                <span id="playback-state">Ready</span>
-              </div>
-
-              <div class="transport-controls" aria-label="Playback controls">
-                <button id="previous-button" class="player-action" type="button" aria-label="Previous example" disabled>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="m18 5-9 7 9 7z"></path>
-                    <path d="M6 5v14"></path>
-                  </svg>
-                </button>
-                <button id="back-button" class="player-action seek-button" type="button" aria-label="Back 5 seconds" disabled>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M7 8H3V4"></path>
-                    <path d="M4 8a9 9 0 1 1-1 7"></path>
-                  </svg>
-                  <span>5</span>
-                </button>
-                <button id="play-button" class="player-action play-button" type="button" aria-label="Play" disabled>
-                  <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="m8 5 11 7-11 7z"></path>
-                  </svg>
-                  <svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M8 5v14M16 5v14"></path>
-                  </svg>
-                </button>
-                <button id="forward-button" class="player-action seek-button" type="button" aria-label="Forward 5 seconds" disabled>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M17 8h4V4"></path>
-                    <path d="M20 8a9 9 0 1 0 1 7"></path>
-                  </svg>
-                  <span>5</span>
-                </button>
-                <button id="next-button" class="player-action" type="button" aria-label="Next example" disabled>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="m6 5 9 7-9 7z"></path>
-                    <path d="M18 5v14"></path>
-                  </svg>
-                </button>
-              </div>
-
-              <div class="secondary-controls">
-                <button id="replay-button" class="player-action control-pill" type="button" disabled>
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M7 8H3V4"></path>
-                    <path d="M4 8a9 9 0 1 1-1 7"></path>
-                  </svg>
-                  Replay
-                </button>
-                <button id="speed-button" class="player-action control-pill" type="button" disabled>
-                  Speed <strong id="speed-label">1×</strong>
-                </button>
-              </div>
-            </div>
+          <div id="youglish-widget" class="youglish-widget" hidden>
+            <p class="player-placeholder" aria-hidden="true">Loading video…</p>
           </div>
 
           <footer class="provider-links">
@@ -192,6 +133,7 @@
             <h2 id="wordbook-title">词本</h2>
             <span id="book-count" class="muted">0 个词</span>
           </div>
+          <div id="book-languages" class="book-languages" role="group" aria-label="按语言查看收藏"></div>
           <button id="start-review" class="review-start" type="button" disabled>
             <span><strong id="due-count">今日复习 · 0</strong><small>每轮最多 8 个词，先读再听</small></span>
             <span aria-hidden="true">→</span>
@@ -203,7 +145,7 @@
           <ul id="word-list" class="word-list" aria-label="收藏的词"></ul>
           <details class="book-tools">
             <summary>备份与安装</summary>
-            <p class="muted">词本保存在此设备。建议定期导出备份，换设备时再导入。</p>
+            <p class="muted">词本保存在此设备。备份包含所有语言，建议定期导出，换设备时再导入。</p>
             <div class="tool-actions">
               <button id="export-book" class="secondary-button" type="button" disabled>导出备份</button>
               <button id="import-book" class="secondary-button" type="button" disabled>导入备份</button>

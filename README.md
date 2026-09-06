@@ -2,17 +2,24 @@
 
 A mobile-first static web app for real-world pronunciation examples with
 [YouGlish](https://youglish.com/), a local wordbook, and short review sessions.
-Version **0.2.0**. No Python backend, database server, account, build step, or API
+Version **0.2.5**. No Python backend, database server, account, build step, or API
 key is required. The production site consists of HTML, CSS, JavaScript and icons.
 
 ## Use the app
 
 - **查词**: search English, Swedish, Dutch, French, or Chinese; select an accent,
   listen to examples, and reuse local search history.
+  Playback uses YouGlish's native controls inside the widget, alongside its
+  captions and speed controls. YouGlish handles their layout as content changes.
 - **收藏**: tap the star beside the current word. A favorite stores the word or
   phrase, language, accent and an optional note. The same word in the same
   language has one entry even when searched with a different accent.
 - **词本**: browse favorites, edit notes, and see how many words are due today.
+  Use the flag and count buttons to filter by language, or **全部** to show all
+  favorites. Word/note searches and review rounds use the selected language;
+  backups always include every language. The language selection is remembered.
+  Opening a word for lookup and returning to the wordbook restores the list's
+  previous scroll position, keeping the same visible entry in place.
 - **复习**: practice up to 8 due words per round (or the remaining due words if
   fewer).
   Read a word aloud first, optionally tap **听例句**, then choose **再练** or

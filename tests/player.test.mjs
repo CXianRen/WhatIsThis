@@ -48,7 +48,6 @@ async function setup(t) {
       widgets.push(this);
     }
     fetch(...args) { this.calls.push(["fetch", ...args]); }
-    play() { this.calls.push(["play"]); }
     close() { this.calls.push(["close"]); }
     emit(name, data) { this.options.events[name](data); }
   }
@@ -69,7 +68,7 @@ async function setup(t) {
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
-test("two players share SDK load and retain their playback options", async (t) => {
+test("search and review share SDK load and use native controls with their autoplay options", async (t) => {
   const env = await setup(t);
   const search = new env.Player({ container: env.container("search") });
   const review = new env.Player({ container: env.container("review"), components: 88, autoStart: 1 });
@@ -81,7 +80,7 @@ test("two players share SDK load and retain their playback options", async (t) =
   await flush();
   assert.equal(env.widgets.length, 2);
   assert.deepEqual(env.widgets[0].calls, [["fetch", "pear", "english", "uk"]]);
-  assert.equal(env.widgets[0].options.components, 8);
+  assert.equal(env.widgets[0].options.components, 88);
   assert.equal(env.widgets[0].options.autoStart, 0);
   assert.equal(env.widgets[1].options.components, 88);
   assert.equal(env.widgets[1].options.autoStart, 1);
@@ -123,8 +122,6 @@ test("close before ready removes the iframe and ignores stale events after reope
     container,
     onStatus: (...args) => events.push(args),
     onReady: () => events.push("ready"),
-    onTrackChange: () => events.push("track"),
-    onStateChange: () => events.push("state"),
   });
   player.search("apple", "english");
   await flush();
@@ -139,12 +136,10 @@ test("close before ready removes the iframe and ignores stale events after reope
   const count = events.length;
   old.emit("onFetchDone", { totalResult: 100 });
   old.emit("onPlayerReady");
-  old.emit("onVideoChange", { trackNumber: 2 });
-  old.emit("onPlayerStateChange", { state: 1 });
   old.emit("onError", { code: 1, idx: 5 });
   assert.equal(events.length, count);
-  assert.equal(player.totalResults, 0);
-  assert.equal(player.isReady, false);
+  env.widgets[1].emit("onPlayerReady");
+  assert.equal(events.at(-1), "ready", "the active widget still delivers readiness");
   player.close();
 });
 
@@ -159,7 +154,6 @@ test("close removes the iframe even when the provider close call throws", async 
   assert.doesNotThrow(() => player.close());
   assert.equal(container.children.length, 0);
   assert.equal(player.widget, null);
-  assert.equal(player.play(), false);
   assert.doesNotThrow(() => player.close());
 });
 
@@ -168,8 +162,13 @@ for (const failure of ["error", "timeout"]) {
     const env = await setup(t);
     const status = [];
     const player = new env.Player({ container: env.container(), onStatus: (...args) => status.push(args) });
+    const closedStatus = [];
+    const closed = new env.Player({ container: env.container("closed"), onStatus: (...args) => closedStatus.push(args) });
     if (failure === "timeout") t.mock.timers.enable({ apis: ["setTimeout"] });
     player.search("apple", "english");
+    closed.search("hello", "english");
+    closed.close();
+    const closedCount = closedStatus.length;
     const oldScript = env.head.children[0];
     if (failure === "timeout") t.mock.timers.tick(20_000);
     else oldScript.dispatchEvent(new Event("error"));
@@ -177,6 +176,7 @@ for (const failure of ["error", "timeout"]) {
     assert.equal(status.at(-1)[1], true);
     assert.equal(env.head.children.length, 0);
     assert.equal(player.readyPromise, null);
+    assert.equal(closedStatus.length, closedCount, "an SDK failure cannot update a closed player");
     player.search("pear", "english");
     assert.equal(env.head.children.length, 1);
     assert.notEqual(env.head.children[0], oldScript);
@@ -187,24 +187,37 @@ for (const failure of ["error", "timeout"]) {
   });
 }
 
-test("commands wait for ready and a reused ready player can search again", async (t) => {
+test("repeated searches update result status and recover after no results", async (t) => {
   const env = await setup(t);
   env.readySDK();
-  const player = new env.Player({ container: env.container() });
+  const status = [];
+  let readyCount = 0;
+  const player = new env.Player({
+    container: env.container(),
+    onStatus: (...args) => status.push(args),
+    onReady: () => { readyCount += 1; },
+  });
   player.search("apple", "english");
   await flush();
   const widget = env.widgets[0];
   widget.emit("onFetchDone", { totalResult: 2 });
-  assert.equal(player.play(), false);
+  assert.deepEqual(status.at(-1), ["2 pronunciation examples found.", false]);
   widget.emit("onPlayerReady");
-  assert.equal(player.play(), true);
-  player.search("pear", "english");
-  assert.equal(player.play(), false);
+  assert.equal(readyCount, 1);
+  player.search("pear", "english", "uk");
   widget.emit("onFetchDone", { totalResult: 1 });
-  assert.equal(player.play(), true);
+  assert.deepEqual(status.at(-1), ["1 pronunciation example found.", false]);
   widget.emit("onFetchDone", { totalResult: 0 });
-  assert.equal(player.isReady, false);
-  assert.equal(player.play(), false);
+  assert.deepEqual(status.at(-1), ["No pronunciation examples found.", true]);
+  player.search("orange", "english");
+  widget.emit("onFetchDone", { totalResult: 3 });
+  assert.deepEqual(status.at(-1), ["3 pronunciation examples found.", false]);
+  assert.equal(env.widgets.length, 1);
+  assert.deepEqual(widget.calls, [
+    ["fetch", "apple", "english"],
+    ["fetch", "pear", "english", "uk"],
+    ["fetch", "orange", "english"],
+  ]);
   player.close();
 });
 

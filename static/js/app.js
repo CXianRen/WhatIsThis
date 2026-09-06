@@ -1,4 +1,4 @@
-import YouGlishPlayer, { PLAYER_STATE } from "./youglish.js";
+import YouGlishPlayer from "./youglish.js";
 import { initWordbook } from "./wordbook.js";
 
 const HISTORY_KEY = "aidict.youglish.history.v1";
@@ -6,7 +6,6 @@ const LANGUAGE_KEY = "aidict.youglish.language.v1";
 const ACCENT_KEY = "aidict.youglish.accents.v1";
 const THEME_KEY = "aidict.theme.v1";
 const HISTORY_LIMIT = 12;
-const SPEEDS = [0.75, 1, 1.25];
 
 const languages = {
   english: {
@@ -64,15 +63,6 @@ const languages = {
   },
 };
 
-const stateLabels = {
-  [PLAYER_STATE.UNSTARTED]: "Loading",
-  [PLAYER_STATE.ENDED]: "Ended",
-  [PLAYER_STATE.PLAYING]: "Playing",
-  [PLAYER_STATE.PAUSED]: "Paused",
-  [PLAYER_STATE.BUFFERING]: "Buffering",
-  [PLAYER_STATE.CUED]: "Ready",
-};
-
 const form = document.querySelector("#search-form");
 const themeToggle = document.querySelector("#theme-toggle");
 const themeColorMeta = document.querySelector('meta[name="theme-color"]');
@@ -92,56 +82,15 @@ const clearHistoryButton = document.querySelector("#clear-history");
 const resultTitle = document.querySelector("#result-title");
 const status = document.querySelector("#status");
 const widgetContainer = document.querySelector("#youglish-widget");
-const playerToolbar = document.querySelector("#player-toolbar");
-const trackPosition = document.querySelector("#track-position");
-const playbackState = document.querySelector("#playback-state");
-const previousButton = document.querySelector("#previous-button");
-const backButton = document.querySelector("#back-button");
-const playButton = document.querySelector("#play-button");
-const forwardButton = document.querySelector("#forward-button");
-const nextButton = document.querySelector("#next-button");
-const replayButton = document.querySelector("#replay-button");
-const speedButton = document.querySelector("#speed-button");
-const speedLabel = document.querySelector("#speed-label");
-const playerActionButtons = [...document.querySelectorAll(".player-action")];
 
 let history = loadHistory();
 let accentPreferences = loadAccentPreferences();
 let selectedLanguage = "english";
 let activePicker = null;
-let playback = {
-  total: 0,
-  current: 0,
-  state: PLAYER_STATE.UNSTARTED,
-  speed: 1,
-};
 
 const player = new YouGlishPlayer({
   container: widgetContainer,
   onStatus: setStatus,
-  onFetch: ({ total }) => {
-    playback.total = total;
-    playback.current = total > 0 ? Math.max(1, playback.current) : 0;
-    updatePlayerControls();
-  },
-  onTrackChange: ({ trackNumber }) => {
-    playback.current = trackNumber > 0 ? trackNumber : 1;
-    updatePlayerControls();
-  },
-  onStateChange: (state) => {
-    playback.state = state;
-    updatePlayerControls();
-  },
-  onSpeedChange: (speed) => {
-    playback.speed = speed;
-    updatePlayerControls();
-  },
-  onReady: () => {
-    if (playback.total > 0 && playback.state === PLAYER_STATE.UNSTARTED) {
-      playback.state = PLAYER_STATE.CUED;
-    }
-    updatePlayerControls();
-  },
 });
 
 const wordbook = initWordbook({
@@ -158,7 +107,6 @@ const wordbook = initWordbook({
   onLeaveSearch: () => {
     player.close();
     widgetContainer.hidden = true;
-    resetPlayback();
     if (queryInput.value) setStatus("点击搜索，重新加载例句。");
     hideHistory();
     closeLocalePicker();
@@ -168,7 +116,6 @@ const wordbook = initWordbook({
 restoreLanguage();
 renderLocaleControls();
 renderHistory();
-updatePlayerControls();
 updateThemeControls();
 
 themeToggle.addEventListener("click", () => {
@@ -220,26 +167,6 @@ clearHistoryButton.addEventListener("click", () => {
   queryInput.focus();
 });
 
-previousButton.addEventListener("click", () => player.previous());
-backButton.addEventListener("click", () => player.move(-5));
-playButton.addEventListener("click", () => {
-  if (playback.state === PLAYER_STATE.PLAYING) {
-    player.pause();
-  } else if (playback.state === PLAYER_STATE.ENDED) {
-    player.replay();
-  } else {
-    player.play();
-  }
-});
-forwardButton.addEventListener("click", () => player.move(5));
-nextButton.addEventListener("click", () => player.next());
-replayButton.addEventListener("click", () => player.replay());
-speedButton.addEventListener("click", () => {
-  const currentIndex = SPEEDS.findIndex((speed) => Math.abs(speed - playback.speed) < 0.01);
-  const nextSpeed = SPEEDS[(currentIndex + 1) % SPEEDS.length];
-  player.setSpeed(nextSpeed);
-});
-
 document.addEventListener("pointerdown", (event) => {
   if (!form.contains(event.target)) hideHistory();
   if (!localeControls.contains(event.target) && !localePanel.contains(event.target)) closeLocalePicker();
@@ -272,7 +199,6 @@ function search(rawQuery, language, accent = "") {
   resultTitle.textContent = query;
   wordbook.setCurrent({ query, language, accent: safeAccent });
   widgetContainer.hidden = false;
-  resetPlayback();
   addHistory(query, language, safeAccent);
   hideHistory();
   queryInput.blur();
@@ -284,38 +210,6 @@ function search(rawQuery, language, accent = "") {
     player.search(query, language, safeAccent);
   }
   document.querySelector("#results").scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function resetPlayback() {
-  const currentSpeed = playback.speed;
-  playback = {
-    total: 0,
-    current: 0,
-    state: PLAYER_STATE.UNSTARTED,
-    speed: currentSpeed,
-  };
-  updatePlayerControls();
-}
-
-function updatePlayerControls() {
-  const hasResults = playback.total > 0;
-  const canControl = hasResults && player.isReady;
-  playerToolbar.hidden = !canControl;
-  playerActionButtons.forEach((button) => {
-    button.disabled = !canControl;
-  });
-
-  previousButton.disabled = !canControl || playback.current <= 1;
-  nextButton.disabled = !canControl || playback.current >= playback.total;
-  trackPosition.textContent = `${playback.current.toLocaleString()} / ${playback.total.toLocaleString()}`;
-  playbackState.textContent = hasResults
-    ? stateLabels[playback.state] || "Ready"
-    : "Waiting";
-  speedLabel.textContent = `${formatSpeed(playback.speed)}×`;
-
-  const isPlaying = playback.state === PLAYER_STATE.PLAYING;
-  playButton.classList.toggle("is-playing", isPlaying);
-  playButton.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
 }
 
 function renderLocaleControls() {
@@ -530,10 +424,6 @@ function formatLanguage(language, accent) {
   const languageLabel = languages[language]?.label || language;
   const accentLabel = languages[language]?.accents.find((option) => option.code === accent)?.label;
   return accent ? `${languageLabel} · ${accentLabel}` : languageLabel;
-}
-
-function formatSpeed(speed) {
-  return Number.isInteger(speed) ? speed.toFixed(0) : speed.toFixed(2).replace(/0$/, "");
 }
 
 function applyTheme(theme) {

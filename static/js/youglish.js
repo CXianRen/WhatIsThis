@@ -58,39 +58,20 @@ function loadSDK() {
   return sdkPromise;
 }
 
-export const PLAYER_STATE = Object.freeze({
-  UNSTARTED: -1,
-  ENDED: 0,
-  PLAYING: 1,
-  PAUSED: 2,
-  BUFFERING: 3,
-  CUED: 5,
-});
-
 export default class YouGlishPlayer {
   constructor({
     container,
-    components = 8,
+    components = 88, // Captions (8), speed (16), and native controls (64).
     autoStart = 0,
     onStatus = () => {},
-    onFetch = () => {},
-    onTrackChange = () => {},
-    onStateChange = () => {},
-    onSpeedChange = () => {},
     onReady = () => {},
   }) {
     this.container = container;
     this.components = components;
     this.autoStart = autoStart;
     this.onStatus = onStatus;
-    this.onFetch = onFetch;
-    this.onTrackChange = onTrackChange;
-    this.onStateChange = onStateChange;
-    this.onSpeedChange = onSpeedChange;
     this.onReady = onReady;
     this.widget = null;
-    this.isReady = false;
-    this.totalResults = 0;
     this.pendingSearch = null;
     this.readyPromise = null;
     this.generation = 0;
@@ -123,10 +104,7 @@ export default class YouGlishPlayer {
         captionSize: 28,
         events: {
           onFetchDone: guard((event) => this.handleFetchDone(event)),
-          onVideoChange: guard((event) => this.handleVideoChange(event)),
-          onPlayerReady: guard(() => this.handlePlayerReady()),
-          onPlayerStateChange: guard((event) => this.handleStateChange(event)),
-          onSpeedChange: guard((event) => this.handleSpeedChange(event)),
+          onPlayerReady: guard(() => this.onReady()),
           onError: guard((event) => this.handleError(event)),
         },
       });
@@ -160,10 +138,6 @@ export default class YouGlishPlayer {
     this.runPendingSearch();
   }
 
-  play() {
-    return this.runCommand("play", () => this.widget.play());
-  }
-
   close() {
     // Cancel this consumer without interrupting another player's shared SDK load.
     this.generation += 1;
@@ -171,8 +145,6 @@ export default class YouGlishPlayer {
     this.widget = null;
     this.readyPromise = null;
     this.pendingSearch = null;
-    this.isReady = false;
-    this.totalResults = 0;
     try {
       widget?.close();
     } catch {
@@ -182,37 +154,11 @@ export default class YouGlishPlayer {
     }
   }
 
-  pause() {
-    return this.runCommand("pause", () => this.widget.pause());
-  }
-
-  replay() {
-    return this.runCommand("replay", () => this.widget.replay());
-  }
-
-  next() {
-    return this.runCommand("next example", () => this.widget.next());
-  }
-
-  previous() {
-    return this.runCommand("previous example", () => this.widget.previous());
-  }
-
-  move(seconds) {
-    return this.runCommand("seek", () => this.widget.move(seconds));
-  }
-
-  setSpeed(speed) {
-    return this.runCommand("change speed", () => this.widget.setSpeed(speed));
-  }
-
   runPendingSearch() {
     if (!this.widget || !this.pendingSearch) return;
 
     const { query, language, accent } = this.pendingSearch;
     this.pendingSearch = null;
-    this.totalResults = 0;
-    // A successful new search can reuse the player without another onPlayerReady event.
     this.onStatus(`Searching for “${query}”…`);
 
     try {
@@ -226,51 +172,14 @@ export default class YouGlishPlayer {
     }
   }
 
-  runCommand(label, command) {
-    if (!this.widget || !this.isReady || this.totalResults === 0) return false;
-
-    try {
-      command();
-      return true;
-    } catch (error) {
-      this.onStatus(`Could not ${label}: ${error.message}`, true);
-      return false;
-    }
-  }
-
   handleFetchDone(event) {
-    const generation = this.generation;
     const total = Number(event?.totalResult || 0);
-    this.totalResults = total;
-    if (total === 0) this.isReady = false;
-    this.onFetch({ total, query: event?.query || "", language: event?.lang || "" });
-    if (generation !== this.generation) return;
     this.onStatus(
       total > 0
         ? `${total.toLocaleString()} pronunciation example${total === 1 ? "" : "s"} found.`
         : "No pronunciation examples found.",
       total === 0,
     );
-  }
-
-  handleVideoChange(event) {
-    this.onTrackChange({
-      trackNumber: Number(event?.trackNumber || 0),
-      videoId: event?.video || "",
-    });
-  }
-
-  handlePlayerReady() {
-    this.isReady = true;
-    this.onReady();
-  }
-
-  handleStateChange(event) {
-    this.onStateChange(Number(event?.state ?? PLAYER_STATE.UNSTARTED));
-  }
-
-  handleSpeedChange(event) {
-    this.onSpeedChange(Number(event?.speed || 1));
   }
 
   handleError(event) {
