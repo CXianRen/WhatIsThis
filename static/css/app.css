@@ -67,7 +67,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -85,7 +86,7 @@ select {
   padding: 8px 14px 24px;
   padding-top: calc(env(safe-area-inset-top) + 8px);
   padding-right: calc(env(safe-area-inset-right) + 14px);
-  padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 100px);
   padding-left: calc(env(safe-area-inset-left) + 14px);
 }
 
@@ -686,4 +687,506 @@ p {
   html {
     scroll-behavior: auto;
   }
+}
+
+/* Wordbook and review share the existing compact application shell. */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+button:focus-visible, summary:focus-visible, textarea:focus-visible, .book-filter:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.muted, .word-meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.result-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.result-heading .result-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.favorite-button {
+  flex: 0 0 44px;
+  width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  padding: 0;
+  color: var(--accent);
+  background: transparent;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.favorite-button[aria-pressed="true"] {
+  background: var(--accent-soft);
+}
+
+.bottom-nav {
+  position: fixed;
+  z-index: 10;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 540px;
+  border-top: 1px solid var(--line);
+  border-radius: 18px 18px 0 0;
+  padding: 6px max(14px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  background: var(--surface);
+  box-shadow: 0 -4px 24px var(--card-line);
+}
+
+.bottom-nav button {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.bottom-nav button[aria-current="page"] {
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+
+.bottom-nav svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.book-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.book-heading h2 {
+  min-width: 0;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+#wordbook-view {
+  padding-top: 8px;
+}
+
+.review-start {
+  display: flex;
+  width: 100%;
+  min-height: 86px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  text-align: left;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+
+.review-start strong {
+  display: block;
+  font-size: 1.04rem;
+}
+
+.review-start small {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.review-start > span:last-child {
+  font-size: 1.5rem;
+}
+
+.review-start:disabled {
+  opacity: 0.75;
+}
+
+.book-filter, .note-dialog textarea {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 16px;
+}
+
+.book-filter {
+  margin-top: 16px;
+}
+
+.book-status {
+  margin: 10px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.book-status:empty {
+  display: none;
+}
+
+.is-error, .danger {
+  color: var(--danger) !important;
+}
+
+.word-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.word-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  border-bottom: 1px solid var(--card-line);
+}
+
+.word-lookup {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+  min-height: 78px;
+  align-content: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 4px;
+  color: var(--ink);
+  background: transparent;
+  text-align: left;
+}
+
+.word-lookup:hover {
+  background: var(--card);
+}
+
+.word-lookup strong {
+  overflow-wrap: anywhere;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.word-note-preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.word-row-side {
+  flex: 0 0 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 9px 0;
+}
+
+.due-label {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.due-label.is-due {
+  color: var(--accent-ink);
+}
+
+.edit-word, .text-button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  padding: 8px;
+  color: var(--accent);
+  background: transparent;
+  font-size: 0.82rem;
+}
+
+.edit-word:hover, .text-button:hover {
+  background: var(--accent-soft);
+}
+
+.book-tools {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 6px;
+}
+
+.book-tools summary, .review-note summary {
+  min-height: 44px;
+  padding: 12px 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.book-tools p {
+  line-height: 1.6;
+}
+
+.tool-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.primary-button, .secondary-button {
+  min-height: 46px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.primary-button {
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.primary-button:active {
+  background: var(--accent-dark);
+}
+
+.secondary-button {
+  border-color: var(--line);
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.secondary-button:active {
+  background: var(--accent-soft);
+}
+
+.review-card {
+  padding: 22px 16px 16px;
+  border: 1px solid var(--card-line);
+  border-radius: 20px;
+  background: var(--card);
+}
+
+.review-card > .word-meta {
+  margin: 0;
+  text-align: center;
+}
+
+#review-word {
+  margin: 20px 0 12px;
+  font: 500 2.1rem/1.25 Georgia, "Times New Roman", serif;
+  text-align: center;
+  outline: none;
+}
+
+.review-hint {
+  margin: 0 0 22px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.82rem;
+}
+
+.review-note {
+  margin-bottom: 12px;
+}
+
+.review-note p {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+#listen-example {
+  display: block;
+  width: 100%;
+}
+
+.review-grades {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.review-grades button {
+  display: grid;
+  gap: 7px;
+  min-height: 72px;
+  padding: 12px 6px;
+}
+
+.review-grades strong {
+  font-size: 0.95rem;
+}
+
+.review-grades small {
+  font-size: 0.68rem;
+  font-weight: 400;
+}
+
+#review-widget {
+  margin-top: 12px;
+}
+
+.note-dialog {
+  width: calc(100% - 28px);
+  max-width: 460px;
+  max-height: calc(100svh - 32px);
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 18px;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.note-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.note-dialog .book-heading {
+  margin-bottom: 4px;
+}
+
+.note-dialog textarea {
+  margin-top: 8px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.note-dialog label {
+  font-size: 0.86rem;
+}
+
+.note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.note-actions .primary-button {
+  min-width: 96px;
+}
+
+.note-accents {
+  margin: 14px 0 18px;
+  border: 0;
+  padding: 0;
+}
+
+.note-accents legend {
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+#note-accent-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+#note-accent-options label {
+  position: relative;
+}
+
+#note-accent-options input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+#note-accent-options span {
+  display: grid;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+}
+
+#note-accent-options input:checked + span {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+
+#note-accent-options input:focus-visible + span {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.toast {
+  position: fixed;
+  z-index: 20;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(460px, calc(100% - 40px));
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: var(--history-shadow);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+.offline-indicator {
+  margin: 0 0 10px;
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  font-size: 0.78rem;
+  line-height: 1.5;
 }

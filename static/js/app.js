@@ -1,4 +1,5 @@
 import YouGlishPlayer, { PLAYER_STATE } from "./youglish.js";
+import { initWordbook } from "./wordbook.js";
 
 const HISTORY_KEY = "aidict.youglish.history.v1";
 const LANGUAGE_KEY = "aidict.youglish.language.v1";
@@ -10,7 +11,7 @@ const SPEEDS = [0.75, 1, 1.25];
 const languages = {
   english: {
     label: "English",
-    flag: "/static/flags/gb.svg",
+    flag: "./static/flags/gb.svg",
     accents: [
       { code: "", label: "All" },
       { code: "us", label: "US" },
@@ -24,12 +25,12 @@ const languages = {
   },
   swedish: {
     label: "Swedish",
-    flag: "/static/flags/se.svg",
+    flag: "./static/flags/se.svg",
     accents: [{ code: "", label: "All" }],
   },
   dutch: {
     label: "Dutch",
-    flag: "/static/flags/nl.svg",
+    flag: "./static/flags/nl.svg",
     accents: [
       { code: "", label: "All" },
       { code: "nl", label: "Netherlands" },
@@ -38,7 +39,7 @@ const languages = {
   },
   french: {
     label: "French",
-    flag: "/static/flags/fr.svg",
+    flag: "./static/flags/fr.svg",
     accents: [
       { code: "", label: "All" },
       { code: "fr", label: "France" },
@@ -49,7 +50,7 @@ const languages = {
   },
   chinese: {
     label: "Chinese",
-    flag: "/static/flags/cn.svg",
+    flag: "./static/flags/cn.svg",
     accents: [
       { code: "", label: "All" },
       { code: "cn", label: "Mainland" },
@@ -140,6 +141,27 @@ const player = new YouGlishPlayer({
       playback.state = PLAYER_STATE.CUED;
     }
     updatePlayerControls();
+  },
+});
+
+const wordbook = initWordbook({
+  languages,
+  formatLanguage,
+  onLookup: (entry) => {
+    selectedLanguage = entry.language;
+    accentPreferences[entry.language] = entry.accent;
+    writeStorage(LANGUAGE_KEY, entry.language);
+    saveAccentPreferences();
+    renderLocaleControls();
+    search(entry.query, entry.language, entry.accent);
+  },
+  onLeaveSearch: () => {
+    player.close();
+    widgetContainer.hidden = true;
+    resetPlayback();
+    if (queryInput.value) setStatus("点击搜索，重新加载例句。");
+    hideHistory();
+    closeLocalePicker();
   },
 });
 
@@ -248,12 +270,19 @@ function search(rawQuery, language, accent = "") {
   const safeAccent = isValidAccent(language, accent) ? accent : "";
   queryInput.value = query;
   resultTitle.textContent = query;
+  wordbook.setCurrent({ query, language, accent: safeAccent });
   widgetContainer.hidden = false;
   resetPlayback();
   addHistory(query, language, safeAccent);
   hideHistory();
   queryInput.blur();
-  player.search(query, language, safeAccent);
+  if (navigator.onLine === false) {
+    player.close();
+    widgetContainer.hidden = true;
+    setStatus("当前离线，可收藏这个词；联网后再搜索例句。", true);
+  } else {
+    player.search(query, language, safeAccent);
+  }
   document.querySelector("#results").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
